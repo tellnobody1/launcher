@@ -18,7 +18,6 @@ package com.anpmech.launcher.fragments;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Bundle;
@@ -87,13 +86,6 @@ public class SettingsFragment extends PreferenceFragment {
         final Preference about_project = findPreference("about_project_website");
         about_project.setSummary(projectUrl);
         about_project.setOnPreferenceClickListener(listener);
-
-        final Preference license = findPreference("license");
-        license.setOnPreferenceClickListener(listener);
-
-        final Preference contributors = findPreference("contributors");
-        contributors.setOnPreferenceClickListener(listener);
-        contributors.setSummary(projectUrl + "/contributors");
 
         return super.onCreateView(inflater, container, savedInstanceState);
     }

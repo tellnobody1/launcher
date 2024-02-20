@@ -28,8 +28,6 @@
     <string name="about_header">Om Ryūsei</string>
     <string name="about_version_code">Versjon</string>
     <string name="about_project_website">Prosjektnettside</string>
-    <string name="about_license">Lisens</string>
-    <string name="about_contributors_title">Bidragsytere</string>
     <string name="settings_autokeyboard">Åpne tastatur automatisk</string>
     <string name="settings_category_general_category">Generelt</string>
     <string name="settings_disable_icon_loading">Skru av ikonlasting</string>

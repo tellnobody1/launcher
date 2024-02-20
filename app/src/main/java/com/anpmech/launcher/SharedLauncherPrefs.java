@@ -22,8 +22,6 @@ import android.preference.PreferenceManager;
 
 import androidx.annotation.StringRes;
 
-import com.anpmech.launcher.R;
-
 /**
  * This class is used to retrieve shared preferences used by this package.
  */

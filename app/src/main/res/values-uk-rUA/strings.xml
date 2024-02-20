@@ -14,11 +14,9 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="about_contributors_title">Contributors</string>
-    <string name="about_header">About Ryūsei</string>
-    <string name="about_license">License</string>
-    <string name="about_project_website">Project Website</string>
-    <string name="about_version_code">Version</string>
+    <string name="about_header">Про Ryūsei</string>
+    <string name="about_project_website">Джерельний код</string>
+    <string name="about_version_code">Версія</string>
     <string name="activity_not_found">Activity not found.</string>
     <string name="application_icon_desc">Іконка застосунку</string>
     <string name="appmenu_info">Про застосунок</string>
@@ -34,9 +32,9 @@
     <string name="search_icon">Іконка пошуку</string>
     <string name="search_view_hint">Введіть щонебудь…</string>
     <string name="settings_app_name">Ryūsei налаштування</string>
-    <string name="settings_autokeyboard">Open keyboard automatically</string>
+    <string name="settings_autokeyboard">Автоматично показувати клавіатуру</string>
     <string name="settings_category_general_category">General</string>
-    <string name="settings_disable_icon_loading">Disable icon loading</string>
+    <string name="settings_disable_icon_loading">Вимкнути завантаження іконок</string>
     <string name="title_activity_settings">Налаштування</string>
     <string name="web_search">Web Search</string>
 </resources>
