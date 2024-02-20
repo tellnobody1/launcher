@@ -23,10 +23,6 @@
     <string name="activity_not_found">Nie znaleziono applikacji.</string>
     <string name="settings_autokeyboard">Automatycznie wysuwaj klawiaturę</string>
     <string name="settings_category_general_category">Ogólne</string>
-    <string name="pref_preferred_app_order_dialog">Kolejność aplikacji</string>
     <string name="settings_disable_icon_loading">Wyłącz ładowanie ikon aplikacji</string>
     <string name="appmenu_pin_to_top">Przypnij do góry</string>
-    <string name="pref_app_preferred_order_entries_recent">Ostatnio używane pierwsze</string>
-    <string name="pref_app_preferred_order_entries_alphabetical">Kolejność alfabetyczna</string>
-    <string name="pref_app_preferred_order_entries_usages">Najczęściej używane pierwsze</string>
 </resources>

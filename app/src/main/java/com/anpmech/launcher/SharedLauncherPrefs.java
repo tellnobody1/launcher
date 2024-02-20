@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2017 Hayai Software
  * Copyright 2018-2022 The KeikaiLauncher Project
+ * Copyright 2024 uaapps
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -49,34 +50,12 @@ public class SharedLauncherPrefs {
     }
 
     /**
-     * This is the string resource of the default order of the launchables.
-     *
-     * @return The string resource of the default order of the launchables.
-     */
-    @StringRes
-    private static int getDefaultLauncherOrder() {
-        return R.string.pref_app_preferred_order_entries_alphabetical;
-    }
-
-    /**
      * This returns whether icons should be enabled.
      *
      * @return {@code true} if icons should be enabled, {@code false} otherwise.
      */
     public boolean areIconsEnabled() {
         return !isPrefEnabled(R.string.pref_key_disable_icons, false);
-    }
-
-    /**
-     * This method returns the order launchables should be ordered in.
-     *
-     * @return The value of {@link R.string#pref_app_preferred_order_entries_alphabetical},
-     * {@link R.string#pref_app_preferred_order_entries_recent} or
-     * {@link R.string#pref_app_preferred_order_entries_usages}.
-     * @see #getDefaultLauncherOrder()
-     */
-    private String getLauncherOrder() {
-        return getValue(R.string.pref_key_preferred_order, getDefaultLauncherOrder());
     }
 
     /**
@@ -124,38 +103,6 @@ public class SharedLauncherPrefs {
      */
     public boolean isKeyboardAutomatic() {
         return isPrefEnabled(R.string.pref_key_auto_keyboard, false);
-    }
-
-    /**
-     * This method returns if the launchables should be ordered with
-     * {@link com.anpmech.launcher.comparators.AlphabeticalOrder}.
-     *
-     * @return {@code true} if launchables should be in alphabetical order, false otherwise.
-     */
-    public boolean isOrderedByAlphabetical() {
-        return !(isOrderedByRecent() || isOrderedByUsage());
-    }
-
-    /**
-     * This method returns if the launchables should be ordered with
-     * {@link com.anpmech.launcher.comparators.RecentOrder}.
-     *
-     * @return {@code true} if launchables should be in ordered by recent usage, {@code false}
-     * otherwise.
-     */
-    public boolean isOrderedByRecent() {
-        return getLauncherOrder().equals(getString(R.string.pref_value_preferred_order_recent));
-    }
-
-    /**
-     * This method returns if the launchables should be ordered with
-     * {@link com.anpmech.launcher.comparators.UsageOrder}.
-     *
-     * @return {@code true} if launchables should be ordered by frequency of usage, {@code false}
-     * otherwise.
-     */
-    public boolean isOrderedByUsage() {
-        return getLauncherOrder().equals(getString(R.string.pref_value_preferred_order_usage));
     }
 
     /**

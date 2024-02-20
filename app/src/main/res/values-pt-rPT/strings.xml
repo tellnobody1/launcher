@@ -25,5 +25,4 @@
     <string name="settings_category_general_category">Geral</string>
     <string name="appmenu_pin_to_top">Manter no topo</string>
     <string name="settings_disable_icon_loading">Desabilitar carregamento de icones</string>
-    <string name="pref_preferred_app_order_dialog">Ordem dos aplicativos</string>
 </resources>

@@ -23,9 +23,6 @@
     <string name="activity_not_found">Activité non trouvée.</string>
     <string name="settings_autokeyboard">Ouvrir le clavier automatiquement</string>
     <string name="settings_category_general_category">Général</string>
-    <string name="pref_preferred_app_order_dialog">Ordre des applications</string>
     <string name="settings_disable_icon_loading">Désactiver le chargement des icônes</string>
     <string name="appmenu_pin_to_top">Favori</string>
-    <string name="pref_app_preferred_order_entries_recent">Récemment utilisées</string>
-    <string name="pref_app_preferred_order_entries_alphabetical">Ordre alphabétique</string>
 </resources>

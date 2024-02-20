@@ -32,14 +32,8 @@
     <string name="about_contributors_title">Bidragsytere</string>
     <string name="settings_autokeyboard">Åpne tastatur automatisk</string>
     <string name="settings_category_general_category">Generelt</string>
-    <string name="pref_preferred_app_order_dialog">Programrang</string>
     <string name="settings_disable_icon_loading">Skru av ikonlasting</string>
     <string name="appmenu_pin_to_top">Fest til toppen</string>
     <string name="appmenu_remove_pin">Løsne</string>
-    <string name="pref_app_preferred_order_entries_recent">Nyligst brukte først</string>
-    <string name="pref_app_preferred_order_entries_alphabetical">Alfabetisk orden</string>
-    <string name="pref_app_preferred_order_entries_usages">Mest brukte først</string>
     <string name="pref_allow_rotation">Tillat endring av sideretning</string>
-    <string name="pref_modify_android_usage_title">Innvilg bruksstøttestatistikk</string>
-    <string name="pref_modify_android_usage_summary">Skru på bruksstøtte for mer nøyaktig rangering.</string>
 </resources>

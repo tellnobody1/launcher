@@ -681,9 +681,7 @@ public class SearchActivity extends Activity
     public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences,
                                           final String key) {
         //does this need to run in uiThread?
-        if (getString(R.string.pref_key_preferred_order).equals(key)) {
-            mAdapter.sortApps(this);
-        } else if (getString(R.string.pref_key_disable_icons).equals(key)) {
+        if (getString(R.string.pref_key_disable_icons).equals(key)) {
             recreate();
         } else if (getString(R.string.pref_key_allow_rotation).equals(key)) {
             setRotation(new SharedLauncherPrefs(this));

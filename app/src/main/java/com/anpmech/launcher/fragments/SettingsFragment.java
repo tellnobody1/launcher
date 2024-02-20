@@ -77,8 +77,6 @@ public class SettingsFragment extends PreferenceFragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        setUsageStatisticsStatus();
-
         // Set the version
         findPreference("about_version").setSummary(BuildConfig.VERSION_NAME);
 
@@ -119,17 +117,6 @@ public class SettingsFragment extends PreferenceFragment {
 
         context.getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
         orientationPreference.setEnabled(isOrientationLocked());
-    }
-
-    /**
-     * This method sets the usage statistics preference status by checking the availability of the
-     * UsageStats subsystem.
-     */
-    private void setUsageStatisticsStatus() {
-        final Preference pref = findPreference(R.string.pref_key_modify_usage_statistics);
-        final PackageManager pm = pref.getContext().getPackageManager();
-
-        pref.setEnabled(pref.getIntent().resolveActivity(pm) != null);
     }
 
     private final class LaunchPreferenceSummary implements Preference.OnPreferenceClickListener {

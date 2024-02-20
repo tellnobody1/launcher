@@ -21,11 +21,8 @@
     <string name="search_view_hint">Escribe algo…</string>
     <string name="appmenu_pin_to_top">Anclar al inicio</string>
     <string name="launch">Ir</string>
-    <string name="pref_app_preferred_order_entries_alphabetical">Ordenar alfabéticamente</string>
-    <string name="pref_app_preferred_order_entries_recent">Más usadas primero</string>
     <string name="activity_not_found">Actividad no encontrada</string>
     <string name="application_icon_desc">Ícono de aplicación</string>
     <string name="appmenu_info">Información</string>
-    <string name="pref_preferred_app_order_dialog">Orden de aplicaciones</string>
     <string name="settings_disable_icon_loading">Desactivar carga de íconos</string>
 </resources>

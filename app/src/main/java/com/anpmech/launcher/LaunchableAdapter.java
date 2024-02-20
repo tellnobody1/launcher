@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2017 Hayai Software
  * Copyright 2018-2022 The KeikaiLauncher Project
+ * Copyright 2024 uaapps
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -775,29 +776,11 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         final SharedLauncherPrefs prefs = new SharedLauncherPrefs(context);
         final Collection<T> launchables;
 
-        if (!prefs.isOrderedByAlphabetical()) {
-            if (mOriginalValues == null) {
-                launchables = mObjects;
-            } else {
-                launchables = mOriginalValues;
-            }
-
-            for (final T launchable : launchables) {
-                updateLaunchableStats(launchable);
-            }
-        }
-
         synchronized (mLock) {
             final boolean notify = mNotifyOnChange;
             mNotifyOnChange = false;
 
             sort(ALPHABETICAL);
-
-            if (prefs.isOrderedByRecent()) {
-                sort(RECENT);
-            } else if (prefs.isOrderedByUsage()) {
-                sort(USAGE);
-            }
 
             sort(PIN_TO_TOP);
 

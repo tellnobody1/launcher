@@ -29,13 +29,7 @@
     <string name="clear_button">Clear Text Button</string>
     <string name="launch">Go</string>
     <string name="pref_allow_rotation">Allow orientation change</string>
-    <string name="pref_app_preferred_order_entries_alphabetical">Alphabetical order</string>
-    <string name="pref_app_preferred_order_entries_recent">Most recently used first</string>
-    <string name="pref_app_preferred_order_entries_usages">Most used first</string>
     <string name="pref_enable_actionbar">Enable action bar</string>
-    <string name="pref_modify_android_usage_summary">Enable Android usage for more accurate ordering.</string>
-    <string name="pref_modify_android_usage_title">Set Android usage statistics support</string>
-    <string name="pref_preferred_app_order_dialog">App order</string>
     <string name="pref_value_landscape_invisible">invisible</string>
     <string name="pref_value_landscape_left">left</string>
     <string name="pref_value_landscape_right">right</string>

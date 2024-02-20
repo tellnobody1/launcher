@@ -1,8 +1,6 @@
 # launcher
 
-*A fork of HayaiLauncher*
-
-It is a fast, [free](https://en.wikipedia.org/wiki/Free_software), minimalist Android Launcher. Even though this fork is
+It is a fast, free, minimalist Android Launcher. Even though this fork is
 heavily modified this launcher is a tribute to the ideas and concepts of HayaiLauncher.
 
 ## Screenshots
