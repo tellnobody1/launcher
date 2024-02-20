@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2017 Hayai Software
  * Copyright 2018-2022 The KeikaiLauncher Project
+ * Copyright 2024 uaapps
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -12,21 +13,13 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    repositories {
-        mavenCentral()
-        google()
-    }
     dependencies {
-        classpath 'com.android.tools.build:gradle:7.3.1'
+        classpath 'org.eclipse.jgit:org.eclipse.jgit:6.8.0.202311291450-r'
     }
 }
 
-allprojects {
-    repositories {
-        mavenCentral()
-        google()
-    }
+plugins {
+    id 'com.android.application' version '8.2.2' apply false
 }
+

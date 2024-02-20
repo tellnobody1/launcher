@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2017 Hayai Software
  * Copyright 2018-2022 The KeikaiLauncher Project
+ * Copyright 2024 uaapps
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -82,9 +83,7 @@ public class SettingsFragment extends PreferenceFragment {
         findPreference("about_version").setSummary(BuildConfig.VERSION_NAME);
 
         // Setup the project name/url
-        final CharSequence githubUrl = "github.com/";
-        final CharSequence projectUrl = "https://www." + githubUrl + BuildConfig.GITHUB_USER +
-                '/' + BuildConfig.GITHUB_PROJECT;
+        final CharSequence projectUrl = getString(R.string.source_code);
         final LaunchPreferenceSummary listener = new LaunchPreferenceSummary();
 
         final Preference about_project = findPreference("about_project_website");
