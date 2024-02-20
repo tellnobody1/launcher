@@ -48,6 +48,7 @@ manifest-merger-release-report.txt
 
 # Windows thumbs
 Thumbs.db
+.DS_Store
 
 # Temp files
 *~

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2015-2017 Hayai Software
-  ~ Copyright 2018-2022 The KeikaiLauncher Project
+  ~ Copyright 2018-2024 The KeikaiLauncher Project
+  ~ Copyright 2024 uaapps
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
   ~ in compliance with the License. You may obtain a copy of the License at
@@ -14,16 +15,12 @@
   -->
 
 <resources>
-    <string name="action_settings">Configurações</string>
     <string name="application_icon_desc">Ícone do Aplicativo</string>
     <string name="search_view_hint">Digite algo…</string>
     <string name="title_activity_settings">Configurações</string>
     <string name="appmenu_launch">Executar</string>
     <string name="appmenu_info">Informações do aplicativo</string>
-    <string name="action_about">Sobre</string>
-    <string name="action_system_settings">Ajustes do dispositivo</string>
     <string name="activity_not_found">Atividade não encontrada.</string>
-    <string name="action_manage_apps">Gerenciar apps</string>
     <string name="appmenu_onplaystore">Abrir na loja de aplicativos</string>
     <string name="launch">Abrir</string>
     <string name="settings_autokeyboard">Abrir teclado automaticamente</string>
@@ -31,5 +28,4 @@
     <string name="appmenu_pin_to_top">Manter no topo</string>
     <string name="settings_disable_icon_loading">Desabilitar carregamento de icones</string>
     <string name="pref_preferred_app_order_dialog">Ordem dos aplicativos</string>
-    <string name="action_set_wallpaper">Trocar papel de parede</string>
 </resources>
