@@ -371,10 +371,6 @@ public class SearchActivity extends Activity
         }
     }
 
-    public void launchActivity(final MenuItem item) {
-        launchActivity(getLaunchableActivity(item));
-    }
-
     private void launchActivity(final View view) {
         launchActivity(getLaunchableActivity(view));
     }
@@ -385,14 +381,6 @@ public class SearchActivity extends Activity
         intent.setData(Uri.parse("package:" + activity.getComponent().getPackageName()));
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-    }
-
-    public void launchPlayStore(final MenuItem item) {
-        final LaunchableActivity activity = getLaunchableActivity(item);
-        final Intent intentPlayStore = new Intent(Intent.ACTION_VIEW);
-        intentPlayStore.setData(Uri.parse("market://details?id=" +
-                activity.getComponent().getPackageName()));
-        startActivity(intentPlayStore);
     }
 
     /**
