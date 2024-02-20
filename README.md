@@ -1,23 +1,9 @@
 # launcher
 
-# *This project is now archived. Consider migration to the spiritual sucessor [Kvaesitso](https://github.com/MM2-0/Kvaesitso).*
-
-[<img src="https://f-droid.org/badge/get-it-on.png"
-      alt="Get it on F-Droid"
-      height="80">](https://f-droid.org/app/com.anpmech.launcher)
-
 *A fork of HayaiLauncher*
 
 It is a fast, [free](https://en.wikipedia.org/wiki/Free_software), minimalist Android Launcher. Even though this fork is
 heavily modified this launcher is a tribute to the ideas and concepts of HayaiLauncher.
-
-## Changes from mainline
-
-See [CHANGELOG](CHANGELOG.md).
-
-## Download
-
-Install it from [f-droid repository](https://f-droid.org/app/com.anpmech.launcher).
 
 ## Screenshots
 
@@ -46,15 +32,6 @@ Install it from [f-droid repository](https://f-droid.org/app/com.anpmech.launche
 
 ## Development 
 
-### Branching model
-
-* [main](https://github.com/KeikaiLauncher/KeikaiLauncher) - This branch has commits considered finished and stable.
-* [next](https://github.com/KeikaiLauncher/KeikaiLauncher/tree/next) - This branch has commits which are unfinished,
-  under development and potentially unstable. This branch gets force merged all the time, so, the git commit structures
-  will never be stable.
-* [hacks](https://github.com/KeikaiLauncher/KeikaiLauncher/tree/hacks) - This branch is upstream of the 'next' branch,
-  it includes commits which will never be part of _main_, but might be considered pretty useful.
-
 ### Releasing a new version
 
 1. Cut a new branch named `release/<version>`, where version should be the intended release version followng semantic
@@ -80,4 +57,3 @@ Install it from [f-droid repository](https://f-droid.org/app/com.anpmech.launche
 
 **NOTE:** the git tag must literally match the version specified in the `app/build.gradle`. This is required for the
 _F-Droid_'s fastlane pipeline to pick up new versions of the application correctly.
-
