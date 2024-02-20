@@ -15,7 +15,7 @@
   -->
 <resources>
     <string name="about_contributors_title">Contributors</string>
-    <string name="about_header">About Keikai Launcher</string>
+    <string name="about_header">About Ryūsei</string>
     <string name="about_license">License</string>
     <string name="about_project_website">Project Website</string>
     <string name="about_version_code">Version</string>
@@ -41,6 +41,7 @@
     <string name="pref_value_landscape_right">right</string>
     <string name="search_icon">Іконка пошуку</string>
     <string name="search_view_hint">Введіть щонебудь…</string>
+    <string name="settings_app_name">Ryūsei налаштування</string>
     <string name="settings_autokeyboard">Open keyboard automatically</string>
     <string name="settings_category_general_category">General</string>
     <string name="settings_disable_icon_loading">Disable icon loading</string>

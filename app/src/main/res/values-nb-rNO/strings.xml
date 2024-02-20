@@ -13,10 +13,7 @@
   ~ either express or implied. See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <resources>
-    <string name="app_name" translatable="false">Keikai Launcher</string>
-    <string name="title_activity_search" translatable="false">Keikai Launcher</string>
     <string name="application_icon_desc">Programikon</string>
     <string name="search_icon">Søkeikon</string>
     <string name="clear_button">Knapp for teksttømming</string>
@@ -29,13 +26,10 @@
     <string name="appmenu_info">Programinfo</string>
     <string name="launch">Kjør</string>
     <string name="activity_not_found">Fant ikke aktivitet.</string>
-    <string name="about_header">Om Keikai Launcher</string>
+    <string name="about_header">Om Ryūsei</string>
     <string name="about_version_code">Versjon</string>
     <string name="about_project_website">Prosjektnettside</string>
     <string name="about_license">Lisens</string>
-    <string name="about_license_url" translatable="false">
-        http://www.apache.org/licenses/LICENSE-2.0.txt
-    </string>
     <string name="about_contributors_title">Bidragsytere</string>
     <string name="appmenu_onplaystore">Åpne i programmarked</string>
     <string name="settings_autokeyboard">Åpne tastatur automatisk</string>

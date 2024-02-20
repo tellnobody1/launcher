@@ -13,41 +13,41 @@
   ~ either express or implied. See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <resources>
-    <string name="app_name" translatable="false">Keikai Launcher</string>
-    <string name="title_activity_search" translatable="false">Keikai Launcher</string>
-    <string name="application_icon_desc">Application Icon</string>
-    <string name="search_icon">Search Icon</string>
-    <string name="clear_button">Clear Text Button</string>
-    <string name="search_view_hint">Type something…</string>
-    <string name="title_activity_settings">Settings</string>
-    <string name="pref_value_landscape_left">left</string>
-    <string name="pref_value_landscape_right">right</string>
-    <string name="pref_value_landscape_invisible">invisible</string>
-    <string name="appmenu_launch">Launch</string>
-    <string name="appmenu_info">App information</string>
-    <string name="launch">Go</string>
-    <string name="activity_not_found">Activity not found.</string>
-    <string name="about_header">About Keikai Launcher</string>
-    <string name="about_version_code">Version</string>
-    <string name="about_project_website">Project Website</string>
+    <string name="about_contributors_title">Contributors</string>
+    <string name="about_header">About Ryūsei</string>
     <string name="about_license">License</string>
     <string name="about_license_url" translatable="false">http://www.apache.org/licenses/LICENSE-2.0.txt</string>
-    <string name="about_contributors_title">Contributors</string>
+    <string name="about_project_website">Project Website</string>
+    <string name="about_version_code">Version</string>
+    <string name="activity_not_found">Activity not found.</string>
+    <string name="app_name" translatable="false">Ryūsei</string>
+    <string name="application_icon_desc">Application Icon</string>
+    <string name="appmenu_info">App information</string>
+    <string name="appmenu_launch">Launch</string>
     <string name="appmenu_onplaystore">Open on app market</string>
-    <string name="settings_autokeyboard">Open keyboard automatically</string>
-    <string name="settings_category_general_category">General</string>
-    <string name="pref_preferred_app_order_dialog">App order</string>
-    <string name="settings_disable_icon_loading">Disable icon loading</string>
     <string name="appmenu_pin_to_top">Pin To Top</string>
     <string name="appmenu_remove_pin">Remove Pin</string>
-    <string name="pref_app_preferred_order_entries_recent">Most recently used first</string>
-    <string name="pref_app_preferred_order_entries_alphabetical">Alphabetical order</string>
-    <string name="pref_app_preferred_order_entries_usages">Most used first</string>
+    <string name="clear_button">Clear Text Button</string>
+    <string name="launch">Go</string>
     <string name="pref_allow_rotation">Allow orientation change</string>
+    <string name="pref_app_preferred_order_entries_alphabetical">Alphabetical order</string>
+    <string name="pref_app_preferred_order_entries_recent">Most recently used first</string>
+    <string name="pref_app_preferred_order_entries_usages">Most used first</string>
     <string name="pref_enable_actionbar">Enable action bar</string>
-    <string name="pref_modify_android_usage_title">Set Android usage statistics support</string>
     <string name="pref_modify_android_usage_summary">Enable Android usage for more accurate ordering.</string>
+    <string name="pref_modify_android_usage_title">Set Android usage statistics support</string>
+    <string name="pref_preferred_app_order_dialog">App order</string>
+    <string name="pref_value_landscape_invisible">invisible</string>
+    <string name="pref_value_landscape_left">left</string>
+    <string name="pref_value_landscape_right">right</string>
+    <string name="search_icon">Search Icon</string>
+    <string name="search_view_hint">Type something…</string>
+    <string name="settings_app_name">Ryūsei Settings</string>
+    <string name="settings_autokeyboard">Open keyboard automatically</string>
+    <string name="settings_category_general_category">General</string>
+    <string name="settings_disable_icon_loading">Disable icon loading</string>
+    <string name="title_activity_search" translatable="false">Ryūsei</string>
+    <string name="title_activity_settings">Settings</string>
     <string name="web_search">Web Search</string>
 </resources>

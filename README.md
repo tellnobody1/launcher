@@ -1,4 +1,4 @@
-# KeikaiLauncher
+# launcher
 
 # *This project is now archived. Consider migration to the spiritual sucessor [Kvaesitso](https://github.com/MM2-0/Kvaesitso).*
 

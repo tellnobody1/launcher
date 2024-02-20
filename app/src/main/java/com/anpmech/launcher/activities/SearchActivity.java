@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2017 Hayai Software
  * Copyright 2018-2022 The KeikaiLauncher Project
+ * Copyright 2024 uaapps
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -438,7 +439,7 @@ public class SearchActivity extends Activity
 
             if (!prefs.isActionBarEnabled()) {
                 final Intent intent = new Intent(this, SettingsActivity.class);
-                adapter.add(new LaunchableActivity(intent, "Keikai Settings", R.drawable.ic_launcher));
+                adapter.add(new LaunchableActivity(intent, getString(R.string.settings_app_name), R.drawable.ic_launcher));
             }
             adapter.sortApps(this);
             adapter.notifyDataSetChanged();
