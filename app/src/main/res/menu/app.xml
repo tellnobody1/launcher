@@ -13,16 +13,12 @@
   ~ either express or implied. See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <item
-        android:onClick="launchApplicationDetails"
-        android:title="@string/appmenu_info" />
-
     <item
         android:id="@+id/appmenu_pin_to_top"
         android:onClick="pinToTop"
         android:title="@string/appmenu_pin_to_top" />
-
+    <item
+        android:onClick="launchApplicationDetails"
+        android:title="@string/appmenu_info" />
 </menu>

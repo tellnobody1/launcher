@@ -474,8 +474,6 @@ public class SearchActivity extends Activity
         final LaunchableActivity activity = getLaunchableActivity(menuInfo);
         final MenuItem item = menu.findItem(R.id.appmenu_pin_to_top);
 
-        menu.setHeaderTitle(activity.toString());
-
         if (activity.getPriority() == 0) {
             item.setTitle(R.string.appmenu_pin_to_top);
         } else {
