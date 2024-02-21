@@ -24,5 +24,4 @@
     <string name="activity_not_found">Actividad no encontrada</string>
     <string name="application_icon_desc">Ícono de aplicación</string>
     <string name="appmenu_info">Información</string>
-    <string name="settings_disable_icon_loading">Desactivar carga de íconos</string>
 </resources>

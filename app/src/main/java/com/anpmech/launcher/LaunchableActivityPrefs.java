@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2017 Hayai Software
  * Copyright 2018-2022 The KeikaiLauncher Project
+ * Copyright 2024 uaapps
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -36,10 +37,6 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
 
     private static final String KEY_ID = "Id";
 
-    private static final String KEY_LASTLAUNCHTIMESTAMP = "LastLaunchTimestamp";
-
-    private static final String KEY_USAGE_QUANTITY = "UsageQuantity";
-
     private static final String TABLE_NAME = "ActivityLaunchNumbers";
 
     public LaunchableActivityPrefs(final Context context) {
@@ -72,9 +69,9 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
     @Override
     public void onCreate(final SQLiteDatabase db) {
         final String tableCreate = String.format("CREATE TABLE %s (%S INTEGER PRIMARY KEY, " +
-                        "%s TEXT UNIQUE, %s INTEGER, %s INTEGER, %s INTEGER);",
-                TABLE_NAME, KEY_ID, KEY_CLASSNAME, KEY_LASTLAUNCHTIMESTAMP,
-                KEY_FAVORITE, KEY_USAGE_QUANTITY);
+                        "%s TEXT UNIQUE, %s INTEGER);",
+                TABLE_NAME, KEY_ID, KEY_CLASSNAME,
+                KEY_FAVORITE);
 
         db.execSQL(tableCreate);
     }
@@ -96,7 +93,7 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
         final SQLiteDatabase db = getReadableDatabase();
         final ComponentName name = launchableActivity.getComponent();
         final String[] whereArgs;
-        final String[] columns = {KEY_LASTLAUNCHTIMESTAMP, KEY_USAGE_QUANTITY, KEY_FAVORITE};
+        final String[] columns = {KEY_FAVORITE};
         final Cursor cursor;
 
         if (name == null) {
@@ -109,22 +106,10 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
                 null, null);
 
         if (cursor.moveToFirst()) {
-            int column = cursor.getColumnIndex(KEY_LASTLAUNCHTIMESTAMP);
-
-            if (column != -1) {
-                launchableActivity.setLaunchTime(cursor.getLong(column));
-            }
-
-            column = cursor.getColumnIndex(KEY_FAVORITE);
+            int column = cursor.getColumnIndex(KEY_FAVORITE);
 
             if (column != -1) {
                 launchableActivity.setPriority(cursor.getInt(column));
-            }
-
-            column = cursor.getColumnIndex(KEY_USAGE_QUANTITY);
-
-            if (column != -1) {
-                launchableActivity.setUsageQuantity(cursor.getInt(column));
             }
         }
 
@@ -140,17 +125,11 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
         final SQLiteDatabase db = getWritableDatabase();
         final ContentValues values = new ContentValues();
         final int priority = launchableActivity.getPriority();
-        final int usageQuantity = launchableActivity.getUsageQuantity();
         final ComponentName name = launchableActivity.getComponent();
         final String className;
 
         if (priority > 0) {
             values.put(KEY_FAVORITE, priority);
-        }
-
-        if (usageQuantity > 0) {
-            values.put(KEY_LASTLAUNCHTIMESTAMP, launchableActivity.getLaunchTime());
-            values.put(KEY_USAGE_QUANTITY, usageQuantity);
         }
 
         if (name == null) {

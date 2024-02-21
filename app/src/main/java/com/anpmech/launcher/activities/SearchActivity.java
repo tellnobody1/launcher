@@ -271,11 +271,10 @@ public class SearchActivity extends Activity
                                 @NonNull final Iterable<LauncherActivityInfo> infoList) {
         final String thisCanonicalName = getClass().getCanonicalName();
         final UserManager manager = (UserManager) getSystemService(Context.USER_SERVICE);
-        final boolean shouldLoadIcons = new SharedLauncherPrefs(this).areIconsEnabled();
 
         for (final LauncherActivityInfo info : infoList) {
             if (!thisCanonicalName.startsWith(info.getName())) {
-                adapter.add(new LaunchableActivity(info, manager, shouldLoadIcons));
+                adapter.add(new LaunchableActivity(info, manager));
             }
         }
     }
@@ -353,8 +352,6 @@ public class SearchActivity extends Activity
             try {
                 startActivity(launchableActivity.getLaunchIntent());
                 mSearchEditText.setText(null);
-                launchableActivity.setLaunchTime();
-                launchableActivity.addUsage();
                 launchableprefs.writePreference(launchableActivity);
 
                 mAdapter.sortApps(this);
@@ -596,7 +593,6 @@ public class SearchActivity extends Activity
         super.onResume();
         final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
 
-        mAdapter.updateUsageMap(this);
         final Editable searchText = mSearchEditText.getText();
 
         if ((prefs.isActionBarEnabled() && prefs.isKeyboardAutomatic()) ||
@@ -679,9 +675,7 @@ public class SearchActivity extends Activity
     public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences,
                                           final String key) {
         //does this need to run in uiThread?
-        if (getString(R.string.pref_key_disable_icons).equals(key)) {
-            recreate();
-        } else if (getString(R.string.pref_key_allow_rotation).equals(key)) {
+        if (getString(R.string.pref_key_allow_rotation).equals(key)) {
             setRotation(new SharedLauncherPrefs(this));
         }
     }
@@ -718,20 +712,6 @@ public class SearchActivity extends Activity
         unregisterReceiver(mPackageChangeReceiver);
 
         super.onStop();
-    }
-
-    /**
-     * This method clears the {@link LaunchableActivity} icons from memory on trim.
-     *
-     * @param level The level of memory trim requested.
-     */
-    @Override
-    public void onTrimMemory(final int level) {
-        super.onTrimMemory(level);
-        if (level == TRIM_MEMORY_COMPLETE) {
-            mAdapter.clearCaches();
-        }
-
     }
 
     /**

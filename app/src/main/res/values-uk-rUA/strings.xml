@@ -34,7 +34,6 @@
     <string name="settings_app_name">Ryūsei налаштування</string>
     <string name="settings_autokeyboard">Автоматично показувати клавіатуру</string>
     <string name="settings_category_general_category">General</string>
-    <string name="settings_disable_icon_loading">Вимкнути завантаження іконок</string>
     <string name="title_activity_settings">Налаштування</string>
     <string name="web_search">Web Search</string>
 </resources>

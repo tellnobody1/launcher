@@ -48,15 +48,6 @@ public class SharedLauncherPrefs {
     }
 
     /**
-     * This returns whether icons should be enabled.
-     *
-     * @return {@code true} if icons should be enabled, {@code false} otherwise.
-     */
-    public boolean areIconsEnabled() {
-        return !isPrefEnabled(R.string.pref_key_disable_icons, false);
-    }
-
-    /**
      * The used {@link SharedPreferences} object.
      *
      * @return The used SharedPreferences object.

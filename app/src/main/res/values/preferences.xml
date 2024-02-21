@@ -1,6 +1,7 @@
 <!--
   ~ Copyright 2015-2017 Hayai Software
   ~ Copyright 2018-2022 The KeikaiLauncher Project
+  ~ Copyright 2024 uaapps
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
   ~ in compliance with the License. You may obtain a copy of the License at
@@ -12,7 +13,6 @@
   ~ either express or implied. See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <resources>
     <!-- This string is the key used to retrieve whether to enable the actionbar -->
     <string name="pref_key_actionbar" translatable="false">pref_enable_actionbar</string>
@@ -22,7 +22,4 @@
 
     <!-- This string is the key used to retrieve the value for autokeyboard preference. -->
     <string name="pref_key_auto_keyboard" translatable="false">pref_autokeyboard</string>
-
-    <!-- This string is the key used to retrieve the value for icon preference. -->
-    <string name="pref_key_disable_icons" translatable="false">pref_disable_icons</string>
 </resources>

@@ -24,6 +24,7 @@ import android.app.usage.UsageStatsManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,7 +33,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.LayoutRes;
@@ -41,9 +41,6 @@ import androidx.annotation.Nullable;
 
 import com.anpmech.launcher.comparators.AlphabeticalOrder;
 import com.anpmech.launcher.comparators.PinToTop;
-import com.anpmech.launcher.comparators.RecentOrder;
-import com.anpmech.launcher.comparators.UsageOrder;
-import com.anpmech.launcher.threading.SimpleTaskConsumerManager;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -73,18 +70,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     public static final Comparator<LaunchableActivity> PIN_TO_TOP = new PinToTop();
 
-    /**
-     * This comparator orders {@link LaunchableActivity} objects in most recently used at the head
-     * of the list.
-     */
-    public static final Comparator<LaunchableActivity> RECENT = new RecentOrder();
-
-    /**
-     * This comparator orders {@link LaunchableActivity} objects in most used order at the head
-     * of the list.
-     */
-    public static final Comparator<LaunchableActivity> USAGE = new UsageOrder();
-
     private static final Pattern DIACRITICAL_MARKS =
             Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
 
@@ -94,15 +79,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * The {@link Filter} used by this list {@code Adapter}.
      */
     private final LaunchableFilter mFilter = new LaunchableFilter();
-
-    /**
-     * The size of the icons to load, in pixels, if enabled.
-     */
-    private final int mIconSizePixels;
-
-    private final SimpleTaskConsumerManager mImageLoadingConsumersManager;
-
-    private final ImageLoadingTask.Factory mImageTasks;
 
     /**
      * Lock used to modify the content of {@link #mObjects}. Any write operation
@@ -157,10 +133,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         final Resources res = context.getResources();
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
-        mIconSizePixels = res.getDimensionPixelSize(R.dimen.app_icon_size);
-        mImageLoadingConsumersManager =
-                new SimpleTaskConsumerManager(getOptimalNumberOfThreads(res), 300);
-        mImageTasks = new ImageLoadingTask.Factory(mIconSizePixels);
         mPrefs = new LaunchableActivityPrefs(context);
         mSearch = webSearch;
         mUsageMap = new HashMap<>(0);
@@ -187,21 +159,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         if (lists[1] != null) {
             mOriginalValues = (List<T>) lists[1];
         }
-    }
-
-    private static int getOptimalNumberOfThreads(final Resources resources) {
-        final int numOfCores = Runtime.getRuntime().availableProcessors();
-        final int maxThreads = resources.getInteger(R.integer.max_imageloading_threads);
-        int numThreads = numOfCores - 1;
-
-        //clamp numThreads
-        if (numThreads < 1) {
-            numThreads = 1;
-        } else if (numThreads > maxThreads) {
-            numThreads = maxThreads;
-        }
-
-        return numThreads;
     }
 
     /**
@@ -319,18 +276,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         }
     }
 
-    public void clearCaches() {
-        for (final LaunchableActivity activity : mObjects) {
-            activity.deleteActivityIcon();
-        }
-
-        if (mOriginalValues != null) {
-            for (final LaunchableActivity activity : mOriginalValues) {
-                activity.deleteActivityIcon();
-            }
-        }
-    }
-
     /**
      * The Object from this method is for use with
      * {@link Activity#onRetainNonConfigurationInstance()} and
@@ -340,31 +285,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     public Object export() {
         return new List<?>[]{mObjects, mOriginalValues};
-    }
-
-    /**
-     * This method returns the actual time an activity was used, if available.
-     *
-     * @param activity The activity to return the last usage for.
-     * @return The last time this LaunchableActivity was used according to the Android usage
-     * system, -1L if not available for whatever reason.
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private long getActualLastUsed(final LaunchableActivity activity) {
-        final String packageName = activity.getComponent().getPackageName();
-        final long lastUsed;
-
-        if (mUsageMap.containsKey(packageName)) {
-            lastUsed = mUsageMap.get(packageName).getLastTimeUsed();
-        } else {
-            if (mUsageMap.isEmpty()) {
-                lastUsed = -1L;
-            } else {
-                lastUsed = 0L;
-            }
-        }
-
-        return lastUsed;
     }
 
     /**
@@ -502,29 +422,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         return position;
     }
 
-    /**
-     * This method returns the usage time as stored by Android.
-     *
-     * @param activity The LaunchableActivity to retrieve the usage time for.
-     * @return The usage time in milliseconds, -1L if not available for whatever reason.
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private long getUsageTime(final LaunchableActivity activity) {
-        final String packageName = activity.getComponent().getPackageName();
-        final long actualUsage;
-
-        if (mUsageMap.containsKey(packageName)) {
-            actualUsage = mUsageMap.get(packageName).getTotalTimeInForeground();
-        } else {
-            if (mUsageMap.isEmpty()) {
-                actualUsage = -1L;
-            } else {
-                actualUsage = 0L;
-            }
-        }
-
-        return actualUsage;
-    }
 
     /**
      * The {@link View} used as a grid item for the LaunchableAdapter {@code GridView}.
@@ -556,22 +453,15 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         }
         final CharSequence label = launchableActivity.toString();
         final TextView appLabelView = view.findViewById(R.id.appLabel);
-        final ImageView appIconView = view.findViewById(R.id.appIcon);
+        final LetterIconView appIconView = view.findViewById(R.id.appIcon);
         final View appPinToTop = view.findViewById(R.id.appPinToTop);
 
         appLabelView.setText(label);
 
         appIconView.setTag(launchableActivity);
-        if (launchableActivity.isIconLoaded()) {
-            appIconView.setImageDrawable(
-                    launchableActivity.getActivityIcon(parent.getContext(), mIconSizePixels));
-        } else {
-            final SharedLauncherPrefs prefs = new SharedLauncherPrefs(parent.getContext());
-            if (prefs.areIconsEnabled()) {
-                mImageLoadingConsumersManager.addTask(mImageTasks.create(appIconView,
-                        launchableActivity));
-            }
-        }
+        if (label.length() > 0)
+            appIconView.setLetter(String.valueOf(label.charAt(0)));
+        appIconView.setBackgroundColor(Color.GRAY);
 
         if (launchableActivity.getPriority() > 0) {
             appPinToTop.setVisibility(View.VISIBLE);
@@ -619,50 +509,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     public void onStop() {
         mPrefs.close();
-
-        if (mImageLoadingConsumersManager != null) {
-            mImageLoadingConsumersManager.destroyAllConsumers(false);
-        }
-    }
-
-    public boolean remove(final int index) {
-        final List<T> current;
-        final T result;
-
-        synchronized (mLock) {
-            if (mOriginalValues == null) {
-                current = mObjects;
-            } else {
-                current = mOriginalValues;
-            }
-
-            result = current.remove(index);
-        }
-
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
-        }
-
-        return result != null;
-    }
-
-    /**
-     * Removes the specified object from the array.
-     *
-     * @param object The object to remove.
-     */
-    public void remove(@Nullable final T object) {
-        synchronized (mLock) {
-            if (mOriginalValues == null) {
-                mObjects.remove(object);
-            } else {
-                mOriginalValues.remove(object);
-            }
-        }
-
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
-        }
     }
 
     /**
@@ -773,9 +619,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * This method sorts all {@link LaunchableActivity} objects in this {@code Adapter}.
      */
     public void sortApps(final Context context) {
-        final SharedLauncherPrefs prefs = new SharedLauncherPrefs(context);
-        final Collection<T> launchables;
-
         synchronized (mLock) {
             final boolean notify = mNotifyOnChange;
             mNotifyOnChange = false;
@@ -806,33 +649,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         }
 
         return toString;
-    }
-
-    /**
-     * This method updates a LaunchableActivity with statistics from the Android
-     * {@link UsageStatsManager} subsystem.
-     *
-     * @param launchable The launchable to update.
-     */
-    private void updateLaunchableStats(final LaunchableActivity launchable) {
-        final long usageTime = getUsageTime(launchable);
-        final long actualLastUse = getActualLastUsed(launchable);
-        final long launcherLastUse = launchable.getLaunchTime();
-
-        if (actualLastUse > launcherLastUse) {
-            launchable.setLaunchTime(actualLastUse);
-        }
-
-        launchable.setUsageTime(usageTime);
-    }
-
-    /**
-     * This method updates the Map from the {@link UsageStatsManager} subsystem.
-     *
-     * @param context The context to use to obtain the Map from the UsageStatsManager subsystem.
-     */
-    public void updateUsageMap(final Context context) {
-        mUsageMap.putAll(getUsageStats(context));
     }
 
     /**
