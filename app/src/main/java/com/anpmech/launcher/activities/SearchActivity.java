@@ -84,6 +84,7 @@ import com.anpmech.launcher.monitor.PackageChangedReceiver;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.ListIterator;
+import java.util.Objects;
 
 /**
  * This class is the main {@link Activity} for this launcher.
@@ -918,11 +919,13 @@ public class SearchActivity extends Activity
                     event.getKeyCode() == KeyEvent.KEYCODE_ENTER;
 
             if (actionId == EditorInfo.IME_ACTION_GO || (enterPressed && !mAdapter.isEmpty())) {
-                launchActivity(mAdapter.getItem(0));
-                actionConsumed = true;
-            } else {
+                if (mAdapter.getCount() > 0) {
+                    launchActivity(Objects.requireNonNull(mAdapter.getItem(0)));
+                    actionConsumed = true;
+                } else
+                    actionConsumed = false;
+            } else
                 actionConsumed = false;
-            }
 
             return actionConsumed;
         }

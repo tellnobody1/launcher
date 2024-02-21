@@ -282,35 +282,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
     }
 
     /**
-     * Returns the position of a {@link LaunchableActivity} where the
-     * {@link LaunchableActivity#getComponent()}.{@link ComponentName#getPackageName()} is
-     * equal to the {@code className} parameter.
-     *
-     * @param packageName The package name to find in this adapter.
-     * @return The LaunchableActivity matching the classname parameter, {@code -1} if not found.
-     */
-    public int getPackageNamePosition(@NonNull final String packageName) {
-        final List<T> current;
-        int position = -1;
-
-        if (mOriginalValues == null) {
-            current = mObjects;
-        } else {
-            current = mOriginalValues;
-        }
-
-        final int currentSize = current.size();
-        for (int i = 0; i < currentSize && position == -1; i++) {
-            if (current.get(i).getComponent().getPackageName().equals(packageName)) {
-                position = i;
-            }
-        }
-
-        return position;
-    }
-
-
-    /**
      * The {@link View} used as a grid item for the LaunchableAdapter {@code GridView}.
      *
      * @param position    The position to of the {@link LaunchableActivity} to return a {@code
