@@ -29,7 +29,7 @@
     <string name="search_icon">Іконка пошуку</string>
     <string name="search_view_hint"> </string>
     <string name="settings_app_name">Ryūsei налаштування</string>
-    <string name="settings_autokeyboard">Показувати клавіатуру</string>
+    <string name="settings_autokeyboard">Показати клавіатуру</string>
     <string name="settings_category_general_category">Загальні</string>
     <string name="title_activity_settings">Налаштування</string>
 </resources>

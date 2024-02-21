@@ -79,10 +79,9 @@ public class SettingsFragment extends PreferenceFragment {
         // Set the version
         findPreference("about_version").setSummary(BuildConfig.VERSION_NAME);
 
-        final LaunchPreferenceSummary listener = new LaunchPreferenceSummary();
+        final LaunchPreferenceSummary listener = new LaunchPreferenceSummary(getString(R.string.source_code));
 
         final Preference about_project = findPreference("about_project_website");
-        about_project.setSummary(getString(R.string.source_code));
         about_project.setOnPreferenceClickListener(listener);
 
         return super.onCreateView(inflater, container, savedInstanceState);
@@ -110,11 +109,16 @@ public class SettingsFragment extends PreferenceFragment {
     }
 
     private final class LaunchPreferenceSummary implements Preference.OnPreferenceClickListener {
+        private final String url;
+
+        public LaunchPreferenceSummary(String url) {
+            this.url = url;
+        }
+
         @Override
         public boolean onPreferenceClick(Preference preference) {
             final Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(preference.getSummary().toString()));
-
+            intent.setData(Uri.parse(url));
             startActivity(intent);
             return true;
         }
