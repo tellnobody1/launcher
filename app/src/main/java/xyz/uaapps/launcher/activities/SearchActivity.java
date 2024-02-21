@@ -924,7 +924,7 @@ public class SearchActivity extends Activity
 
             if (actionId == EditorInfo.IME_ACTION_GO || (enterPressed && !mAdapter.isEmpty())) {
                 if (mAdapter.getCount() > 0) {
-                    launchActivity(Objects.requireNonNull(mAdapter.getItem(0)));
+                    launchActivity(mAdapter.getItem(0));
                     actionConsumed = true;
                 } else
                     actionConsumed = false;
