@@ -347,8 +347,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
 
         appIconView.setTag(launchableActivity);
         if (label.length() > 0)
-            appIconView.setLetter(String.valueOf(label.charAt(0)));
-        appIconView.setBackgroundColor(Color.GRAY);
+            appIconView.set(label.toString());
 
         if (launchableActivity.getPriority() > 0) {
             appPinToTop.setVisibility(View.VISIBLE);
