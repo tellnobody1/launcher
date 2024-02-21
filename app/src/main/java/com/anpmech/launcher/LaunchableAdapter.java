@@ -545,7 +545,8 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                     for (int i = 0; i < count; i++) {
                         final T value = values.get(i);
 
-                        if (value.toString().toLowerCase().contains(prefixString)) {
+                        var lowerCasedValue = value.toString().toLowerCase();
+                        if (QueryVariants.check(prefixString, lowerCasedValue)) {
                             newValues.add(value);
                         }
                     }

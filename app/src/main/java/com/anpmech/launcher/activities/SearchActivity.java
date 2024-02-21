@@ -170,7 +170,8 @@ public class SearchActivity extends Activity
 
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        intent.setPackage(activityName);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.DONUT)
+            intent.setPackage(activityName);
 
         return pm.queryIntentActivities(intent, 0);
     }
@@ -391,7 +392,7 @@ public class SearchActivity extends Activity
                 final UserManager manager = (UserManager) getSystemService(Context.USER_SERVICE);
                 final LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
                 final ListIterator<UserHandle> iter = manager.getUserProfiles().listIterator();
-                int count = 1; // Add the web launchable to the count
+                int count = 0;
 
                 while (iter.hasNext()) {
                     count += launcherApps.getActivityList(null, iter.next()).size();
@@ -491,7 +492,10 @@ public class SearchActivity extends Activity
         final int[] loc = {0, 0};
         view.getLocationInWindow(loc);
         if (loc[1] != 0) {
-            view.smoothScrollToPosition(0);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
+                view.smoothScrollToPosition(0);
+            else
+                view.setSelection(0);
         }
     }
 
