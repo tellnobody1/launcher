@@ -3,20 +3,23 @@ package xyz.uaapps.launcher;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.N;
 
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class QueryVariants {
     public static boolean check(String input, String target) {
         if (SDK_INT >= N) {
-            if (target.contains(input.chars().mapToObj(QueryVariants::toCyrillic).collect(Collectors.joining())))
-                return true;
-            else if (target.contains(input.chars().mapToObj(QueryVariants::toLatin).collect(Collectors.joining())))
-                return true;
-            else
-                return false;
-        } else {
+            var targets = Arrays.asList(
+                target,
+                target.replace("-", "")
+            );
+            var inputs = Arrays.asList(
+                input.chars().mapToObj(QueryVariants::toCyrillic).collect(Collectors.joining()),
+                input.chars().mapToObj(QueryVariants::toLatin).collect(Collectors.joining())
+            );
+            return inputs.stream().anyMatch(i -> targets.stream().anyMatch(t -> t.contains(i)));
+        } else
             return target.contains(input);
-        }
     }
 
     private static String toCyrillic(int x) {
