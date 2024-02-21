@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.anpmech.launcher;
+package xyz.uaapps.launcher;
 
 import android.content.ComponentName;
 import android.content.ContentValues;

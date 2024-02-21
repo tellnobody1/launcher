@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.anpmech.launcher.fragments;
+package xyz.uaapps.launcher.fragments;
 
 import android.content.Context;
 import android.content.Intent;
@@ -32,8 +32,8 @@ import android.view.ViewGroup;
 
 import androidx.annotation.StringRes;
 
-import com.anpmech.launcher.BuildConfig;
-import com.anpmech.launcher.R;
+import xyz.uaapps.launcher.BuildConfig;
+import xyz.uaapps.launcher.R;
 
 public class SettingsFragment extends PreferenceFragment {
 

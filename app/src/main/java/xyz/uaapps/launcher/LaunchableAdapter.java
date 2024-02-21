@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.anpmech.launcher;
+package xyz.uaapps.launcher;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -32,8 +32,8 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.anpmech.launcher.comparators.AlphabeticalOrder;
-import com.anpmech.launcher.comparators.PinToTop;
+import xyz.uaapps.launcher.comparators.AlphabeticalOrder;
+import xyz.uaapps.launcher.comparators.PinToTop;
 
 import java.text.Normalizer;
 import java.util.ArrayList;

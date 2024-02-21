@@ -1,4 +1,4 @@
-package com.anpmech.launcher;
+package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.N;

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.anpmech.launcher.comparators;
+package xyz.uaapps.launcher.comparators;
 
-import com.anpmech.launcher.LaunchableActivity;
+import xyz.uaapps.launcher.LaunchableActivity;
 
 import java.text.Collator;
 import java.util.Comparator;

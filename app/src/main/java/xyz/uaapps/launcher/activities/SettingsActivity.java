@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2017 Hayai Software
  * Copyright 2018-2022 The KeikaiLauncher Project
+ * Copyright 2024 uaapps
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.anpmech.launcher.activities;
+package xyz.uaapps.launcher.activities;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -21,7 +22,7 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.widget.ListView;
 
-import com.anpmech.launcher.fragments.SettingsFragment;
+import xyz.uaapps.launcher.fragments.SettingsFragment;
 
 public class SettingsActivity extends PreferenceActivity {
 

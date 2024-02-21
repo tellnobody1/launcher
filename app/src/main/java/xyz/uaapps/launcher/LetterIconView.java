@@ -1,4 +1,4 @@
-package com.anpmech.launcher;
+package xyz.uaapps.launcher;
 
 import android.content.Context;
 import android.graphics.Canvas;

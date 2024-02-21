@@ -1,6 +1,7 @@
 /*
  * Copyright 2015-2017 Hayai Software
  * Copyright 2018-2022 The KeikaiLauncher Project
+ * Copyright 2024 uaapps
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.anpmech.launcher.comparators;
+package xyz.uaapps.launcher.comparators;
 
-import com.anpmech.launcher.LaunchableActivity;
+import xyz.uaapps.launcher.LaunchableActivity;
 
 import java.util.Comparator;
 

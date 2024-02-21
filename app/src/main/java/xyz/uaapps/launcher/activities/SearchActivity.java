@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.anpmech.launcher.activities;
+package xyz.uaapps.launcher.activities;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -72,14 +72,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import com.anpmech.launcher.BuildConfig;
-import com.anpmech.launcher.LaunchableActivity;
-import com.anpmech.launcher.LaunchableActivityPrefs;
-import com.anpmech.launcher.LaunchableAdapter;
-import com.anpmech.launcher.R;
-import com.anpmech.launcher.SharedLauncherPrefs;
-import com.anpmech.launcher.monitor.PackageChangeCallback;
-import com.anpmech.launcher.monitor.PackageChangedReceiver;
+import xyz.uaapps.launcher.BuildConfig;
+import xyz.uaapps.launcher.LaunchableActivity;
+import xyz.uaapps.launcher.LaunchableActivityPrefs;
+import xyz.uaapps.launcher.LaunchableAdapter;
+import xyz.uaapps.launcher.R;
+import xyz.uaapps.launcher.SharedLauncherPrefs;
+import xyz.uaapps.launcher.monitor.PackageChangeCallback;
+import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;

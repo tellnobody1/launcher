@@ -18,7 +18,7 @@
     android:layout_height="@dimen/app_row_column_height"
     android:orientation="vertical">
 
-    <com.anpmech.launcher.LetterIconView
+    <xyz.uaapps.launcher.LetterIconView
         android:id="@+id/appIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
