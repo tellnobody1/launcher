@@ -1,94 +1,100 @@
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.N;
-
 import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+
+import java.util.List;
 
 public class QueryVariants {
+
     public static boolean check(String input, String target) {
-        if (SDK_INT >= N) {
-            var targets = Arrays.asList(
+        List<String> targets = Arrays.asList(
                 target,
                 target.replace("-", "")
-            );
-            var inputs = Arrays.asList(
-                input.chars().mapToObj(QueryVariants::toCyrillic).collect(Collectors.joining()),
-                input.chars().mapToObj(QueryVariants::toLatin).collect(Collectors.joining())
-            );
-            return inputs.stream().anyMatch(i -> targets.stream().anyMatch(t -> t.contains(i)));
-        } else
-            return target.contains(input);
+        );
+        List<String> inputs = Arrays.asList(
+                convertChars(input, toCyrillic),
+                convertChars(input, toLatin)
+        );
+        for (String i : inputs) for (String t : targets) if (t.contains(i)) return true;
+        return false;
     }
 
-    private static String toCyrillic(int x) {
-        return String.valueOf(switch (x) {
-            case 'a' -> 'а';
-            case 'b' -> 'б';
-            case 'c' -> 'к';
-            case 'd' -> 'д';
-            case 'e' -> 'е';
-            case 'f' -> 'ф';
-            case 'g' -> 'г';
-            case 'h' -> 'г';
-            case 'i' -> 'і';
-            case 'j' -> 'ж';
-            case 'k' -> 'к';
-            case 'l' -> 'л';
-            case 'm' -> 'м';
-            case 'n' -> 'н';
-            case 'o' -> 'о';
-            case 'p' -> 'п';
-            case 'q' -> 'к';
-            case 'r' -> 'р';
-            case 's' -> 'с';
-            case 't' -> 'т';
-            case 'u' -> 'у';
-            case 'v' -> 'в';
-            case 'w' -> 'в';
-            case 'x' -> 'х';
-            case 'y' -> 'и';
-            case 'z' -> 'з';
-            default -> (char) x;
-        });
+    private static String convertChars(String input, Map<String, String> converter) {
+        StringBuilder result = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            var c1 = Character.toString(c);
+            var r = converter.get(c1);
+            if (r == null) result.append(c1);
+            else result.append(r);
+        }
+        return result.toString();
     }
 
-    private static String toLatin(int x) {
-        return switch (x) {
-            case 'а' -> "a";
-            case 'б' -> "b";
-            case 'в' -> "v";
-            case 'г' -> "g";
-            case 'ґ' -> "g";
-            case 'д' -> "d";
-            case 'е' -> "e";
-            case 'є' -> "ye";
-            case 'ж' -> "zh";
-            case 'з' -> "z";
-            case 'и' -> "y";
-            case 'і' -> "i";
-            case 'ї' -> "ii";
-            case 'й' -> "i";
-            case 'к' -> "k";
-            case 'л' -> "l";
-            case 'м' -> "m";
-            case 'н' -> "n";
-            case 'о' -> "o";
-            case 'п' -> "p";
-            case 'р' -> "r";
-            case 'с' -> "s";
-            case 'т' -> "t";
-            case 'у' -> "u";
-            case 'ф' -> "f";
-            case 'х' -> "x";
-            case 'ц' -> "ts";
-            case 'ч' -> "ch";
-            case 'ш' -> "sh";
-            case 'щ' -> "shch";
-            case 'ю' -> "yu";
-            case 'я' -> "ya";
-            default -> Character.valueOf((char) x).toString();
-       };
+    private static final Map<String, String> toCyrillic = new HashMap<>();
+    static {
+        toCyrillic.put("a", "а");
+        toCyrillic.put("b", "б");
+        toCyrillic.put("c", "к");
+        toCyrillic.put("d", "д");
+        toCyrillic.put("e", "е");
+        toCyrillic.put("f", "ф");
+        toCyrillic.put("g", "г");
+        toCyrillic.put("h", "г");
+        toCyrillic.put("i", "і");
+        toCyrillic.put("j", "ж");
+        toCyrillic.put("k", "к");
+        toCyrillic.put("l", "л");
+        toCyrillic.put("m", "м");
+        toCyrillic.put("n", "н");
+        toCyrillic.put("o", "о");
+        toCyrillic.put("p", "п");
+        toCyrillic.put("q", "к");
+        toCyrillic.put("r", "р");
+        toCyrillic.put("s", "с");
+        toCyrillic.put("t", "т");
+        toCyrillic.put("u", "у");
+        toCyrillic.put("v", "в");
+        toCyrillic.put("w", "в");
+        toCyrillic.put("x", "х");
+        toCyrillic.put("y", "и");
+        toCyrillic.put("z", "з");
+    }
+
+    private static final Map<String, String> toLatin = new HashMap<>();
+    static {
+        toLatin.put("а", "a");
+        toLatin.put("б", "b");
+        toLatin.put("в", "v");
+        toLatin.put("г", "g");
+        toLatin.put("ґ", "g");
+        toLatin.put("д", "d");
+        toLatin.put("е", "e");
+        toLatin.put("є", "ye");
+        toLatin.put("ж", "zh");
+        toLatin.put("з", "z");
+        toLatin.put("и", "y");
+        toLatin.put("і", "i");
+        toLatin.put("ї", "ii");
+        toLatin.put("й", "i");
+        toLatin.put("к", "k");
+        toLatin.put("л", "l");
+        toLatin.put("м", "m");
+        toLatin.put("н", "n");
+        toLatin.put("о", "o");
+        toLatin.put("п", "p");
+        toLatin.put("р", "r");
+        toLatin.put("с", "s");
+        toLatin.put("т", "t");
+        toLatin.put("у", "u");
+        toLatin.put("ф", "f");
+        toLatin.put("х", "x");
+        toLatin.put("ц", "ts");
+        toLatin.put("ч", "ch");
+        toLatin.put("ш", "sh");
+        toLatin.put("щ", "shch");
+        toLatin.put("ю", "yu");
+        toLatin.put("я", "ya");
     }
 }
