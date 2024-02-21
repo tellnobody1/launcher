@@ -380,17 +380,6 @@ public class SearchActivity extends Activity
         startActivity(intent);
     }
 
-    /**
-     * Returns a web search {@link LaunchableActivity}.
-     *
-     * @return A web search {@link LaunchableActivity}.
-     */
-    private LaunchableActivity getWebLaunchable() {
-        final Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-
-        return new LaunchableActivity(intent, getString(R.string.web_search), R.drawable.ic_baseline_search_24);
-    }
-
     private LaunchableAdapter<LaunchableActivity> loadLaunchableAdapter() {
         final LaunchableAdapter<LaunchableActivity> adapter;
         final Object object = getLastNonConfigurationInstance();
@@ -407,7 +396,7 @@ public class SearchActivity extends Activity
                     count += launcherApps.getActivityList(null, iter.next()).size();
                 }
 
-                adapter = new LaunchableAdapter<>(getWebLaunchable(), this, R.layout.app_grid_item, count);
+                adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, count);
 
                 while (iter.hasPrevious()) {
                     addToAdapter24(adapter, launcherApps.getActivityList(null, iter.previous()));
@@ -416,7 +405,7 @@ public class SearchActivity extends Activity
                 final Collection<ResolveInfo> infoList = getLaunchableResolveInfos(pm, null);
                 final int infoListSize = infoList.size();
 
-                adapter = new LaunchableAdapter<>(getWebLaunchable(), this, R.layout.app_grid_item, infoListSize + 1);
+                adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoListSize + 1);
 
                 addToAdapter15(adapter, infoList, true);
             }
@@ -429,7 +418,7 @@ public class SearchActivity extends Activity
             adapter.sortApps(this);
             adapter.notifyDataSetChanged();
         } else {
-            adapter = new LaunchableAdapter<>(getWebLaunchable(), object, this, R.layout.app_grid_item);
+            adapter = new LaunchableAdapter<>(object, this, R.layout.app_grid_item);
             adapter.setNotifyOnChange(true);
         }
 

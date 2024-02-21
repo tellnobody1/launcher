@@ -16,16 +16,10 @@
 
 package com.anpmech.launcher;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.SearchManager;
-import android.app.usage.UsageStats;
-import android.app.usage.UsageStatsManager;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Color;
-import android.os.Build;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -47,9 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -100,10 +92,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     private final LaunchableActivityPrefs mPrefs;
 
-    private final T mSearch;
-
-    private final Map<String, UsageStats> mUsageMap;
-
     /**
      * The resource indicating what views to inflate to display the content of this
      * array adapter in a drop down widget.
@@ -127,16 +115,11 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * @param resource The resource ID for a layout file containing a TextView to use when
      *                 instantiating views.
      */
-    public LaunchableAdapter(@NonNull final T webSearch,
-                             @NonNull final Context context, @LayoutRes final int resource,
+    public LaunchableAdapter(@NonNull final Context context, @LayoutRes final int resource,
                              final int initialSize) {
-        final Resources res = context.getResources();
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
         mPrefs = new LaunchableActivityPrefs(context);
-        mSearch = webSearch;
-        mUsageMap = new HashMap<>(0);
-        mUsageMap.putAll(getUsageStats(context));
     }
 
     /**
@@ -148,10 +131,9 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      *                 instantiating views.
      */
     @SuppressWarnings("unchecked")
-    public LaunchableAdapter(final T webSearchLaunchable,
-                             final Object object, @NonNull final Context context,
+    public LaunchableAdapter(final Object object, @NonNull final Context context,
                              @LayoutRes final int resource) {
-        this(webSearchLaunchable, context, resource, ((List<? extends T>[]) object)[0].size());
+        this(context, resource, ((List<? extends T>[]) object)[0].size());
 
         final List<? extends T>[] lists = (List<? extends T>[]) object;
         mObjects.addAll(lists[0]);
@@ -159,31 +141,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         if (lists[1] != null) {
             mOriginalValues = (List<T>) lists[1];
         }
-    }
-
-    /**
-     * This method returns a map of UsageStats for all enabled applications, if available.
-     *
-     * @param context The context to get the {@link UsageStatsManager} system service with.
-     * @return A Map containing the PackageName as the key and the UsageStats as the value for
-     * each individual package, if available. And empty map will be returned if not available for
-     * whatever reason. To mutate this map would result in a critical error.
-     */
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP_MR1)
-    private static Map<String, UsageStats> getUsageStats(final Context context) {
-        Map<String, UsageStats> map = Collections.emptyMap();
-
-        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
-            try {
-                final UsageStatsManager statsManager =
-                        (UsageStatsManager) context.getSystemService(Context.USAGE_STATS_SERVICE);
-                map = statsManager.queryAndAggregateUsageStats(0L, System.currentTimeMillis());
-            } catch (final RuntimeException e) {
-                Log.v(TAG, "UsageStatsManager not supported.", e);
-            }
-        }
-
-        return map;
     }
 
     /**
@@ -199,76 +156,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                 mObjects.add(object);
             } else {
                 mOriginalValues.add(object);
-            }
-        }
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
-        }
-    }
-
-    /**
-     * Adds the specified Collection at the end of the array.
-     *
-     * @param collection The Collection to add at the end of the array.
-     * @throws UnsupportedOperationException if the <tt>addAll</tt> operation
-     *                                       is not supported by this list
-     * @throws ClassCastException            if the class of an element of the specified
-     *                                       collection prevents it from being added to this list
-     * @throws NullPointerException          if the specified collection contains one
-     *                                       or more null elements and this list does not permit
-     *                                       null elements, or if the specified collection is null
-     * @throws IllegalArgumentException      if some property of an element of the
-     *                                       specified collection prevents it from being added to
-     *                                       this list
-     */
-    public void addAll(@NonNull final Collection<? extends T> collection) {
-        for (final T toAdd : collection) {
-            mPrefs.setPreferences(toAdd);
-        }
-
-        synchronized (mLock) {
-            if (mOriginalValues == null) {
-                mObjects.addAll(collection);
-            } else {
-                mOriginalValues.addAll(collection);
-            }
-        }
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
-        }
-    }
-
-    /**
-     * Adds the specified items at the end of the array.
-     *
-     * @param items The items to add at the end of the array.
-     */
-    public void addAll(final T... items) {
-        for (final T toAdd : items) {
-            mPrefs.setPreferences(toAdd);
-        }
-
-        synchronized (mLock) {
-            if (mOriginalValues == null) {
-                Collections.addAll(mObjects, items);
-            } else {
-                Collections.addAll(mOriginalValues, items);
-            }
-        }
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
-        }
-    }
-
-    /**
-     * Remove all elements from the list.
-     */
-    public void clear() {
-        synchronized (mLock) {
-            if (mOriginalValues == null) {
-                mObjects.clear();
-            } else {
-                mOriginalValues.clear();
             }
         }
         if (mNotifyOnChange) {
@@ -684,11 +571,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                 } else {
                     final String prefixString = stripAccents(constraint).toLowerCase();
                     final Collection<T> newValues = new ArrayList<>();
-
-                    if (!prefixString.isEmpty()) {
-                        mSearch.getLaunchIntent().putExtra(SearchManager.QUERY, prefixString);
-                        newValues.add(mSearch);
-                    }
 
                     for (int i = 0; i < count; i++) {
                         final T value = values.get(i);
