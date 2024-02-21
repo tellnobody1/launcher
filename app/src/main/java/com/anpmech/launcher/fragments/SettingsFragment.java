@@ -79,12 +79,10 @@ public class SettingsFragment extends PreferenceFragment {
         // Set the version
         findPreference("about_version").setSummary(BuildConfig.VERSION_NAME);
 
-        // Setup the project name/url
-        final CharSequence projectUrl = getString(R.string.source_code);
         final LaunchPreferenceSummary listener = new LaunchPreferenceSummary();
 
         final Preference about_project = findPreference("about_project_website");
-        about_project.setSummary(projectUrl);
+        about_project.setSummary(getString(R.string.source_code));
         about_project.setOnPreferenceClickListener(listener);
 
         return super.onCreateView(inflater, container, savedInstanceState);

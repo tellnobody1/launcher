@@ -19,9 +19,6 @@
     <string name="clear_button">Knapp for teksttømming</string>
     <string name="search_view_hint">Skriv noe…</string>
     <string name="title_activity_settings">Innstillinger</string>
-    <string name="pref_value_landscape_left">venstre</string>
-    <string name="pref_value_landscape_right">høyre</string>
-    <string name="pref_value_landscape_invisible">usynlig</string>
     <string name="appmenu_info">Programinfo</string>
     <string name="launch">Kjør</string>
     <string name="activity_not_found">Fant ikke aktivitet.</string>
