@@ -19,7 +19,6 @@ package com.anpmech.launcher;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
-import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +41,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 /**
@@ -54,7 +54,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
     /**
      * This comparator orders {@link LaunchableActivity} objects in alphabetical order.
      */
-    public static final Comparator<LaunchableActivity> ALPHABETICAL = new AlphabeticalOrder();
+    public static final Comparator<LaunchableActivity> ALPHABETICAL = new AlphabeticalOrder(Locale.getDefault());
 
     /**
      * This comparator orders {@link LaunchableActivity} objects with "pins" at the head of the

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2015-2017 Hayai Software
   ~ Copyright 2018-2022 The KeikaiLauncher Project
+  ~ Copyright 2024 uaapps
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
   ~ in compliance with the License. You may obtain a copy of the License at
@@ -19,13 +20,6 @@
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
-    <!--
-    ~ This permission completely optional and set in the system settings menus. The following
-    ~ declares intention to use, if available and granted.
-    -->
-    <uses-permission
-        android:name="android.permission.PACKAGE_USAGE_STATS"
-        tools:ignore="ProtectedPermissions" />
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
