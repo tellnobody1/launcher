@@ -222,7 +222,7 @@ public class PackageChangedReceiver extends BroadcastReceiver {
             final Intent restartServiceIntent
                     = new Intent(ACTION_DELAYED, null, context, PackageChangedReceiver.class);
             final PendingIntent restartService = PendingIntent
-                    .getBroadcast(context, 1, restartServiceIntent, PendingIntent.FLAG_ONE_SHOT);
+                    .getBroadcast(context, 1, restartServiceIntent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
             final AlarmManager alarmService =
                     (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             final long halfSecond = 500L;
