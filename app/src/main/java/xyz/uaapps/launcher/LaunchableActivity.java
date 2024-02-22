@@ -16,6 +16,10 @@
 
 package xyz.uaapps.launcher;
 
+import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
+import static android.os.Build.VERSION_CODES.N;
+
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,7 +27,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.os.Build;
 import android.os.UserManager;
 
 import androidx.annotation.DeprecatedSinceApi;
@@ -52,7 +55,7 @@ public class LaunchableActivity {
      * @param info           Information to derive the LaunchableActivity from.
      * @param manager        The service to retrieve user information about the activity from.
      */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(api = LOLLIPOP)
     public LaunchableActivity(@NonNull final LauncherActivityInfo info, final UserManager manager) {
         mLaunchIntent = getLaunchableIntent(info.getComponentName());
         mActivityLabel = info.getLabel().toString();
@@ -68,7 +71,7 @@ public class LaunchableActivity {
      * @param manager The {@link PackageManager} to load the label for this from. If null, the
      *                local store will not cache the label.
      */
-    @DeprecatedSinceApi(api = Build.VERSION_CODES.N, message = "Later APIs use addToAdapter24()")
+    @DeprecatedSinceApi(api = N, message = "Later APIs use addToAdapter24()")
     public LaunchableActivity(@NonNull final ResolveInfo info,
                               @NonNull final SharedPreferences prefs,
                               @Nullable final PackageManager manager) {
@@ -107,7 +110,7 @@ public class LaunchableActivity {
      * @return A user serial, {@code Long.MIN_VALUE} if there is no user serial assigned to this
      * object.
      */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    @RequiresApi(api = JELLY_BEAN_MR1)
     public long getUserSerial() {
         return mUserSerial;
     }

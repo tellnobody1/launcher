@@ -16,7 +16,14 @@
 
 package xyz.uaapps.launcher.activities;
 
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.DONUT;
+import static android.os.Build.VERSION_CODES.FROYO;
+import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
+import static android.os.Build.VERSION_CODES.KITKAT;
+import static android.os.Build.VERSION_CODES.N;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -37,7 +44,7 @@ import android.graphics.Insets;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
-import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -87,15 +94,13 @@ import xyz.uaapps.launcher.SharedLauncherPrefs;
 import xyz.uaapps.launcher.monitor.PackageChangeCallback;
 import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
 
-/**
- * This class is the main {@link Activity} for this launcher.
- */
 public class SearchActivity extends Activity
         implements SharedPreferences.OnSharedPreferenceChangeListener, PackageChangeCallback {
 
     private static final String SEARCH_EDIT_TEXT_KEY = "SearchEditText";
 
     private static final String TAG = "SearchActivity";
+
     /**
      * Synchronize to this lock when the Adapter is visible and might be called by multiple
      * threads.
@@ -111,7 +116,7 @@ public class SearchActivity extends Activity
      * This implements a listener for orientation change, see {@link DisplayChangeListener} for
      * more information.
      */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    @RequiresApi(api = JELLY_BEAN_MR1)
     private DisplayManager.DisplayListener mDisplayListener = null;
 
     /**
@@ -171,7 +176,7 @@ public class SearchActivity extends Activity
 
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        if (SDK_INT >= Build.VERSION_CODES.DONUT)
+        if (SDK_INT >= DONUT)
             intent.setPackage(activityName);
 
         return pm.queryIntentActivities(intent, 0);
@@ -183,7 +188,7 @@ public class SearchActivity extends Activity
      * @param resources The resources for the device.
      * @return The height of the navigation bar.
      */
-    @DeprecatedSinceApi(api = Build.VERSION_CODES.R, message =
+    @DeprecatedSinceApi(api = VERSION_CODES.R, message =
             "Later APIs use get getNavigationBarHeight30()")
     private static int getNavigationBarHeight15(final Resources resources) {
         final int navBarHeight;
@@ -269,7 +274,7 @@ public class SearchActivity extends Activity
      * @param adapter  The adapter to add to.
      * @param infoList The objects to add to the adapter.
      */
-    @TargetApi(Build.VERSION_CODES.N)
+    @TargetApi(N)
     private void addToAdapter24(@NonNull final LaunchableAdapter<LaunchableActivity> adapter,
                                 @NonNull final Iterable<LauncherActivityInfo> infoList) {
         final String thisCanonicalName = getClass().getCanonicalName();
@@ -290,7 +295,7 @@ public class SearchActivity extends Activity
      * @param infoList     The ResolveInfo object to add to the adapter.
      * @param useReadCache Whether to use a read cache.
      */
-    @DeprecatedSinceApi(api = Build.VERSION_CODES.N, message =
+    @DeprecatedSinceApi(api = N, message =
             "Later APIs use addToAdapter(LaunchableActivity, Iterable<LauncherActivityInfo>)")
     private void addToAdapter15(@NonNull final LaunchableAdapter<LaunchableActivity> adapter,
                                 @NonNull final Iterable<ResolveInfo> infoList,
@@ -342,7 +347,7 @@ public class SearchActivity extends Activity
         hideKeyboard();
         // Second conditional is always true, but this shuts up warnings.
         if (launchableActivity.isUserKnown() &&
-                SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                SDK_INT >= N) {
             final UserManager userManager = (UserManager) getSystemService(Context.USER_SERVICE);
             final LauncherApps launcher =
                     (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
@@ -389,7 +394,7 @@ public class SearchActivity extends Activity
 
         if (object == null) {
             final PackageManager pm = getPackageManager();
-            if (SDK_INT >= Build.VERSION_CODES.N) {
+            if (SDK_INT >= N) {
                 final UserManager manager = (UserManager) getSystemService(Context.USER_SERVICE);
                 final LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
                 final ListIterator<UserHandle> iter = manager.getUserProfiles().listIterator();
@@ -455,11 +460,7 @@ public class SearchActivity extends Activity
         final LaunchableActivity activity = getLaunchableActivity(menuInfo);
         final MenuItem item = menu.findItem(R.id.appmenu_pin_to_top);
 
-        if (activity.getPriority() == 0) {
-            item.setTitle(R.string.appmenu_pin_to_top);
-        } else {
-            item.setTitle(R.string.appmenu_remove_pin);
-        }
+        item.setTitle(activity.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
     }
 
     /**
@@ -485,10 +486,8 @@ public class SearchActivity extends Activity
         final int[] loc = {0, 0};
         view.getLocationInWindow(loc);
         if (loc[1] != 0) {
-            if (SDK_INT >= Build.VERSION_CODES.FROYO)
-                view.smoothScrollToPosition(0);
-            else
-                view.setSelection(0);
+            if (SDK_INT >= FROYO) view.smoothScrollToPosition(0);
+            else view.setSelection(0);
         }
     }
 
@@ -504,7 +503,7 @@ public class SearchActivity extends Activity
         synchronized (mLock) {
             if (mAdapter.getClassNamePosition(activityName) == -1) {
 
-                if (SDK_INT >= Build.VERSION_CODES.N) {
+                if (SDK_INT >= N) {
                     final LauncherApps launcherApps =
                             (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
 
@@ -552,7 +551,7 @@ public class SearchActivity extends Activity
 
     @Override
     protected void onPause() {
-        if (SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        if (SDK_INT >= JELLY_BEAN_MR1) {
             final DisplayManager manager =
                     (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
             manager.unregisterDisplayListener(mDisplayListener);
@@ -564,7 +563,7 @@ public class SearchActivity extends Activity
     }
 
     @Override
-    protected void onRestoreInstanceState(final Bundle savedInstanceState) {
+    protected void onRestoreInstanceState(@NonNull final Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
         final CharSequence searchEditText =
@@ -624,14 +623,12 @@ public class SearchActivity extends Activity
             if (prefs.isRotationAllowed()) {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 
-                if (SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    registerDisplayListener();
-                }
+                if (SDK_INT >= KITKAT) registerDisplayListener();
             } else {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+                setRequestedOrientation(SCREEN_ORIENTATION_PORTRAIT);
             }
         } else {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+            setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
         }
     }
 
@@ -679,7 +676,7 @@ public class SearchActivity extends Activity
         mSearchEditText = findViewById(R.id.user_search_input);
         mAdapter = loadLaunchableAdapter();
 
-        if (SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        if (SDK_INT >= JELLY_BEAN_MR1) {
             mDisplayListener = new DisplayChangeListener();
         }
 
@@ -726,7 +723,7 @@ public class SearchActivity extends Activity
      * deficiency with regard to 180 degree landscape rotation. See {@link DisplayChangeListener}
      * documentation for more information.
      */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    @RequiresApi(api = JELLY_BEAN_MR1)
     private void registerDisplayListener() {
         final DisplayManager displayManager =
                 (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
@@ -735,7 +732,7 @@ public class SearchActivity extends Activity
         displayManager.registerDisplayListener(mDisplayListener, handler);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.R)
+    @RequiresApi(api = VERSION_CODES.R)
     private int getNavigationBarHeight30() {
         final int navBars = WindowInsets.Type.navigationBars();
         final Insets insets = getWindowManager().getCurrentWindowMetrics()
@@ -758,7 +755,7 @@ public class SearchActivity extends Activity
                 (FrameLayout.LayoutParams) customActionBar.getLayoutParams();
         final int searchTop;
 
-        if (SDK_INT >= Build.VERSION_CODES.KITKAT && !isNavBarProblematic(context)) {
+        if (SDK_INT >= KITKAT && !isNavBarProblematic(context)) {
             searchTop = getDimensionSize(context.getResources(), "status_bar_height") +
                     padding;
         } else {
@@ -780,7 +777,7 @@ public class SearchActivity extends Activity
         if (new SharedLauncherPrefs(this).isActionBarEnabled()) {
             appContainerTop = setupActionBarLayout(findViewById(R.id.customActionBar), dp16);
         } else {
-            if (SDK_INT >= Build.VERSION_CODES.KITKAT && !isNavBarProblematic) {
+            if (SDK_INT >= KITKAT && !isNavBarProblematic) {
                 appContainerTop = getDimensionSize(getResources(), "status_bar_height") +
                         dp16;
             } else {
@@ -788,9 +785,9 @@ public class SearchActivity extends Activity
             }
         }
 
-        if (SDK_INT >= Build.VERSION_CODES.R) {
+        if (SDK_INT >= VERSION_CODES.R) {
             appContainerBottom = getNavigationBarHeight30() + dp16;
-        } else if (SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        } else if (SDK_INT >= KITKAT) {
             appContainerBottom = getNavigationBarHeight15(getResources()) + dp16;
         } else {
             appContainerBottom = dp16;
@@ -878,7 +875,7 @@ public class SearchActivity extends Activity
      * In this case, OrientationEventListener would not be suitable due to magnitude restrictions
      * in the SensorEventListener implementation.
      */
-    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR1)
+    @RequiresApi(api = JELLY_BEAN_MR1)
     private final class DisplayChangeListener implements DisplayManager.DisplayListener {
 
         @Override
