@@ -17,8 +17,6 @@
 package xyz.uaapps.launcher.activities;
 
 import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.ECLAIR_MR1;
-import static android.os.Build.VERSION_CODES.HONEYCOMB;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -76,6 +74,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
+import java.util.ListIterator;
+
 import xyz.uaapps.launcher.BuildConfig;
 import xyz.uaapps.launcher.LaunchableActivity;
 import xyz.uaapps.launcher.LaunchableActivityPrefs;
@@ -84,11 +86,6 @@ import xyz.uaapps.launcher.R;
 import xyz.uaapps.launcher.SharedLauncherPrefs;
 import xyz.uaapps.launcher.monitor.PackageChangeCallback;
 import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
-
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.ListIterator;
-import java.util.Objects;
 
 /**
  * This class is the main {@link Activity} for this launcher.
@@ -360,7 +357,7 @@ public class SearchActivity extends Activity
                 mSearchEditText.setText(null);
                 launchableprefs.writePreference(launchableActivity);
 
-                mAdapter.sortApps(this);
+                mAdapter.sortApps();
             } catch (final ActivityNotFoundException e) {
                 if (BuildConfig.DEBUG) {
                     throw e;
@@ -417,7 +414,7 @@ public class SearchActivity extends Activity
             }
             final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
 
-            adapter.sortApps(this);
+            adapter.sortApps();
             adapter.notifyDataSetChanged();
         } else {
             adapter = new LaunchableAdapter<>(object, this, R.layout.app_grid_item);
@@ -521,7 +518,7 @@ public class SearchActivity extends Activity
 
                     addToAdapter15(mAdapter, resolveInfos, false);
                 }
-                mAdapter.sortApps(this);
+                mAdapter.sortApps();
                 updateFilter(mSearchEditText.getText());
             }
         }
@@ -721,7 +718,7 @@ public class SearchActivity extends Activity
         }
 
         prefs.writePreference(activity);
-        mAdapter.sortApps(this);
+        mAdapter.sortApps();
     }
 
     /**

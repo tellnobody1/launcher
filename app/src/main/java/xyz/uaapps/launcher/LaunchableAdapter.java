@@ -32,9 +32,7 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import xyz.uaapps.launcher.comparators.AlphabeticalOrder;
-import xyz.uaapps.launcher.comparators.PinToTop;
-
+import java.text.Collator;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,17 +48,6 @@ import java.util.regex.Pattern;
  */
 public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         implements Filterable {
-
-    /**
-     * This comparator orders {@link LaunchableActivity} objects in alphabetical order.
-     */
-    public static final Comparator<LaunchableActivity> ALPHABETICAL = new AlphabeticalOrder(Locale.getDefault());
-
-    /**
-     * This comparator orders {@link LaunchableActivity} objects with "pins" at the head of the
-     * list.
-     */
-    public static final Comparator<LaunchableActivity> PIN_TO_TOP = new PinToTop();
 
     private static final Pattern DIACRITICAL_MARKS =
             Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
@@ -465,17 +452,16 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         }
     }
 
-    /**
-     * This method sorts all {@link LaunchableActivity} objects in this {@code Adapter}.
-     */
-    public void sortApps(final Context context) {
+    public void sortApps() {
         synchronized (mLock) {
             final boolean notify = mNotifyOnChange;
             mNotifyOnChange = false;
 
-            sort(ALPHABETICAL);
+            final Collator collator = Collator.getInstance(Locale.getDefault());
+            collator.setStrength(Collator.PRIMARY);
+            sort((o1, o2) -> collator.compare(o1.toString(), o2.toString()));
 
-            sort(PIN_TO_TOP);
+            sort((o1, o2) -> o2.getPriority() - o1.getPriority());
 
             if (notify) {
                 notifyDataSetChanged();

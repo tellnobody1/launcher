@@ -27,7 +27,6 @@ import android.os.Build;
 import android.os.UserManager;
 
 import androidx.annotation.DeprecatedSinceApi;
-import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
