@@ -310,27 +310,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
     }
 
     /**
-     * Inserts the specified object at the specified index in the array.
-     *
-     * @param object The object to insert into the array.
-     * @param index  The index at which the object must be inserted.
-     */
-    public void insert(@Nullable final T object, final int index) {
-        mPrefs.setPreferences(object);
-
-        synchronized (mLock) {
-            if (mOriginalValues == null) {
-                mObjects.add(index, object);
-            } else {
-                mOriginalValues.add(index, object);
-            }
-        }
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
-        }
-    }
-
-    /**
      * Notifies the attached observers that the underlying data has been changed
      * and any View reflecting the data set should refresh itself.
      */
@@ -524,8 +503,8 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                     for (int i = 0; i < count; i++) {
                         final T value = values.get(i);
 
-                        var lowerCasedValue = value.toString().toLowerCase();
-                        if (QueryVariants.check(prefixString, lowerCasedValue)) {
+                        var targets = value.getNames();
+                        if (QueryVariants.check(prefixString, targets)) {
                             newValues.add(value);
                         }
                     }

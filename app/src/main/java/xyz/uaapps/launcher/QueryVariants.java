@@ -2,21 +2,24 @@ package xyz.uaapps.launcher;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class QueryVariants {
 
-    public static boolean check(String input, String target) {
-        List<String> targets = Arrays.asList(
-                target,
-                target.replace("-", "")
-        );
+    public static boolean check(String input, Set<String> targets) {
+        var allTargets = new LinkedList<String>();
+        for (var target : targets) {
+            allTargets.add(target.toLowerCase());
+            allTargets.add(target.toLowerCase().replace("-", ""));
+        }
         List<String> inputs = Arrays.asList(
                 convertChars(input, toCyrillic),
                 convertChars(input, toLatin)
         );
-        for (String i : inputs) for (String t : targets) if (t.contains(i)) return true;
+        for (String i : inputs) for (String t : allTargets) if (t.contains(i)) return true;
         return false;
     }
 

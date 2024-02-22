@@ -34,9 +34,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import java.util.Set;
+
 public class LaunchableActivity {
 
     private final String mActivityLabel;
+
+    private final Set<String> names;
 
     private final Intent mLaunchIntent;
 
@@ -56,10 +60,14 @@ public class LaunchableActivity {
      * @param manager        The service to retrieve user information about the activity from.
      */
     @RequiresApi(api = LOLLIPOP)
-    public LaunchableActivity(@NonNull final LauncherActivityInfo info, final UserManager manager) {
+    public LaunchableActivity(
+            @NonNull LauncherActivityInfo info,
+            UserManager manager,
+            Set<String> names) {
         mLaunchIntent = getLaunchableIntent(info.getComponentName());
         mActivityLabel = info.getLabel().toString();
         mUserSerial = manager.getSerialNumberForUser(info.getUser());
+        this.names = names;
     }
 
     /**
@@ -72,9 +80,11 @@ public class LaunchableActivity {
      *                local store will not cache the label.
      */
     @DeprecatedSinceApi(api = N, message = "Later APIs use addToAdapter24()")
-    public LaunchableActivity(@NonNull final ResolveInfo info,
-                              @NonNull final SharedPreferences prefs,
-                              @Nullable final PackageManager manager) {
+    public LaunchableActivity(
+            @NonNull ResolveInfo info,
+            @NonNull SharedPreferences prefs,
+            @Nullable PackageManager manager,
+            Set<String> names) {
         final ActivityInfo activityInfo = info.activityInfo;
         final ComponentName name =
                 new ComponentName(activityInfo.packageName, activityInfo.name);
@@ -89,6 +99,7 @@ public class LaunchableActivity {
         }
 
         mUserSerial = Long.MIN_VALUE;
+        this.names = names;
     }
 
     private static Intent getLaunchableIntent(final ComponentName componentName) {
@@ -134,5 +145,14 @@ public class LaunchableActivity {
     @Override
     public String toString() {
         return mActivityLabel;
+    }
+
+    public String getActivityLabel() {
+        return mActivityLabel;
+    }
+
+    @NonNull
+    public Set<String> getNames() {
+        return names;
     }
 }

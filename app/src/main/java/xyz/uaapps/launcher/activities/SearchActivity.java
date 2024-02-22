@@ -23,6 +23,7 @@ import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.FROYO;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 
 import android.annotation.TargetApi;
@@ -36,6 +37,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -83,7 +85,14 @@ import androidx.annotation.RequiresApi;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import xyz.uaapps.launcher.BuildConfig;
 import xyz.uaapps.launcher.LaunchableActivity;
@@ -275,16 +284,15 @@ public class SearchActivity extends Activity
      * @param infoList The objects to add to the adapter.
      */
     @TargetApi(N)
-    private void addToAdapter24(@NonNull final LaunchableAdapter<LaunchableActivity> adapter,
-                                @NonNull final Iterable<LauncherActivityInfo> infoList) {
+    private void addToAdapter(
+            @NonNull LaunchableAdapter<LaunchableActivity> adapter,
+            @NonNull Iterable<LauncherActivityInfo> infoList,
+            Map<LauncherActivityInfo, Set<String>> names) {
         final String thisCanonicalName = getClass().getCanonicalName();
         final UserManager manager = (UserManager) getSystemService(Context.USER_SERVICE);
-
-        for (final LauncherActivityInfo info : infoList) {
-            if (!thisCanonicalName.startsWith(info.getName())) {
-                adapter.add(new LaunchableActivity(info, manager));
-            }
-        }
+        for (final var info : infoList)
+            if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName()))
+                adapter.add(new LaunchableActivity(info, manager, names.getOrDefault(info, Collections.EMPTY_SET)));
     }
 
     /**
@@ -295,11 +303,11 @@ public class SearchActivity extends Activity
      * @param infoList     The ResolveInfo object to add to the adapter.
      * @param useReadCache Whether to use a read cache.
      */
-    @DeprecatedSinceApi(api = N, message =
-            "Later APIs use addToAdapter(LaunchableActivity, Iterable<LauncherActivityInfo>)")
-    private void addToAdapter15(@NonNull final LaunchableAdapter<LaunchableActivity> adapter,
-                                @NonNull final Iterable<ResolveInfo> infoList,
-                                final boolean useReadCache) {
+    private void addToAdapter1(
+            @NonNull LaunchableAdapter<LaunchableActivity> adapter,
+            @NonNull Iterable<ResolveInfo> infoList,
+            boolean useReadCache,
+            Map<ResolveInfo, Set<String>> names) {
         final SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
         final String thisCanonicalName = getClass().getCanonicalName();
         final PackageManager manager;
@@ -310,9 +318,11 @@ public class SearchActivity extends Activity
             manager = null;
         }
 
-        for (final ResolveInfo info : infoList) {
-            if (!thisCanonicalName.startsWith(info.activityInfo.packageName)) {
-                adapter.add(new LaunchableActivity(info, prefs, manager));
+        for (final var info : infoList) {
+            if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
+                @Nullable var namesForInfo = names.get(info);
+                @NonNull var namesForInfo1 = namesForInfo == null ? Collections.<String>emptySet() : namesForInfo;
+                adapter.add(new LaunchableActivity(info, prefs, manager, namesForInfo1));
             }
         }
     }
@@ -407,18 +417,17 @@ public class SearchActivity extends Activity
                 adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, count);
 
                 while (iter.hasPrevious()) {
-                    addToAdapter24(adapter, launcherApps.getActivityList(null, iter.previous()));
+                    var activityList = launcherApps.getActivityList(null, iter.previous());
+                    var names = getNames(activityList, pm);
+                    addToAdapter(adapter, activityList, names);
+
                 }
             } else {
                 final Collection<ResolveInfo> infoList = getLaunchableResolveInfos(pm, null);
-                final int infoListSize = infoList.size();
-
-                adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoListSize + 1);
-
-                addToAdapter15(adapter, infoList, true);
+                adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoList.size());
+                var names = getNames1(infoList, pm);
+                addToAdapter1(adapter, infoList, true, names);
             }
-            final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
-
             adapter.sortApps();
             adapter.notifyDataSetChanged();
         } else {
@@ -427,6 +436,84 @@ public class SearchActivity extends Activity
         }
 
         return adapter;
+    }
+
+    @RequiresApi(api = N)
+    private Map<LauncherActivityInfo, Set<String>> getNames(List<LauncherActivityInfo> activityList, PackageManager pm) {
+        var names = new HashMap<LauncherActivityInfo, Set<String>>();
+        var locales = getLocales();
+        for (var activityInfo : activityList) {
+            cacheDefaultLabel(activityInfo);
+            var appInfo = activityInfo.getApplicationInfo();
+            try {
+                var res = pm.getResourcesForApplication(appInfo);
+                var cfg = res.getConfiguration();
+                var namesForInfo = new HashSet<String>();
+                for (Locale locale : locales) {
+                    cfg.setLocale(locale);
+                    var res2 = new Resources(res.getAssets(), res.getDisplayMetrics(), cfg);
+                    CharSequence text;
+                    try {
+                        text = res2.getText(appInfo.labelRes);
+                    } catch (Resources.NotFoundException ignored) {
+                        text = activityInfo.getLabel();
+                    }
+                    namesForInfo.add(text.toString());
+                }
+                names.put(activityInfo, namesForInfo);
+            } catch (NameNotFoundException ignored) {}
+        }
+        return names;
+    }
+
+    private Map<ResolveInfo, Set<String>> getNames1(Collection<ResolveInfo> infoList, PackageManager pm) {
+        var names = new HashMap<ResolveInfo, Set<String>>();
+        var locales = getLocales();
+        for (var resolveInfo : infoList) {
+            cacheDefaultLabel(resolveInfo, pm);
+            var appInfo = resolveInfo.activityInfo.applicationInfo;
+            try {
+                var res = pm.getResourcesForApplication(appInfo);
+                var cfg = res.getConfiguration();
+                var namesForInfo = new HashSet<String>();
+                for (Locale locale : locales) {
+                    cfg.locale = locale;
+                    var res2 = new Resources(res.getAssets(), res.getDisplayMetrics(), cfg);
+                    CharSequence text;
+                    try {
+                        text = res2.getText(resolveInfo.activityInfo.labelRes);
+                    } catch (Resources.NotFoundException ignored) {
+                        try {
+                            text = res2.getText(appInfo.labelRes);
+                        } catch (Resources.NotFoundException ignored2) {
+                            text = resolveInfo.loadLabel(pm);
+                        }
+                    }
+                    namesForInfo.add(text.toString());
+                }
+                names.put(resolveInfo, namesForInfo);
+            } catch (PackageManager.NameNotFoundException ignored) {}
+        }
+        return names;
+    }
+
+    @RequiresApi(api = LOLLIPOP)
+    private void cacheDefaultLabel(LauncherActivityInfo activityInfo) {
+        activityInfo.getLabel();
+    }
+
+    private void cacheDefaultLabel(ResolveInfo resolveInfo, PackageManager pm) {
+        resolveInfo.loadLabel(pm);
+    }
+
+    @NonNull
+    private static Set<Locale> getLocales() {
+        Set<Locale> locales = new HashSet<>();
+        locales.add(Locale.getDefault());
+        locales.add(Locale.US);
+        locales.add(Locale.UK);
+        locales.add(new Locale("uk", "UA"));
+        return locales;
     }
 
     @Override
@@ -491,31 +578,22 @@ public class SearchActivity extends Activity
         }
     }
 
-    /**
-     * Called when a package appears for any reason.
-     *
-     * @param activityName The name of the {@link Activity} of the package which appeared.
-     */
     @Override
     public void onPackageAppeared(final String activityName, int[] uids) {
         final PackageManager pm = getPackageManager();
-
         synchronized (mLock) {
             if (mAdapter.getClassNamePosition(activityName) == -1) {
-
                 if (SDK_INT >= N) {
-                    final LauncherApps launcherApps =
-                            (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
-
+                    final var launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
                     for (int uid : uids) {
-                        addToAdapter24(mAdapter, launcherApps.getActivityList(activityName,
-                                UserHandle.getUserHandleForUid(uid)));
+                        var activityList = launcherApps.getActivityList(activityName, UserHandle.getUserHandleForUid(uid));
+                        var names = getNames(activityList, pm);
+                        addToAdapter(mAdapter, activityList, names);
                     }
                 } else {
-                    final Iterable<ResolveInfo> resolveInfos =
-                            getLaunchableResolveInfos(pm, activityName);
-
-                    addToAdapter15(mAdapter, resolveInfos, false);
+                    Collection<ResolveInfo> resolveInfos = getLaunchableResolveInfos(pm, activityName);
+                    var names = getNames1(resolveInfos, pm);
+                    addToAdapter1(mAdapter, resolveInfos, false, names);
                 }
                 mAdapter.sortApps();
                 updateFilter(mSearchEditText.getText());
@@ -523,11 +601,6 @@ public class SearchActivity extends Activity
         }
     }
 
-    /**
-     * Called when a package disappears for any reason.
-     *
-     * @param activityName The name of the {@link Activity} of the package which disappeared.
-     */
     @Override
     public void onPackageDisappeared(final String activityName, int[] uids) {
         synchronized (mLock) {
@@ -536,11 +609,6 @@ public class SearchActivity extends Activity
         }
     }
 
-    /**
-     * Called when an existing package is updated or its disabled state changes.
-     *
-     * @param activityName The name of the {@link Activity} of the package which was modified.
-     */
     @Override
     public void onPackageModified(final String activityName, int uid) {
         synchronized (mLock) {
