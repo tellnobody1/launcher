@@ -26,9 +26,6 @@
     <string name="launch">Гаразд</string>
     <string name="pref_allow_rotation">Зміна орієнтації</string>
     <string name="pref_enable_actionbar">Показати пошук</string>
-    <string name="search_icon">Іконка пошуку</string>
-    <string name="search_view_hint"> </string>
-    <string name="settings_app_name">Ryūsei налаштування</string>
     <string name="settings_autokeyboard">Показати клавіатуру</string>
     <string name="settings_category_general_category">Загальні</string>
     <string name="title_activity_settings">Налаштування</string>

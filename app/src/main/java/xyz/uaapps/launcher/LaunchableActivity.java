@@ -61,20 +61,6 @@ public class LaunchableActivity {
     }
 
     /**
-     * This is a constructor used for manual {@code LaunchableActivity} creation.
-     *
-     * @param intent The {@link Intent} to create this from.
-     * @param label  The label to construct this object with.
-     * @param icon   The icon to use for this object. If null, the Android icon will be loaded.
-     */
-    public LaunchableActivity(@NonNull final Intent intent, @NonNull final String label,
-                              @DrawableRes final int icon) {
-        mLaunchIntent = intent;
-        mActivityLabel = label;
-        mUserSerial = Long.MIN_VALUE;
-    }
-
-    /**
      * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}, for
      * APIs 15-20.
      *

@@ -417,10 +417,6 @@ public class SearchActivity extends Activity
             }
             final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
 
-            if (!prefs.isActionBarEnabled()) {
-                final Intent intent = new Intent(this, SettingsActivity.class);
-                adapter.add(new LaunchableActivity(intent, getString(R.string.settings_app_name), R.drawable.ic_launcher));
-            }
             adapter.sortApps(this);
             adapter.notifyDataSetChanged();
         } else {
@@ -442,10 +438,6 @@ public class SearchActivity extends Activity
 
     public void onClickClearButton(final View view) {
         mSearchEditText.setText("");
-    }
-
-    public void onClickSettingsButton(final View view) {
-        startActivity(new Intent(this, SettingsActivity.class));
     }
 
     @Override

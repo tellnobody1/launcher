@@ -17,24 +17,23 @@ import androidx.annotation.NonNull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class LetterIconView extends View {
-
+public class AppIconView extends View {
     private Paint paint;
     private String letter;
     private Integer hash;
     private VectorDrawable vectorDrawable;
 
-    public LetterIconView(Context context) {
+    public AppIconView(Context context) {
         super(context);
         init();
     }
 
-    public LetterIconView(Context context, AttributeSet attrs) {
+    public AppIconView(Context context, AttributeSet attrs) {
         super(context, attrs);
         init();
     }
 
-    public LetterIconView(Context context, AttributeSet attrs, int defStyleAttr) {
+    public AppIconView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
     }
@@ -108,46 +107,46 @@ public class LetterIconView extends View {
 
     private static final Map<String, Integer> icons = new HashMap<>();
     static {
-        icons.put("AmicPay", R.drawable.local_gas_station);
-        icons.put("Aurora Store", R.drawable.storefront);
-        icons.put("Book Reader", R.drawable.book);
-        icons.put("F-Droid", R.drawable.storefront);
-        icons.put("Files", R.drawable.folder);
-        icons.put("Gmail", R.drawable.mail);
-        icons.put("Google Фото", R.drawable.photo_library);
-        icons.put("HELSI", R.drawable.local_hospital);
-        icons.put("IBKR", R.drawable.timeline);
-        icons.put("Joplin", R.drawable.notes);
-        icons.put("Medikom", R.drawable.local_hospital);
-        icons.put("NewPipe", R.drawable.live_tv);
-        icons.put("Organic Maps", R.drawable.map);
-        icons.put("Play Маркет", R.drawable.storefront);
-        icons.put("ProCredit Ukraine", R.drawable.account_balance);
-        icons.put("QR & Barcode Scanner", R.drawable.qr_code_scanner);
-        icons.put("Sense SuperApp", R.drawable.account_balance);
-        icons.put("Spotify", R.drawable.music_note);
-        icons.put("Tabletki.ua", R.drawable.local_pharmacy);
-        icons.put("Weather", R.drawable.partly_cloudy_day);
-        icons.put("WhatsApp", R.drawable.chat);
-        icons.put("monobank", R.drawable.account_balance);
-        icons.put("Беббо", R.drawable.child_care);
-        icons.put("Годинник", R.drawable.alarm);
-        icons.put("Диктофон", R.drawable.graphic_eq);
-        icons.put("Диск", R.drawable.folder);
-        icons.put("Дія", R.drawable.badge);
-        icons.put("Змійка", R.drawable.videogame_asset);
-        icons.put("Календар", R.drawable.calendar_month);
-        icons.put("Калькулятор", R.drawable.calculate);
-        icons.put("Камера", R.drawable.photo_camera);
-        icons.put("Карти", R.drawable.map);
-        icons.put("Контакти", R.drawable.contacts_product);
-        icons.put("Мапа тривог України", R.drawable.destruction);
-        icons.put("Менеджер Файлів", R.drawable.folder);
-        icons.put("Налаштування", R.drawable.settings);
-        icons.put("Об’єктив", R.drawable.filter_center_focus);
-        icons.put("Повідомлення", R.drawable.sms);
-        icons.put("Сільпо", R.drawable.grocery);
-        icons.put("Телефон", R.drawable.call);
-        icons.put("Фора", R.drawable.grocery);
+        icons.put("AmicPay", R.drawable.ic_local_gas_station);
+        icons.put("Aurora Store", R.drawable.ic_storefront);
+        icons.put("Book Reader", R.drawable.ic_book);
+        icons.put("F-Droid", R.drawable.ic_storefront);
+        icons.put("Files", R.drawable.ic_folder);
+        icons.put("Gmail", R.drawable.ic_mail);
+        icons.put("Google Фото", R.drawable.ic_photo_library);
+        icons.put("HELSI", R.drawable.ic_local_hospital);
+        icons.put("IBKR", R.drawable.ic_timeline);
+        icons.put("Joplin", R.drawable.ic_notes);
+        icons.put("Medikom", R.drawable.ic_local_hospital);
+        icons.put("NewPipe", R.drawable.ic_live_tv);
+        icons.put("Organic Maps", R.drawable.ic_map);
+        icons.put("Play Маркет", R.drawable.ic_storefront);
+        icons.put("ProCredit Ukraine", R.drawable.ic_account_balance);
+        icons.put("QR & Barcode Scanner", R.drawable.ic_qr_code_scanner);
+        icons.put("Sense SuperApp", R.drawable.ic_account_balance);
+        icons.put("Spotify", R.drawable.ic_music_note);
+        icons.put("Tabletki.ua", R.drawable.ic_local_pharmacy);
+        icons.put("Weather", R.drawable.ic_partly_cloudy_day);
+        icons.put("WhatsApp", R.drawable.ic_chat);
+        icons.put("monobank", R.drawable.ic_account_balance);
+        icons.put("Беббо", R.drawable.ic_child_care);
+        icons.put("Годинник", R.drawable.ic_alarm);
+        icons.put("Диктофон", R.drawable.ic_graphic_eq);
+        icons.put("Диск", R.drawable.ic_folder);
+        icons.put("Дія", R.drawable.ic_badge);
+        icons.put("Змійка", R.drawable.ic_videogame_asset);
+        icons.put("Календар", R.drawable.ic_calendar_month);
+        icons.put("Калькулятор", R.drawable.ic_calculate);
+        icons.put("Камера", R.drawable.ic_photo_camera);
+        icons.put("Карти", R.drawable.ic_map);
+        icons.put("Контакти", R.drawable.ic_contacts_product);
+        icons.put("Мапа тривог України", R.drawable.ic_destruction);
+        icons.put("Менеджер Файлів", R.drawable.ic_folder);
+        icons.put("Налаштування", R.drawable.ic_settings);
+        icons.put("Об’єктив", R.drawable.ic_filter_center_focus);
+        icons.put("Повідомлення", R.drawable.ic_sms);
+        icons.put("Сільпо", R.drawable.ic_grocery);
+        icons.put("Телефон", R.drawable.ic_call);
+        icons.put("Фора", R.drawable.ic_grocery);
     }
 }

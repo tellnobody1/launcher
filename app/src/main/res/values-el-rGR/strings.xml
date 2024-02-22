@@ -16,7 +16,6 @@
 
 <resources>
     <string name="application_icon_desc">Εικονίδιο Εφαρμογής</string>
-    <string name="search_view_hint">Πληκτρολογήστε κάτι…</string>
     <string name="title_activity_settings">Ρυθμίσεις</string>
     <string name="appmenu_info">Πληροφορίες εφαρμογής</string>
     <string name="launch">Εκκίνηση</string>

@@ -15,9 +15,7 @@
   -->
 <resources>
     <string name="application_icon_desc">Programikon</string>
-    <string name="search_icon">Søkeikon</string>
     <string name="clear_button">Knapp for teksttømming</string>
-    <string name="search_view_hint">Skriv noe…</string>
     <string name="title_activity_settings">Innstillinger</string>
     <string name="appmenu_info">Programinfo</string>
     <string name="launch">Kjør</string>

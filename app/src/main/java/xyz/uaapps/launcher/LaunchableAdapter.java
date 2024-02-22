@@ -311,20 +311,13 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         }
         final CharSequence label = launchableActivity.toString();
         final TextView appLabelView = view.findViewById(R.id.appLabel);
-        final LetterIconView appIconView = view.findViewById(R.id.appIcon);
-        final View appPinToTop = view.findViewById(R.id.appPinToTop);
+        final AppIconView appIconView = view.findViewById(R.id.appIcon);
 
         appLabelView.setText(label);
 
         appIconView.setTag(launchableActivity);
         if (label.length() > 0)
             appIconView.set(label.toString());
-
-        if (launchableActivity.getPriority() > 0) {
-            appPinToTop.setVisibility(View.VISIBLE);
-        } else {
-            appPinToTop.setVisibility(View.GONE);
-        }
 
         return view;
     }

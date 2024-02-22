@@ -16,7 +16,6 @@
 
 <resources>
     <string name="application_icon_desc">Ikon Applikacji</string>
-    <string name="search_view_hint">Szukaj…</string>
     <string name="title_activity_settings">Ustawienia</string>
     <string name="appmenu_info">Informacje o aplikacji</string>
     <string name="launch">Uruchom</string>

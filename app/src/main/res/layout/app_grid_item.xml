@@ -18,20 +18,12 @@
     android:layout_height="@dimen/app_row_column_height"
     android:orientation="vertical">
 
-    <xyz.uaapps.launcher.LetterIconView
+    <xyz.uaapps.launcher.AppIconView
         android:id="@+id/appIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:contentDescription="@string/application_icon_desc"/>
-
-    <ImageView
-        android:id="@+id/appPinToTop"
-        android:layout_width="@dimen/app_pin_size"
-        android:layout_height="@dimen/app_pin_size"
-        android:contentDescription="@string/appmenu_pin_to_top"
-        android:src="@drawable/ic_star_yellow_18dp"
-        android:visibility="gone" />
 
     <TextView
         android:id="@+id/appLabel"

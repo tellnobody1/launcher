@@ -16,7 +16,6 @@
 
 <resources>
     <string name="application_icon_desc">Ícone do Aplicativo</string>
-    <string name="search_view_hint">Digite algo…</string>
     <string name="title_activity_settings">Configurações</string>
     <string name="appmenu_info">Informações do aplicativo</string>
     <string name="activity_not_found">Atividade não encontrada.</string>
