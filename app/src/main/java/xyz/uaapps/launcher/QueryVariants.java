@@ -10,13 +10,17 @@ import java.util.Set;
 
 public class QueryVariants {
 
-    public static boolean check(String input, Set<String> targets) {
+    public static boolean check(String _input, Set<String> targets) {
         var allTargets = new LinkedList<String>();
         for (var target : targets) {
             allTargets.add(target.toLowerCase());
-            allTargets.add(target.toLowerCase().replace("-", ""));
+            allTargets.add(target.toLowerCase()
+                    .replaceAll("-", "")
+                    .replaceAll("'", "")
+                    .replaceAll("’", ""));
         }
 
+        var input = _input.replaceAll("'", "");
         Set<String> inputs = new HashSet<>();
         inputs.add(convertChars(input, toCyrillic));
         inputs.add(convertChars(input, toLatin));

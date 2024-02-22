@@ -25,6 +25,7 @@ import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
+import static java.util.Collections.emptyMap;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -287,12 +288,14 @@ public class SearchActivity extends Activity
     private void addToAdapter(
             @NonNull LaunchableAdapter<LaunchableActivity> adapter,
             @NonNull Iterable<LauncherActivityInfo> infoList,
-            Map<LauncherActivityInfo, Set<String>> names) {
+            Map<LauncherActivityInfo, Map<Locale, String>> labels) {
         final String thisCanonicalName = getClass().getCanonicalName();
         final UserManager manager = (UserManager) getSystemService(Context.USER_SERVICE);
         for (final var info : infoList)
-            if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName()))
-                adapter.add(new LaunchableActivity(info, manager, names.getOrDefault(info, Collections.EMPTY_SET)));
+            if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
+                Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
+                adapter.add(new LaunchableActivity(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
+            }
     }
 
     /**
@@ -307,7 +310,7 @@ public class SearchActivity extends Activity
             @NonNull LaunchableAdapter<LaunchableActivity> adapter,
             @NonNull Iterable<ResolveInfo> infoList,
             boolean useReadCache,
-            Map<ResolveInfo, Set<String>> names) {
+            Map<ResolveInfo, Map<Locale, String>> labels) {
         final SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
         final String thisCanonicalName = getClass().getCanonicalName();
         final PackageManager manager;
@@ -320,11 +323,17 @@ public class SearchActivity extends Activity
 
         for (final var info : infoList) {
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
-                @Nullable var namesForInfo = names.get(info);
-                @NonNull var namesForInfo1 = namesForInfo == null ? Collections.<String>emptySet() : namesForInfo;
-                adapter.add(new LaunchableActivity(info, prefs, manager, namesForInfo1));
+                @Nullable var activityLabels = labels.get(info);
+                @NonNull Map<Locale, String> activityLabels2 = activityLabels == null ? Collections.emptyMap() : activityLabels;
+                String labelEn = null;
+                if (activityLabels2.containsKey(Locale.US)) labelEn = activityLabels2.get(Locale.US);
+                adapter.add(new LaunchableActivity(info, prefs, manager, valuesSet(activityLabels2), labelEn));
             }
         }
+    }
+
+    private Set<String> valuesSet(Map<Locale, String> xs) {
+        return new HashSet<>(xs.values());
     }
 
     private void hideKeyboard() {
@@ -418,15 +427,15 @@ public class SearchActivity extends Activity
 
                 while (iter.hasPrevious()) {
                     var activityList = launcherApps.getActivityList(null, iter.previous());
-                    var names = getNames(activityList, pm);
-                    addToAdapter(adapter, activityList, names);
+                    var labels = getLabels(activityList, pm);
+                    addToAdapter(adapter, activityList, labels);
 
                 }
             } else {
                 final Collection<ResolveInfo> infoList = getLaunchableResolveInfos(pm, null);
                 adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoList.size());
-                var names = getNames1(infoList, pm);
-                addToAdapter1(adapter, infoList, true, names);
+                var labels = getLabels_1(infoList, pm);
+                addToAdapter1(adapter, infoList, true, labels);
             }
             adapter.sortApps();
             adapter.notifyDataSetChanged();
@@ -439,62 +448,60 @@ public class SearchActivity extends Activity
     }
 
     @RequiresApi(api = N)
-    private Map<LauncherActivityInfo, Set<String>> getNames(List<LauncherActivityInfo> activityList, PackageManager pm) {
-        var names = new HashMap<LauncherActivityInfo, Set<String>>();
-        var locales = getLocales();
+    private Map<LauncherActivityInfo, Map<Locale, String>> getLabels(List<LauncherActivityInfo> activityList, PackageManager pm) {
+        var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
         for (var activityInfo : activityList) {
             cacheDefaultLabel(activityInfo);
             var appInfo = activityInfo.getApplicationInfo();
             try {
                 var res = pm.getResourcesForApplication(appInfo);
                 var cfg = res.getConfiguration();
-                var namesForInfo = new HashSet<String>();
-                for (Locale locale : locales) {
+                var labelsForInfo = new HashMap<Locale, String>();
+                for (Locale locale : getLocales()) {
                     cfg.setLocale(locale);
                     var res2 = new Resources(res.getAssets(), res.getDisplayMetrics(), cfg);
-                    CharSequence text;
+                    CharSequence label;
                     try {
-                        text = res2.getText(appInfo.labelRes);
+                        label = res2.getText(appInfo.labelRes);
                     } catch (Resources.NotFoundException ignored) {
-                        text = activityInfo.getLabel();
+                        label = activityInfo.getLabel();
                     }
-                    namesForInfo.add(text.toString());
+                    labelsForInfo.put(locale, label.toString());
                 }
-                names.put(activityInfo, namesForInfo);
+                labels.put(activityInfo, labelsForInfo);
             } catch (NameNotFoundException ignored) {}
         }
-        return names;
+        return labels;
     }
 
-    private Map<ResolveInfo, Set<String>> getNames1(Collection<ResolveInfo> infoList, PackageManager pm) {
-        var names = new HashMap<ResolveInfo, Set<String>>();
-        var locales = getLocales();
+    private Map<ResolveInfo, Map<Locale, String>> getLabels_1(Collection<ResolveInfo> infoList, PackageManager pm) {
+        var labels = new HashMap<ResolveInfo, Map<Locale, String>>();
         for (var resolveInfo : infoList) {
             cacheDefaultLabel(resolveInfo, pm);
             var appInfo = resolveInfo.activityInfo.applicationInfo;
             try {
                 var res = pm.getResourcesForApplication(appInfo);
                 var cfg = res.getConfiguration();
-                var namesForInfo = new HashSet<String>();
-                for (Locale locale : locales) {
+                var labelsForInfo = new HashMap<Locale, String>();
+                for (Locale locale : getLocales()) {
                     cfg.locale = locale;
                     var res2 = new Resources(res.getAssets(), res.getDisplayMetrics(), cfg);
-                    CharSequence text;
+                    CharSequence label;
                     try {
-                        text = res2.getText(resolveInfo.activityInfo.labelRes);
+                        label = res2.getText(resolveInfo.activityInfo.labelRes);
                     } catch (Resources.NotFoundException ignored) {
                         try {
-                            text = res2.getText(appInfo.labelRes);
+                            label = res2.getText(appInfo.labelRes);
                         } catch (Resources.NotFoundException ignored2) {
-                            text = resolveInfo.loadLabel(pm);
+                            label = resolveInfo.loadLabel(pm);
                         }
                     }
-                    namesForInfo.add(text.toString());
+                    labelsForInfo.put(locale, label.toString());
                 }
-                names.put(resolveInfo, namesForInfo);
+                labels.put(resolveInfo, labelsForInfo);
             } catch (PackageManager.NameNotFoundException ignored) {}
         }
-        return names;
+        return labels;
     }
 
     @RequiresApi(api = LOLLIPOP)
@@ -587,13 +594,13 @@ public class SearchActivity extends Activity
                     final var launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
                     for (int uid : uids) {
                         var activityList = launcherApps.getActivityList(activityName, UserHandle.getUserHandleForUid(uid));
-                        var names = getNames(activityList, pm);
-                        addToAdapter(mAdapter, activityList, names);
+                        var labels = getLabels(activityList, pm);
+                        addToAdapter(mAdapter, activityList, labels);
                     }
                 } else {
                     Collection<ResolveInfo> resolveInfos = getLaunchableResolveInfos(pm, activityName);
-                    var names = getNames1(resolveInfos, pm);
-                    addToAdapter1(mAdapter, resolveInfos, false, names);
+                    var labels = getLabels_1(resolveInfos, pm);
+                    addToAdapter1(mAdapter, resolveInfos, false, labels);
                 }
                 mAdapter.sortApps();
                 updateFilter(mSearchEditText.getText());

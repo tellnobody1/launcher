@@ -303,8 +303,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         appLabelView.setText(label);
 
         appIconView.setTag(launchableActivity);
-        if (label.length() > 0)
-            appIconView.set(label.toString());
+        appIconView.set(label, launchableActivity.getLabelEn());
 
         return view;
     }
@@ -503,7 +502,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                     for (int i = 0; i < count; i++) {
                         final T value = values.get(i);
 
-                        var targets = value.getNames();
+                        var targets = value.getLabels();
                         if (QueryVariants.check(prefixString, targets)) {
                             newValues.add(value);
                         }

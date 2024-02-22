@@ -34,13 +34,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
+import java.util.Collections;
 import java.util.Set;
 
 public class LaunchableActivity {
 
     private final String mActivityLabel;
-
-    private final Set<String> names;
+    private final Set<String> labels;
+    @Nullable private final String labelEn;
 
     private final Intent mLaunchIntent;
 
@@ -63,11 +64,13 @@ public class LaunchableActivity {
     public LaunchableActivity(
             @NonNull LauncherActivityInfo info,
             UserManager manager,
-            Set<String> names) {
+            Set<String> labels,
+            @Nullable String labelEn) {
         mLaunchIntent = getLaunchableIntent(info.getComponentName());
         mActivityLabel = info.getLabel().toString();
+        this.labelEn = labelEn;
         mUserSerial = manager.getSerialNumberForUser(info.getUser());
-        this.names = names;
+        this.labels = labels;
     }
 
     /**
@@ -84,7 +87,8 @@ public class LaunchableActivity {
             @NonNull ResolveInfo info,
             @NonNull SharedPreferences prefs,
             @Nullable PackageManager manager,
-            Set<String> names) {
+            Set<String> labels,
+            @Nullable String labelEn) {
         final ActivityInfo activityInfo = info.activityInfo;
         final ComponentName name =
                 new ComponentName(activityInfo.packageName, activityInfo.name);
@@ -99,7 +103,8 @@ public class LaunchableActivity {
         }
 
         mUserSerial = Long.MIN_VALUE;
-        this.names = names;
+        this.labels = labels;
+        this.labelEn = labelEn;
     }
 
     private static Intent getLaunchableIntent(final ComponentName componentName) {
@@ -147,12 +152,12 @@ public class LaunchableActivity {
         return mActivityLabel;
     }
 
-    public String getActivityLabel() {
-        return mActivityLabel;
+    public Set<String> getLabels() {
+        return Collections.unmodifiableSet(labels);
     }
 
-    @NonNull
-    public Set<String> getNames() {
-        return names;
+    @Nullable
+    public String getLabelEn() {
+        return labelEn;
     }
 }
