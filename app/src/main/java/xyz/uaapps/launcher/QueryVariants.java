@@ -2,6 +2,7 @@ package xyz.uaapps.launcher;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -15,11 +16,20 @@ public class QueryVariants {
             allTargets.add(target.toLowerCase());
             allTargets.add(target.toLowerCase().replace("-", ""));
         }
-        List<String> inputs = Arrays.asList(
-                convertChars(input, toCyrillic),
-                convertChars(input, toLatin)
-        );
+
+        Set<String> inputs = new HashSet<>();
+        inputs.add(convertChars(input, toCyrillic));
+        inputs.add(convertChars(input, toLatin));
+
+        var maps = Arrays.asList("мапа", "мапи", "карта", "карти", "map", "maps");
+        if (containsAny(input, maps)) inputs.addAll(maps);
+
         for (String i : inputs) for (String t : allTargets) if (t.contains(i)) return true;
+        return false;
+    }
+
+    private static boolean containsAny(String input, List<String> elements) {
+        for (var element : elements) if (input.contains(element)) return true;
         return false;
     }
 
