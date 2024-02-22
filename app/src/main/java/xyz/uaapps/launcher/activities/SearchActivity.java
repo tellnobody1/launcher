@@ -16,6 +16,10 @@
 
 package xyz.uaapps.launcher.activities;
 
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.ECLAIR_MR1;
+import static android.os.Build.VERSION_CODES.HONEYCOMB;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -170,7 +174,7 @@ public class SearchActivity extends Activity
 
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.DONUT)
+        if (SDK_INT >= Build.VERSION_CODES.DONUT)
             intent.setPackage(activityName);
 
         return pm.queryIntentActivities(intent, 0);
@@ -214,9 +218,9 @@ public class SearchActivity extends Activity
     public static int getRealScreenWidth(final Display defaultDisplay) {
         final Point size = new Point();
 
-        if (Build.VERSION.SDK_INT >= 17) {
+        if (SDK_INT >= 17) {
             defaultDisplay.getRealSize(size);
-        } else if (Build.VERSION.SDK_INT >= 14) {
+        } else if (SDK_INT >= 14) {
             try {
                 size.x = (Integer) Display.class.getMethod("getRawWidth").invoke(defaultDisplay);
             } catch (IllegalAccessException e) {
@@ -341,7 +345,7 @@ public class SearchActivity extends Activity
         hideKeyboard();
         // Second conditional is always true, but this shuts up warnings.
         if (launchableActivity.isUserKnown() &&
-                Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                SDK_INT >= android.os.Build.VERSION_CODES.N) {
             final UserManager userManager = (UserManager) getSystemService(Context.USER_SERVICE);
             final LauncherApps launcher =
                     (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
@@ -388,7 +392,7 @@ public class SearchActivity extends Activity
 
         if (object == null) {
             final PackageManager pm = getPackageManager();
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (SDK_INT >= Build.VERSION_CODES.N) {
                 final UserManager manager = (UserManager) getSystemService(Context.USER_SERVICE);
                 final LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
                 final ListIterator<UserHandle> iter = manager.getUserProfiles().listIterator();
@@ -492,7 +496,7 @@ public class SearchActivity extends Activity
         final int[] loc = {0, 0};
         view.getLocationInWindow(loc);
         if (loc[1] != 0) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO)
+            if (SDK_INT >= Build.VERSION_CODES.FROYO)
                 view.smoothScrollToPosition(0);
             else
                 view.setSelection(0);
@@ -511,7 +515,7 @@ public class SearchActivity extends Activity
         synchronized (mLock) {
             if (mAdapter.getClassNamePosition(activityName) == -1) {
 
-                if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if (SDK_INT >= Build.VERSION_CODES.N) {
                     final LauncherApps launcherApps =
                             (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
 
@@ -559,13 +563,14 @@ public class SearchActivity extends Activity
 
     @Override
     protected void onPause() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        if (SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             final DisplayManager manager =
                     (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
             manager.unregisterDisplayListener(mDisplayListener);
         }
 
         getContentResolver().unregisterContentObserver(mAccSettingObserver);
+
         super.onPause();
     }
 
@@ -630,7 +635,7 @@ public class SearchActivity extends Activity
             if (prefs.isRotationAllowed()) {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                if (SDK_INT >= Build.VERSION_CODES.KITKAT) {
                     registerDisplayListener();
                 }
             } else {
@@ -685,7 +690,7 @@ public class SearchActivity extends Activity
         mSearchEditText = findViewById(R.id.user_search_input);
         mAdapter = loadLaunchableAdapter();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+        if (SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             mDisplayListener = new DisplayChangeListener();
         }
 
@@ -764,7 +769,7 @@ public class SearchActivity extends Activity
                 (FrameLayout.LayoutParams) customActionBar.getLayoutParams();
         final int searchTop;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !isNavBarProblematic(context)) {
+        if (SDK_INT >= Build.VERSION_CODES.KITKAT && !isNavBarProblematic(context)) {
             searchTop = getDimensionSize(context.getResources(), "status_bar_height") +
                     padding;
         } else {
@@ -786,7 +791,7 @@ public class SearchActivity extends Activity
         if (new SharedLauncherPrefs(this).isActionBarEnabled()) {
             appContainerTop = setupActionBarLayout(findViewById(R.id.customActionBar), dp16);
         } else {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT && !isNavBarProblematic) {
+            if (SDK_INT >= Build.VERSION_CODES.KITKAT && !isNavBarProblematic) {
                 appContainerTop = getDimensionSize(getResources(), "status_bar_height") +
                         dp16;
             } else {
@@ -794,9 +799,9 @@ public class SearchActivity extends Activity
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        if (SDK_INT >= Build.VERSION_CODES.R) {
             appContainerBottom = getNavigationBarHeight30() + dp16;
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        } else if (SDK_INT >= Build.VERSION_CODES.KITKAT) {
             appContainerBottom = getNavigationBarHeight15(getResources()) + dp16;
         } else {
             appContainerBottom = dp16;
