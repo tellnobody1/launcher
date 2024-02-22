@@ -110,7 +110,10 @@ public class AppIconView extends View {
         icons.put("AmicPay", R.drawable.ic_local_gas_station);
         icons.put("Aurora Store", R.drawable.ic_storefront);
         icons.put("Book Reader", R.drawable.ic_book);
+        icons.put("ChatGPT", R.drawable.ic_smart_toy);
+        icons.put("Chrome", R.drawable.ic_public);
         icons.put("F-Droid", R.drawable.ic_storefront);
+        icons.put("Fennec", R.drawable.ic_public);
         icons.put("Files", R.drawable.ic_folder);
         icons.put("Gmail", R.drawable.ic_mail);
         icons.put("Google Фото", R.drawable.ic_photo_library);
