@@ -123,7 +123,7 @@ public class AppIconView extends View {
         icons.put("F-Droid", R.drawable.ic_storefront);
         icons.put("Fennec", R.drawable.ic_public);
         icons.put("File Manager", R.drawable.ic_folder);
-        icons.put("Files", R.drawable.ic_folder);
+        icons.put("Files by Google", R.drawable.ic_folder);
         icons.put("Gmail", R.drawable.ic_mail);
         icons.put("Google Play Store", R.drawable.ic_storefront);
         icons.put("HELSI", R.drawable.ic_local_hospital);
