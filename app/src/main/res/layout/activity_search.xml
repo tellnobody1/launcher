@@ -43,7 +43,7 @@
         android:id="@+id/customActionBar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@drawable/search_box_bg">
+        android:background="#66666666">
 
         <EditText
             android:id="@+id/user_search_input"
@@ -58,11 +58,10 @@
             android:imeActionLabel="@string/launch"
             android:imeOptions="actionGo"
             android:importantForAutofill="noExcludeDescendants"
-            android:inputType="text"
+            android:inputType="text|textNoSuggestions|textFilter"
             android:maxLines="1"
             android:selectAllOnFocus="true"
-            android:textColor="@android:color/black"
-            android:textColorHint="@color/text_hint_grey"
+            android:textColor="#ffffff"
             android:textSize="18sp" />
 
         <ImageButton
@@ -75,7 +74,7 @@
             android:onClick="onClickClearButton"
             android:padding="@dimen/actionbar_icon_padding"
             android:src="@drawable/ic_cancel"
-            android:tint="@color/hint_grey"
+            android:tint="#ffffff"
             android:visibility="gone" />
     </LinearLayout>
 </FrameLayout>
