@@ -1,6 +1,5 @@
 package xyz.uaapps.launcher;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -10,7 +9,7 @@ import java.util.Set;
 
 public class QueryVariants {
 
-    public static boolean check(String _input, Set<String> targets) {
+    public static boolean check(String lowerCasedInput, Set<String> targets) {
         var allTargets = new LinkedList<String>();
         for (var target : targets) {
             allTargets.add(target.toLowerCase());
@@ -20,12 +19,12 @@ public class QueryVariants {
                     .replaceAll("’", ""));
         }
 
-        var input = _input.replaceAll("'", "");
+        var input = lowerCasedInput.replaceAll("'", "");
         Set<String> inputs = new HashSet<>();
-        inputs.add(convertChars(input, toCyrillic));
-        inputs.add(convertChars(input, toLatin));
+        inputs.addAll(convertChars(input, toCyrillic));
+        inputs.addAll(convertChars(input, toLatin));
 
-        var maps = Arrays.asList("мапа", "мапи", "карта", "карти", "map", "maps");
+        var maps = List.of("мапа", "мапи", "карта", "карти", "map", "maps");
         if (containsAny(input, maps)) inputs.addAll(maps);
 
         for (String i : inputs) for (String t : allTargets) if (t.contains(i)) return true;
@@ -37,80 +36,89 @@ public class QueryVariants {
         return false;
     }
 
-    private static String convertChars(String input, Map<String, String> converter) {
-        StringBuilder result = new StringBuilder();
-        for (char c : input.toCharArray()) {
-            var c1 = Character.toString(c);
-            var r = converter.get(c1);
-            if (r == null) result.append(c1);
-            else result.append(r);
+    private static List<String> convertChars(String input, Map<String, List<String>> converter) {
+        List<String> results = new LinkedList<>();
+        results.add("");
+        for (char ch : input.toCharArray()) {
+            String key = String.valueOf(ch);
+            if (converter.containsKey(key)) {
+                List<String> newResults = new LinkedList<>();
+                for (String prefix : results)
+                    for (String cyrillicChar : converter.get(key))
+                        newResults.add(prefix + cyrillicChar);
+                results = newResults;
+            } else {
+                // If the character is not in the map, add it as-is
+                for (int i = 0; i < results.size(); i++)
+                    results.set(i, results.get(i) + ch);
+            }
         }
-        return result.toString();
+        return results;
     }
 
-    private static final Map<String, String> toCyrillic = new HashMap<>();
+    private static final Map<String, List<String>> toCyrillic = new HashMap<>();
     static {
-        toCyrillic.put("a", "а");
-        toCyrillic.put("b", "б");
-        toCyrillic.put("c", "к");
-        toCyrillic.put("d", "д");
-        toCyrillic.put("e", "е");
-        toCyrillic.put("f", "ф");
-        toCyrillic.put("g", "г");
-        toCyrillic.put("h", "г");
-        toCyrillic.put("i", "і");
-        toCyrillic.put("j", "ж");
-        toCyrillic.put("k", "к");
-        toCyrillic.put("l", "л");
-        toCyrillic.put("m", "м");
-        toCyrillic.put("n", "н");
-        toCyrillic.put("o", "о");
-        toCyrillic.put("p", "п");
-        toCyrillic.put("q", "к");
-        toCyrillic.put("r", "р");
-        toCyrillic.put("s", "с");
-        toCyrillic.put("t", "т");
-        toCyrillic.put("u", "у");
-        toCyrillic.put("v", "в");
-        toCyrillic.put("w", "в");
-        toCyrillic.put("x", "х");
-        toCyrillic.put("y", "и");
-        toCyrillic.put("z", "з");
+        toCyrillic.put("a", List.of("а"));
+        toCyrillic.put("b", List.of("б"));
+        toCyrillic.put("c", List.of("к"));
+        toCyrillic.put("d", List.of("д"));
+        toCyrillic.put("e", List.of("е"));
+        toCyrillic.put("f", List.of("ф"));
+        toCyrillic.put("g", List.of("г"));
+        toCyrillic.put("h", List.of("г"));
+        toCyrillic.put("i", List.of("і"));
+        toCyrillic.put("j", List.of("ж"));
+        toCyrillic.put("k", List.of("к"));
+        toCyrillic.put("l", List.of("л"));
+        toCyrillic.put("m", List.of("м"));
+        toCyrillic.put("n", List.of("н"));
+        toCyrillic.put("o", List.of("о"));
+        toCyrillic.put("p", List.of("п"));
+        toCyrillic.put("q", List.of("к"));
+        toCyrillic.put("r", List.of("р"));
+        toCyrillic.put("s", List.of("с"));
+        toCyrillic.put("t", List.of("т"));
+        toCyrillic.put("u", List.of("у"));
+        toCyrillic.put("v", List.of("в"));
+        toCyrillic.put("w", List.of("в"));
+        toCyrillic.put("x", List.of("х"));
+        toCyrillic.put("y", List.of("и"));
+        toCyrillic.put("z", List.of("з"));
     }
 
-    private static final Map<String, String> toLatin = new HashMap<>();
+    private static final Map<String, List<String>> toLatin = new HashMap<>();
     static {
-        toLatin.put("а", "a");
-        toLatin.put("б", "b");
-        toLatin.put("в", "v");
-        toLatin.put("г", "g");
-        toLatin.put("ґ", "g");
-        toLatin.put("д", "d");
-        toLatin.put("е", "e");
-        toLatin.put("є", "ye");
-        toLatin.put("ж", "zh");
-        toLatin.put("з", "z");
-        toLatin.put("и", "y");
-        toLatin.put("і", "i");
-        toLatin.put("ї", "ii");
-        toLatin.put("й", "i");
-        toLatin.put("к", "k");
-        toLatin.put("л", "l");
-        toLatin.put("м", "m");
-        toLatin.put("н", "n");
-        toLatin.put("о", "o");
-        toLatin.put("п", "p");
-        toLatin.put("р", "r");
-        toLatin.put("с", "s");
-        toLatin.put("т", "t");
-        toLatin.put("у", "u");
-        toLatin.put("ф", "f");
-        toLatin.put("х", "x");
-        toLatin.put("ц", "ts");
-        toLatin.put("ч", "ch");
-        toLatin.put("ш", "sh");
-        toLatin.put("щ", "shch");
-        toLatin.put("ю", "yu");
-        toLatin.put("я", "ya");
+        toLatin.put("а", List.of("a"));
+        toLatin.put("б", List.of("b"));
+        toLatin.put("в", List.of("v"));
+        toLatin.put("г", List.of("g"));
+        toLatin.put("ґ", List.of("g"));
+        toLatin.put("д", List.of("d"));
+        toLatin.put("е", List.of("e"));
+        toLatin.put("є", List.of("ye"));
+        toLatin.put("ж", List.of("zh"));
+        toLatin.put("з", List.of("z"));
+        toLatin.put("и", List.of("y"));
+        toLatin.put("і", List.of("i"));
+        toLatin.put("ї", List.of("ii"));
+        toLatin.put("й", List.of("i"));
+        toLatin.put("к", List.of("c", "k"));
+        toLatin.put("л", List.of("l"));
+        toLatin.put("м", List.of("m"));
+        toLatin.put("н", List.of("n"));
+        toLatin.put("о", List.of("o"));
+        toLatin.put("п", List.of("p"));
+        toLatin.put("р", List.of("r"));
+        toLatin.put("с", List.of("s"));
+        toLatin.put("т", List.of("t"));
+        toLatin.put("у", List.of("u"));
+        toLatin.put("ф", List.of("f"));
+        toLatin.put("х", List.of("x"));
+        toLatin.put("ц", List.of("ts"));
+        toLatin.put("ч", List.of("ch"));
+        toLatin.put("ш", List.of("sh"));
+        toLatin.put("щ", List.of("shch"));
+        toLatin.put("ю", List.of("yu"));
+        toLatin.put("я", List.of("ya"));
     }
 }
