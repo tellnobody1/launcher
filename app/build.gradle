@@ -26,7 +26,7 @@ android {
 
     defaultConfig {
         applicationId 'xyz.uaapps.launcher'
-        minSdkVersion 1
+        minSdkVersion 14
         targetSdkVersion 34
         versionCode gitCommitsCount(rootDir)
         versionName gitDescribe(rootDir)
@@ -73,7 +73,9 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.annotation:annotation:1.7.1'
+    implementation "androidx.annotation:annotation:1.7.1"
+    implementation "androidx.core:core:1.12.0"
+    implementation "androidx.interpolator:interpolator:1.0.0"
     testImplementation 'junit:junit:4.13.2'
 }
 
