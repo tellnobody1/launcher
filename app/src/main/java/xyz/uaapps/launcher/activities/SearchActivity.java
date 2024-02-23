@@ -23,7 +23,6 @@ import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.FROYO;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 import static java.util.Collections.emptyMap;
 
@@ -38,7 +37,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -99,7 +97,9 @@ import xyz.uaapps.launcher.BuildConfig;
 import xyz.uaapps.launcher.LaunchableActivity;
 import xyz.uaapps.launcher.LaunchableActivityPrefs;
 import xyz.uaapps.launcher.LaunchableAdapter;
+import xyz.uaapps.launcher.LauncherActivityInfoOps;
 import xyz.uaapps.launcher.R;
+import xyz.uaapps.launcher.ResolveInfoOps;
 import xyz.uaapps.launcher.SharedLauncherPrefs;
 import xyz.uaapps.launcher.monitor.PackageChangeCallback;
 import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
@@ -451,25 +451,8 @@ public class SearchActivity extends Activity
     private Map<LauncherActivityInfo, Map<Locale, String>> getLabels(List<LauncherActivityInfo> activityList, PackageManager pm) {
         var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
         for (var activityInfo : activityList) {
-            cacheDefaultLabel(activityInfo);
-            var appInfo = activityInfo.getApplicationInfo();
-            try {
-                var res = pm.getResourcesForApplication(appInfo);
-                var cfg = res.getConfiguration();
-                var labelsForInfo = new HashMap<Locale, String>();
-                for (Locale locale : getLocales()) {
-                    cfg.setLocale(locale);
-                    var res2 = new Resources(res.getAssets(), res.getDisplayMetrics(), cfg);
-                    CharSequence label;
-                    try {
-                        label = res2.getText(appInfo.labelRes);
-                    } catch (Resources.NotFoundException ignored) {
-                        label = activityInfo.getLabel();
-                    }
-                    labelsForInfo.put(locale, label.toString());
-                }
-                labels.put(activityInfo, labelsForInfo);
-            } catch (NameNotFoundException ignored) {}
+            var ops = new LauncherActivityInfoOps(activityInfo);
+            labels.put(activityInfo, ops.getLabels(getLabelLocales(), pm));
         }
         return labels;
     }
@@ -477,50 +460,14 @@ public class SearchActivity extends Activity
     private Map<ResolveInfo, Map<Locale, String>> getLabels_1(Collection<ResolveInfo> infoList, PackageManager pm) {
         var labels = new HashMap<ResolveInfo, Map<Locale, String>>();
         for (var resolveInfo : infoList) {
-            cacheDefaultLabel(resolveInfo, pm);
-            var appInfo = resolveInfo.activityInfo.applicationInfo;
-            try {
-                var res = pm.getResourcesForApplication(appInfo);
-                var cfg = res.getConfiguration();
-                var labelsForInfo = new HashMap<Locale, String>();
-                for (Locale locale : getLocales()) {
-                    cfg.locale = locale;
-                    var res2 = new Resources(res.getAssets(), res.getDisplayMetrics(), cfg);
-                    CharSequence label;
-                    try {
-                        label = res2.getText(resolveInfo.activityInfo.labelRes);
-                    } catch (Resources.NotFoundException ignored) {
-                        try {
-                            label = res2.getText(appInfo.labelRes);
-                        } catch (Resources.NotFoundException ignored2) {
-                            label = resolveInfo.loadLabel(pm);
-                        }
-                    }
-                    labelsForInfo.put(locale, label.toString());
-                }
-                labels.put(resolveInfo, labelsForInfo);
-            } catch (PackageManager.NameNotFoundException ignored) {}
+            var ops = new ResolveInfoOps(resolveInfo, pm);
+            labels.put(resolveInfo, ops.getLabels(getLabelLocales()));
         }
         return labels;
     }
 
-    @RequiresApi(api = LOLLIPOP)
-    private void cacheDefaultLabel(LauncherActivityInfo activityInfo) {
-        activityInfo.getLabel();
-    }
-
-    private void cacheDefaultLabel(ResolveInfo resolveInfo, PackageManager pm) {
-        resolveInfo.loadLabel(pm);
-    }
-
-    @NonNull
-    private static Set<Locale> getLocales() {
-        Set<Locale> locales = new HashSet<>();
-        locales.add(Locale.getDefault());
-        locales.add(Locale.US);
-        locales.add(Locale.UK);
-        locales.add(new Locale("uk", "UA"));
-        return locales;
+    private static Set<Locale> getLabelLocales() {
+        return new HashSet<>(List.of(Locale.getDefault(), Locale.US, Locale.UK, new Locale("uk", "UA")));
     }
 
     @Override

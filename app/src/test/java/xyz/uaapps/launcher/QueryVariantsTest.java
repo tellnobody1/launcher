@@ -3,8 +3,9 @@ package xyz.uaapps.launcher;
 import static org.junit.Assert.assertTrue;
 import static xyz.uaapps.launcher.QueryVariants.check;
 
-import java.util.Set;
 import org.junit.Test;
+
+import java.util.Set;
 
 public class QueryVariantsTest {
 
