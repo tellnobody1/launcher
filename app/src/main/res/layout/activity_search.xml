@@ -73,7 +73,7 @@
             android:contentDescription="@string/clear_button"
             android:onClick="onClickClearButton"
             android:padding="@dimen/actionbar_icon_padding"
-            android:src="@drawable/ic_cancel"
+            android:src="@drawable/cancel"
             android:tint="#ffffff"
             android:visibility="gone" />
     </LinearLayout>

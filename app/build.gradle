@@ -35,7 +35,8 @@ android {
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach {
             var variantName = variant.name == 'debug' ? '-debug' : ''
-            outputFileName = "${rootProject.name.toLowerCase()}-${variant.versionName}${variantName}.apk"
+            var flavorName = project.gradle.startParameter.taskNames.any { it.contains("Lite") } ? '-lite' : ''
+            outputFileName = "${rootProject.name.toLowerCase()}${flavorName}-${variant.versionName}${variantName}.apk"
         }
     }
 
@@ -59,6 +60,16 @@ android {
     }
 
     namespace 'xyz.uaapps.launcher'
+
+    flavorDimensions "version"
+    productFlavors {
+        full {
+            dimension "version"
+        }
+        lite {
+            dimension "version"
+        }
+    }
 }
 
 dependencies {
