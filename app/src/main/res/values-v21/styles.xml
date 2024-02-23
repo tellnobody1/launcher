@@ -1,6 +1,7 @@
 <!--
   ~ Copyright 2015-2017 Hayai Software
   ~ Copyright 2018-2022 The KeikaiLauncher Project
+  ~ Copyright 2024 uaapps
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
   ~ in compliance with the License. You may obtain a copy of the License at
@@ -12,15 +13,8 @@
   ~ either express or implied. See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <resources>
-    <!--
-        Base application theme for API 14+. This theme completely replaces
-        AppBaseTheme from BOTH res/values/styles.xml and
-        res/values-v11/styles.xml on API 14+ devices.
-    -->
     <style name="AppBaseTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
-
         <!-- Main theme colors -->
         <!--   your app branding color for the app bar -->
         <item name="android:colorPrimary">@color/gray_500</item>
@@ -33,9 +27,8 @@
         <item name="android:windowShowWallpaper">true</item>
     </style>
 
-    <style name="AppSettingsTheme" parent="@android:style/Theme.Material.Light.DarkActionBar">
+    <style name="AppSettingsTheme" parent="@android:style/ThemeOverlay.Material.Dark">
         <item name="android:colorPrimary">@color/indigo_500</item>
-
         <!--   darker variant for the status bar and contextual app bars -->
         <item name="android:colorPrimaryDark">@color/indigo_700</item>
     </style>
