@@ -16,7 +16,7 @@
 
 <!--
   ~ Warning: Padding for the masterLayout and the appContainer are set dynamically and will be
-  ~ overwritten. See SearchActivity.java#setupPadding().
+  ~ overwritten. See MainActivity.java#setupPadding().
   -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/masterLayout"

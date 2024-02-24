@@ -32,7 +32,7 @@
         tools:targetApi="n">
 
         <activity
-            android:name=".activities.SearchActivity"
+            android:name=".activities.MainActivity"
             android:alwaysRetainTaskState="true"
             android:exported="true"
             android:label="@string/title_activity_search"

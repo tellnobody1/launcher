@@ -98,7 +98,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -114,8 +113,7 @@ import xyz.uaapps.launcher.monitor.PackageChangeCallback;
 import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
 import xyz.uaapps.launcher.swipe.SwipeLayout;
 
-public class SearchActivity extends Activity
-        implements SharedPreferences.OnSharedPreferenceChangeListener, PackageChangeCallback {
+public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener, PackageChangeCallback {
 
     /**
      * Synchronize to this lock when the Adapter is visible and might be called by multiple threads.
@@ -138,9 +136,8 @@ public class SearchActivity extends Activity
      * This ContentObserver is used by the ContentResolver to register a callback to set rotation in case it changes in the system settings.
      */
     private final ContentObserver mAccSettingObserver = new ContentObserver(new Handler()) {
-        @Override
-        public void onChange(boolean selfChange) {
-            setRotation(new SharedLauncherPrefs(SearchActivity.this));
+        @Override public void onChange(boolean selfChange) {
+            setRotation(new SharedLauncherPrefs(MainActivity.this));
         }
     };
 
@@ -157,15 +154,15 @@ public class SearchActivity extends Activity
         return resourceId > 0 ? resources.getDimensionPixelSize(resourceId) : 0;
     }
 
-    private static LaunchableActivity getLaunchableActivity(final View view) {
+    private static LaunchableActivity getLaunchableActivity(View view) {
         return (LaunchableActivity) view.findViewById(R.id.appIcon).getTag();
     }
 
-    private static LaunchableActivity getLaunchableActivity(final ContextMenuInfo menuInfo) {
+    private static LaunchableActivity getLaunchableActivity(ContextMenuInfo menuInfo) {
         return getLaunchableActivity(((AdapterContextMenuInfo) menuInfo).targetView);
     }
 
-    private static LaunchableActivity getLaunchableActivity(final MenuItem item) {
+    private static LaunchableActivity getLaunchableActivity(MenuItem item) {
         return getLaunchableActivity(item.getMenuInfo());
     }
 
@@ -183,10 +180,10 @@ public class SearchActivity extends Activity
     private static int getNavigationBarHeight15(Resources resources) {
         var configuration = resources.getConfiguration();
         //Only phone between 0-599 has navigationbar can move
-        final boolean isSmartphone = configuration.smallestScreenWidthDp < 600;
-        final boolean isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT;
+        var isSmartphone = configuration.smallestScreenWidthDp < 600;
+        var isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT;
 
-        final int navBarHeight;
+        int navBarHeight;
         if (isSmartphone && !isPortrait)
             navBarHeight = 0;
         else if (isPortrait)
@@ -196,7 +193,7 @@ public class SearchActivity extends Activity
         return navBarHeight;
     }
 
-    public static int getAppUsableScreenSizeWidth(final Display defaultDisplay) {
+    public static int getAppUsableScreenSizeWidth(Display defaultDisplay) {
         Point size = new Point();
         defaultDisplay.getSize(size);
         return size.x;
@@ -231,20 +228,19 @@ public class SearchActivity extends Activity
      * @return True if the navigation bar is not in gesture mode, the device is in landscape, and
      * the application usable space is less than the real space.
      */
-    public static boolean isNavBarProblematic(final Context context) {
+    public static boolean isNavBarProblematic(Context context) {
         var resources = context.getResources();
         var isLandscape = resources.getConfiguration().orientation == ORIENTATION_LANDSCAPE;
         return !isInGestureMode(resources) && isLandscape && isRealSizeDifferentThanUsable(context);
     }
 
-    public static boolean isInGestureMode(final Resources resources) {
+    public static boolean isInGestureMode(Resources resources) {
         var resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
         return resourceId != 0 && resources.getInteger(resourceId) == 2;
     }
 
-    private static boolean isRealSizeDifferentThanUsable(final Context context) {
-        final Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-
+    private static boolean isRealSizeDifferentThanUsable(Context context) {
+        var display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
         return getAppUsableScreenSizeWidth(display) < getRealScreenWidth(display);
     }
 
@@ -259,9 +255,9 @@ public class SearchActivity extends Activity
             @NonNull LaunchableAdapter<LaunchableActivity> adapter,
             @NonNull Iterable<LauncherActivityInfo> infoList,
             Map<LauncherActivityInfo, Map<Locale, String>> labels) {
-        final String thisCanonicalName = getClass().getCanonicalName();
-        final UserManager manager = (UserManager) getSystemService(USER_SERVICE);
-        for (final var info : infoList)
+        var thisCanonicalName = getClass().getCanonicalName();
+        var manager = (UserManager) getSystemService(USER_SERVICE);
+        for (var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                 Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
                 adapter.add(new LaunchableActivity(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
@@ -281,22 +277,15 @@ public class SearchActivity extends Activity
             @NonNull Iterable<ResolveInfo> infoList,
             boolean useReadCache,
             Map<ResolveInfo, Map<Locale, String>> labels) {
-        final SharedPreferences prefs = getPreferences(Context.MODE_PRIVATE);
-        final String thisCanonicalName = getClass().getCanonicalName();
-        final PackageManager manager;
+        var prefs = getPreferences(Context.MODE_PRIVATE);
+        var thisCanonicalName = getClass().getCanonicalName();
+        var manager = useReadCache ? getPackageManager() : null;
 
-        if (useReadCache) {
-            manager = getPackageManager();
-        } else {
-            manager = null;
-        }
-
-        for (final var info : infoList) {
+        for (var info : infoList) {
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
                 @Nullable var activityLabels = labels.get(info);
                 @NonNull Map<Locale, String> activityLabels2 = activityLabels == null ? Collections.emptyMap() : activityLabels;
-                String labelEn = null;
-                if (activityLabels2.containsKey(Locale.US)) labelEn = activityLabels2.get(Locale.US);
+                String labelEn = activityLabels2.containsKey(Locale.US) ? activityLabels2.get(Locale.US) : null;
                 adapter.add(new LaunchableActivity(info, prefs, manager, valuesSet(activityLabels2), labelEn));
             }
         }
@@ -328,17 +317,15 @@ public class SearchActivity extends Activity
     }
 
     private boolean isCurrentLauncher() {
-        final PackageManager pm = getPackageManager();
-        final Intent intent = new Intent(Intent.ACTION_MAIN);
+        var pm = getPackageManager();
+        var intent = new Intent(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
-        final ResolveInfo resolveInfo =
-                pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
-        return resolveInfo != null &&
-                getPackageName().equals(resolveInfo.activityInfo.packageName);
+        var resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        return resolveInfo != null && getPackageName().equals(resolveInfo.activityInfo.packageName);
 
     }
 
-    private void launchActivity(final LaunchableActivity launchableActivity) {
+    private void launchActivity(LaunchableActivity launchableActivity) {
         hideKeyboard();
         // Second conditional is always true, but this shuts up warnings.
         if (launchableActivity.isUserKnown() && SDK_INT >= N) {
@@ -365,13 +352,13 @@ public class SearchActivity extends Activity
         }
     }
 
-    private void launchActivity(final View view) {
+    private void launchActivity(View view) {
         launchActivity(getLaunchableActivity(view));
     }
 
-    public void launchApplicationDetails(final MenuItem item) {
-        final LaunchableActivity activity = getLaunchableActivity(item);
-        final Intent intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
+    public void launchApplicationDetails(MenuItem item) {
+        var activity = getLaunchableActivity(item);
+        var intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.parse("package:" + activity.getComponent().getPackageName()));
         intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
@@ -381,9 +368,9 @@ public class SearchActivity extends Activity
         LaunchableAdapter<LaunchableActivity> adapter;
         var pm = getPackageManager();
         if (SDK_INT >= N) {
-            final UserManager manager = (UserManager) getSystemService(USER_SERVICE);
-            final LauncherApps launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-            final ListIterator<UserHandle> iter = manager.getUserProfiles().listIterator();
+            var manager = (UserManager) getSystemService(USER_SERVICE);
+            var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
+            var iter = manager.getUserProfiles().listIterator();
             int count = 0;
 
             while (iter.hasNext()) {
@@ -396,10 +383,9 @@ public class SearchActivity extends Activity
                 var activityList = launcherApps.getActivityList(null, iter.previous());
                 var labels = getLabels(activityList, pm);
                 addToAdapter(adapter, activityList, labels);
-
             }
         } else {
-            final Collection<ResolveInfo> infoList = getLaunchableResolveInfos(pm, null);
+            var infoList = getLaunchableResolveInfos(pm, null);
             adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoList.size());
             var labels = getLabels_1(infoList, pm);
             addToAdapter1(adapter, infoList, true, labels);
@@ -445,12 +431,12 @@ public class SearchActivity extends Activity
         else moveTaskToBack(false);
     }
 
-    public void onClickClearButton(final View view) {
+    public void onClickClearButton(View view) {
         mSearchEditText.setText("");
     }
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_search);
@@ -487,7 +473,7 @@ public class SearchActivity extends Activity
      * @param intent The incoming {@link Intent} sent by this activity
      */
     @Override
-    protected void onNewIntent(final Intent intent) {
+    protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
         // If search has been typed, and home is hit, clear it.
@@ -509,12 +495,12 @@ public class SearchActivity extends Activity
     }
 
     @Override
-    public void onPackageAppeared(final String activityName, int[] uids) {
+    public void onPackageAppeared(String activityName, int[] uids) {
         var pm = getPackageManager();
         synchronized (mLock) {
             if (mAdapter.getClassNamePosition(activityName) == -1) {
                 if (SDK_INT >= N) {
-                    final var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
+                    var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
                     for (int uid : uids) {
                         var activityList = launcherApps.getActivityList(activityName, UserHandle.getUserHandleForUid(uid));
                         var labels = getLabels(activityList, pm);
@@ -526,23 +512,23 @@ public class SearchActivity extends Activity
                     addToAdapter1(mAdapter, resolveInfos, false, labels);
                 }
                 mAdapter.sortApps();
-                final CharSequence cs = mSearchEditText.getText();
+                var cs = mSearchEditText.getText();
                 mAdapter.getFilter().filter(cs);
             }
         }
     }
 
     @Override
-    public void onPackageDisappeared(final String activityName, int[] uids) {
+    public void onPackageDisappeared(String activityName, int[] uids) {
         synchronized (mLock) {
             mAdapter.removeAllByName(activityName);
-            final CharSequence cs = mSearchEditText.getText();
+            var cs = mSearchEditText.getText();
             mAdapter.getFilter().filter(cs);
         }
     }
 
     @Override
-    public void onPackageModified(final String activityName, int uid) {
+    public void onPackageModified(String activityName, int uid) {
         synchronized (mLock) {
             onPackageDisappeared(activityName, new int[]{uid});
             onPackageAppeared(activityName, new int[]{uid});
@@ -552,8 +538,7 @@ public class SearchActivity extends Activity
     @Override
     protected void onPause() {
         if (SDK_INT >= JELLY_BEAN_MR1) {
-            final DisplayManager manager =
-                    (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+            var manager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
             manager.unregisterDisplayListener(mDisplayListener);
         }
 
@@ -585,18 +570,14 @@ public class SearchActivity extends Activity
      * <li> If rotation is not allowed by system settings disable rotation.
      * <li> If rotation is not allowed by local settings set orientation as portrait.
      * </ul><p>
-     *
-     * @param prefs The SharedLauncherPrefs object for this.
      */
-    private void setRotation(final SharedLauncherPrefs prefs) {
-        boolean systemRotationAllowed =
-                Settings.System.getInt(getContentResolver(), ACCELEROMETER_ROTATION, 0) == 1;
-
+    private void setRotation(SharedLauncherPrefs prefs) {
+        var systemRotationAllowed = Settings.System.getInt(getContentResolver(), ACCELEROMETER_ROTATION, 0) == 1;
         if (systemRotationAllowed) {
             if (prefs.isRotationAllowed()) {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-
-                if (SDK_INT >= KITKAT) registerDisplayListener();
+                if (SDK_INT >= KITKAT)
+                    registerDisplayListener();
             } else {
                 setRequestedOrientation(SCREEN_ORIENTATION_PORTRAIT);
             }
@@ -606,19 +587,15 @@ public class SearchActivity extends Activity
     }
 
     @Override
-    public void onSharedPreferenceChanged(final SharedPreferences sharedPreferences,
-                                          final String key) {
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         //does this need to run in uiThread?
-        if (getString(R.string.pref_key_allow_rotation).equals(key)) {
+        if (getString(R.string.pref_key_allow_rotation).equals(key))
             setRotation(new SharedLauncherPrefs(this));
-        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-
-        final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
 
         // In a perfect world, this all could happen in onCreate(), but there are problems
         // with BroadcastReceiver registration and unregistration with that scenario.
@@ -635,7 +612,7 @@ public class SearchActivity extends Activity
         setupPadding();
         setupPreferences();
         setupViews();
-        setRotation(prefs);
+        setRotation(new SharedLauncherPrefs(this));
 
         setupPadding();
     }
@@ -680,23 +657,16 @@ public class SearchActivity extends Activity
         return insets.bottom;
     }
 
-    private static void setupMasterLayoutPadding(final View masterLayout, final int padding) {
+    private static void setupMasterLayoutPadding(View masterLayout, int padding) {
         masterLayout.setFitsSystemWindows(isNavBarProblematic(masterLayout.getContext()));
         var masterParams = (FrameLayout.LayoutParams) masterLayout.getLayoutParams();
         masterParams.setMargins(padding, 0, padding, 0);
     }
 
-    private static int setupActionBarLayout(final View customActionBar, final int padding) {
-        final Context context = customActionBar.getContext();
-        final FrameLayout.LayoutParams searchParams =
-                (FrameLayout.LayoutParams) customActionBar.getLayoutParams();
-        final int searchTop;
-
-        if (SDK_INT >= KITKAT && !isNavBarProblematic(context)) {
-            searchTop = getDimensionSize(context.getResources(), "status_bar_height") + padding;
-        } else {
-            searchTop = padding;
-        }
+    private static int setupActionBarLayout(View customActionBar, int padding) {
+        var context = customActionBar.getContext();
+        var searchParams = (FrameLayout.LayoutParams) customActionBar.getLayoutParams();
+        int searchTop = SDK_INT >= KITKAT && !isNavBarProblematic(context) ? getDimensionSize(context.getResources(), "status_bar_height") + padding : padding;
 
         searchParams.setMargins(0, searchTop, 0, 0);
 
@@ -704,44 +674,40 @@ public class SearchActivity extends Activity
     }
 
     private void setupPadding() {
-        final View appContainer = findViewById(R.id.appsContainer);
-        final int appContainerTop, appContainerBottom;
-        final int dp16 = getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
-        final boolean isNavBarProblematic = isNavBarProblematic(this);
+        var appContainer = findViewById(R.id.appsContainer);
+        var dp16 = getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
         setupMasterLayoutPadding(findViewById(R.id.masterLayout), dp16);
 
-        if (new SharedLauncherPrefs(this).isActionBarEnabled()) {
+        final int appContainerTop;
+        if (new SharedLauncherPrefs(this).isActionBarEnabled())
             appContainerTop = setupActionBarLayout(findViewById(R.id.customActionBar), dp16);
-        } else {
-            if (SDK_INT >= KITKAT && !isNavBarProblematic) {
-                appContainerTop = getDimensionSize(getResources(), "status_bar_height") +
-                        dp16;
-            } else {
+        else
+            if (SDK_INT >= KITKAT && !isNavBarProblematic(this))
+                appContainerTop = getDimensionSize(getResources(), "status_bar_height") + dp16;
+            else
                 appContainerTop = dp16;
-            }
-        }
 
-        if (SDK_INT >= VERSION_CODES.R) {
+        final int appContainerBottom;
+        if (SDK_INT >= VERSION_CODES.R)
             appContainerBottom = getNavigationBarHeight30() + dp16;
-        } else if (SDK_INT >= KITKAT) {
+        else if (SDK_INT >= KITKAT)
             appContainerBottom = getNavigationBarHeight15(getResources()) + dp16;
-        } else {
+        else
             appContainerBottom = dp16;
-        }
 
         appContainer.setPadding(0, appContainerTop, 0, appContainerBottom);
     }
 
     private void setupPreferences() {
-        final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
-        final SharedPreferences preferences = prefs.getPreferences();
+        var prefs = new SharedLauncherPrefs(this);
+        var preferences = prefs.getPreferences();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         preferences.registerOnSharedPreferenceChangeListener(this);
     }
 
     private EditText setupSearchEditText() {
-        final SearchEditTextListeners listeners = new SearchEditTextListeners();
-        final EditText searchEditText = findViewById(R.id.user_search_input);
+        var listeners = new SearchEditTextListeners();
+        var searchEditText = this.<EditText>findViewById(R.id.user_search_input);
 
         searchEditText.addTextChangedListener(listeners);
         searchEditText.setOnEditorActionListener(listeners);
@@ -750,19 +716,15 @@ public class SearchActivity extends Activity
     }
 
     private void setupActionBar() {
-        final View view = findViewById(R.id.customActionBar);
-        final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
-
-        if (prefs.isActionBarEnabled()) {
-            view.setVisibility(VISIBLE);
-        } else {
-            view.setVisibility(GONE);
-        }
+        var view = findViewById(R.id.customActionBar);
+        var prefs = new SharedLauncherPrefs(this);
+        if (prefs.isActionBarEnabled()) view.setVisibility(VISIBLE);
+        else view.setVisibility(GONE);
     }
 
     private void setupViews() {
-        final GridView appContainer = findViewById(R.id.appsContainer);
-        final AppContainerListener listener = new AppContainerListener();
+        var appContainer = this.<GridView>findViewById(R.id.appsContainer);
+        var listener = new AppContainerListener();
         mSearchEditText = setupSearchEditText();
 
         registerForContextMenu(appContainer);
@@ -773,7 +735,7 @@ public class SearchActivity extends Activity
         setupActionBar();
     }
 
-    private final class AppContainerListener implements AbsListView.OnScrollListener, OnItemClickListener {
+    private class AppContainerListener implements AbsListView.OnScrollListener, OnItemClickListener {
         @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             launchActivity(view);
         }
@@ -791,7 +753,7 @@ public class SearchActivity extends Activity
      * in the SensorEventListener implementation.
      */
     @RequiresApi(api = JELLY_BEAN_MR1)
-    private final class DisplayChangeListener implements DisplayManager.DisplayListener {
+    private class DisplayChangeListener implements DisplayManager.DisplayListener {
         @Override public void onDisplayAdded(int displayId) {}
         @Override public void onDisplayChanged(int displayId) {
             setupPadding();
@@ -799,7 +761,7 @@ public class SearchActivity extends Activity
         @Override public void onDisplayRemoved(int displayId) {}
     }
 
-    private final class SearchEditTextListeners implements TextView.OnEditorActionListener, TextWatcher {
+    private class SearchEditTextListeners implements TextView.OnEditorActionListener, TextWatcher {
         @Override public void afterTextChanged(Editable s) {}
         @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
         @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
