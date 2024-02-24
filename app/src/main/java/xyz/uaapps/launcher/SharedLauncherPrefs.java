@@ -66,20 +66,6 @@ public class SharedLauncherPrefs {
         return mContext.getString(resId);
     }
 
-    /**
-     * This method returns the value of the
-     *
-     * @param keyRes     The key resource to get the value for.
-     * @param defaultRes The key resource to use as a value if {@code keyRes} is unset.
-     * @return The value of either {@code keyRes} or {@code valueRes}, as appropriate.
-     */
-    private String getValue(@StringRes final int keyRes, @StringRes final int defaultRes) {
-        final String prefKey = getString(keyRes);
-        final String defaultKey = getString(defaultRes);
-
-        return mPreferences.getString(prefKey, defaultKey);
-    }
-
     public boolean isActionBarEnabled() {
         return isPrefEnabled(R.string.pref_key_actionbar, true);
     }

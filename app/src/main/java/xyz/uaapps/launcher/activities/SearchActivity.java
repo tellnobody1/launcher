@@ -21,6 +21,7 @@ import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.FROYO;
+import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
 import static android.os.Build.VERSION_CODES.N;
@@ -103,6 +104,7 @@ import xyz.uaapps.launcher.ResolveInfoOps;
 import xyz.uaapps.launcher.SharedLauncherPrefs;
 import xyz.uaapps.launcher.monitor.PackageChangeCallback;
 import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
+import xyz.uaapps.launcher.swipe.SwipeLayout;
 
 public class SearchActivity extends Activity
         implements SharedPreferences.OnSharedPreferenceChangeListener, PackageChangeCallback {
@@ -336,6 +338,13 @@ public class SearchActivity extends Activity
         return new HashSet<>(xs.values());
     }
 
+    private void showKeyboard() {
+        var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        mSearchEditText.requestFocus();
+        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        imm.showSoftInput(mSearchEditText, 0);
+    }
+
     private void hideKeyboard() {
         final View focus = getCurrentFocus();
 
@@ -488,6 +497,15 @@ public class SearchActivity extends Activity
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_search);
+
+        var prefs = new SharedLauncherPrefs(this);
+        if (prefs.isActionBarEnabled() && SDK_INT >= ICE_CREAM_SANDWICH) {
+            SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
+            swipeLayout.setOnRefreshListener(() -> {
+                showKeyboard();
+                swipeLayout.setRefreshing(false);
+            });
+        }
     }
 
     @Override
@@ -606,17 +624,11 @@ public class SearchActivity extends Activity
 
         if ((prefs.isActionBarEnabled() && prefs.isKeyboardAutomatic()) ||
                 searchText.length() > 0) {
-            final InputMethodManager imm =
-                    (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-
             // This is a special case to show SearchEditText should have focus.
             if (searchText.length() == 1 && searchText.charAt(0) == '\0') {
                 mSearchEditText.setText(null);
             }
-
-            mSearchEditText.requestFocus();
-            getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-            imm.showSoftInput(mSearchEditText, 0);
+            showKeyboard();
         } else {
             hideKeyboard();
         }
