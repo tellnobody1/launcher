@@ -334,7 +334,7 @@ public class SearchActivity extends Activity
         }
     }
 
-    private Set<String> valuesSet(Map<Locale, String> xs) {
+    private static Set<String> valuesSet(Map<Locale, String> xs) {
         return new HashSet<>(xs.values());
     }
 

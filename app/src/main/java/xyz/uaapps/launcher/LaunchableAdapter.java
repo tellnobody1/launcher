@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -507,7 +507,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                 } else {
                     final String prefixString = stripAccents(constraint).toLowerCase();
 
-                    var allTargets = new HashMap<T, Set<String>>();
+                    var allTargets = new LinkedHashMap<T, Set<String>>();
                     for (var value : values)
                         allTargets.put(value, value.getLabels());
                     var newValues = QueryVariants.checkAll(prefixString, allTargets);
