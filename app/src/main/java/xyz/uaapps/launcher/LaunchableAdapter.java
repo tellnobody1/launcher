@@ -41,8 +41,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -504,16 +506,11 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                     results.count = count;
                 } else {
                     final String prefixString = stripAccents(constraint).toLowerCase();
-                    final Collection<T> newValues = new ArrayList<>();
 
-                    for (int i = 0; i < count; i++) {
-                        final T value = values.get(i);
-
-                        var targets = value.getLabels();
-                        if (QueryVariants.check(prefixString, targets)) {
-                            newValues.add(value);
-                        }
-                    }
+                    var allTargets = new HashMap<T, Set<String>>();
+                    for (var value : values)
+                        allTargets.put(value, value.getLabels());
+                    var newValues = QueryVariants.checkAll(prefixString, allTargets);
 
                     results.values = newValues;
                     results.count = newValues.size();

@@ -9,14 +9,21 @@ import java.util.Set;
 
 public class QueryVariants {
 
-    public static boolean check(String lowerCasedInput, Set<String> targets) {
+    public static <T> List<T> checkAll(String prefixString, Map<T, Set<String>> allTargets) {
+        var results = new LinkedList<T>();
+        for (var targets : allTargets.entrySet())
+            if (check(prefixString, targets.getValue()))
+                results.add(targets.getKey());
+        return results;
+    }
+
+    private static boolean check(String lowerCasedInput, Set<String> targets) {
         var allTargets = new LinkedList<String>();
         for (var target : targets) {
             allTargets.add(target.toLowerCase());
-            allTargets.add(target.toLowerCase()
-                    .replaceAll("-", "")
-                    .replaceAll("'", "")
-                    .replaceAll("’", ""));
+            allTargets.add(target.toLowerCase().replaceAll("-", ""));
+            allTargets.add(target.toLowerCase().replaceAll("'", "").replaceAll("’", ""));
+            allTargets.add(target.toLowerCase().replaceAll("ь", ""));
         }
 
         var input = lowerCasedInput.replaceAll("'", "");
@@ -118,6 +125,7 @@ public class QueryVariants {
         toLatin.put("ч", List.of("ch"));
         toLatin.put("ш", List.of("sh"));
         toLatin.put("щ", List.of("shch"));
+        toLatin.put("ь", List.of());
         toLatin.put("ю", List.of("yu"));
         toLatin.put("я", List.of("ya"));
     }
