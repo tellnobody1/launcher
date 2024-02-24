@@ -17,7 +17,7 @@ It is a fast, free, minimalist Android Launcher.
 
 ### Compatibility
 * The app requires a minimum SDK version of 1.
-* It has been tested on devices running Android 5.0 (SDK 21) or later.
+   * It has been tested on devices running Android 5.0 (SDK 21) and later.
 
 ## build 
 
