@@ -13,13 +13,11 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.N;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.util.Log;
@@ -48,11 +46,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
- * This class is an adapter for LaunchableActivities, originally inspired by the ArrayAdapter
- * class.
+ * This class is an adapter for LaunchableActivities, originally inspired by the ArrayAdapter class.
  */
-public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
-        implements Filterable {
+public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter implements Filterable {
 
     private static final Pattern DIACRITICAL_MARKS =
             Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
@@ -90,7 +86,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * The resource indicating what views to inflate to display the content of this
      * array adapter in a drop down widget.
      */
-    private int mDropDownResource;
+    private final int mDropDownResource;
 
     /**
      * Indicates whether or not {@link #notifyDataSetChanged()} must be called whenever
@@ -118,27 +114,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
     }
 
     /**
-     * This constructor is for reloading this Adapter using the {@link #export()} method.
-     *
-     * @param object   The Object from the {@code export()} method.
-     * @param context  The current activity.
-     * @param resource The resource ID for a layout file containing a TextView to use when
-     *                 instantiating views.
-     */
-    @SuppressWarnings("unchecked")
-    public LaunchableAdapter(final Object object, @NonNull final Context context,
-                             @LayoutRes final int resource) {
-        this(context, resource, ((List<? extends T>[]) object)[0].size());
-
-        final List<? extends T>[] lists = (List<? extends T>[]) object;
-        mObjects.addAll(lists[0]);
-
-        if (lists[1] != null) {
-            mOriginalValues = (List<T>) lists[1];
-        }
-    }
-
-    /**
      * Adds the specified object at the end of the array.
      *
      * @param object The object to add at the end of the array.
@@ -159,17 +134,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
     }
 
     /**
-     * The Object from this method is for use with
-     * {@link Activity#onRetainNonConfigurationInstance()} and
-     * {@link LaunchableAdapter#LaunchableAdapter(Object, Context, int)}.
-     *
-     * @return An object used to restore the state of this Adapter.
-     */
-    public Object export() {
-        return new List<?>[]{mObjects, mOriginalValues};
-    }
-
-    /**
      * Returns the position of a {@link LaunchableActivity} where the
      * {@link LaunchableActivity#getComponent()}.{@link ComponentName#getClassName()} is equal to
      * the {@code className} parameter.
@@ -178,14 +142,9 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * @return The LaunchableActivity matching the classname parameter, {@code -1} if not found.
      */
     public int getClassNamePosition(@NonNull final String className) {
-        final List<T> current;
         int position = -1;
 
-        if (mOriginalValues == null) {
-            current = mObjects;
-        } else {
-            current = mOriginalValues;
-        }
+        var current = mOriginalValues == null ? mObjects : mOriginalValues;
 
         final int currentSize = current.size();
         for (int i = 0; i < currentSize && position == -1; i++) {
@@ -292,21 +251,20 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         final View view;
 
         if (convertView == null) {
-            final LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-
+            var inflater = LayoutInflater.from(parent.getContext());
             view = inflater.inflate(R.layout.app_grid_item, parent, false);
         } else {
             view = convertView;
         }
 
         view.setVisibility(View.VISIBLE);
-        final LaunchableActivity launchableActivity;
+        LaunchableActivity launchableActivity;
         synchronized (mLock) {
             launchableActivity = getItem(position);
         }
-        final CharSequence label = launchableActivity.toString();
-        final TextView appLabelView = view.findViewById(R.id.appLabel);
-        final AppIconView appIconView = view.findViewById(R.id.appIcon);
+        var label = launchableActivity.toString();
+        var appLabelView = view.<TextView>findViewById(R.id.appLabel);
+        var appIconView = view.<AppIconView>findViewById(R.id.appIcon);
 
         appLabelView.setText(label);
 
@@ -322,7 +280,6 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     @Override
     public void notifyDataSetChanged() {
-        Log.v(TAG, "Notifying about adapter change");
         super.notifyDataSetChanged();
         mNotifyOnChange = true;
     }
@@ -391,48 +348,13 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         return removedCount;
     }
 
-    /**
-     * <p>Sets the layout resource to create the drop down views.</p>
-     *
-     * @param resource the layout resource defining the drop down views
-     * @see #getDropDownView(int, View, ViewGroup)
-     */
-    public void setDropDownViewResource(@LayoutRes final int resource) {
-        mDropDownResource = resource;
-    }
-
-    /**
-     * Control whether methods that change the list ({@link #add}, {@link #addAll(Collection)},
-     * {@link #addAll(LaunchableActivity[])} (Object[])}, {@link #insert}, {@link #remove},
-     * {@link #clear}, {@link #sort(Comparator)}) automatically call {@link #notifyDataSetChanged}.
-     * If set to false, caller must manually call notifyDataSetChanged() to have the changes
-     * reflected in the attached view.
-     * <p>
-     * The default is true, and calling notifyDataSetChanged()
-     * resets the flag to true.
-     *
-     * @param notifyOnChange if true, modifications to the list will
-     *                       automatically call {@link
-     *                       #notifyDataSetChanged}
-     */
-    public void setNotifyOnChange(final boolean notifyOnChange) {
-        mNotifyOnChange = notifyOnChange;
-    }
-
-    /**
-     * Sorts the content of this adapter using the specified comparator.
-     *
-     * @param comparator The comparator used to sort the objects contained
-     *                   in this adapter.
-     */
-    public void sort(@NonNull final Comparator<? super T> comparator) {
+    public void sort(@NonNull Comparator<? super T> comparator) {
         synchronized (mLock) {
             Collections.sort(mObjects, comparator);
             if (mOriginalValues != null) {
                 Collections.sort(mOriginalValues, comparator);
             }
         }
-
         if (mNotifyOnChange) {
             notifyDataSetChanged();
         }
@@ -456,22 +378,9 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         }
     }
 
-    /**
-     * Returns a string representation of the current LaunchActivity collection.
-     *
-     * @return A string representation of the current LaunchActivity collection.
-     */
     @Override
     public String toString() {
-        final String toString;
-
-        if (mOriginalValues == null) {
-            toString = mObjects.toString();
-        } else {
-            toString = mOriginalValues.toString();
-        }
-
-        return toString;
+        return mOriginalValues == null ? mObjects.toString() : mOriginalValues.toString();
     }
 
     /**
@@ -480,11 +389,9 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * is removed from the list.</p>
      */
     private final class LaunchableFilter extends Filter {
-
-        @Override
-        protected FilterResults performFiltering(final CharSequence constraint) {
-            final List<T> values;
-            final FilterResults results = new FilterResults();
+        @Override protected FilterResults performFiltering(final CharSequence constraint) {
+            List<T> values;
+            FilterResults results = new FilterResults();
 
             // Don't act upon a blank constraint if the filter hasn't been used yet.
             if (mOriginalValues == null && constraint.length() == 0) {
@@ -520,25 +427,18 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
             return results;
         }
 
-        @Override
-        protected void publishResults(final CharSequence constraint, final FilterResults results) {
-            //noinspection ObjectEquality
+        @Override protected void publishResults(final CharSequence constraint, final FilterResults results) {
             if (mObjects != results.values) {
                 mObjects.clear();
-                //noinspection unchecked
                 mObjects.addAll((Collection<T>) results.values);
 
-                if (results.count > 0) {
-                    notifyDataSetChanged();
-                } else {
-                    notifyDataSetInvalidated();
-                }
+                if (results.count > 0) notifyDataSetChanged();
+                else notifyDataSetInvalidated();
             }
         }
 
         private String stripAccents(final CharSequence cs) {
-            return DIACRITICAL_MARKS.matcher(
-                    Normalizer.normalize(cs, Normalizer.Form.NFKD)).replaceAll("");
+            return DIACRITICAL_MARKS.matcher(Normalizer.normalize(cs, Normalizer.Form.NFKD)).replaceAll("");
         }
     }
 }

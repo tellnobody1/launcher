@@ -15,6 +15,8 @@
  */
 package xyz.uaapps.launcher.activities;
 
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
@@ -26,6 +28,8 @@ import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
 import static android.os.Build.VERSION_CODES.N;
+import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
+import static android.provider.Settings.System.ACCELEROMETER_ROTATION;
 import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.KeyEvent.KEYCODE_ENTER;
 import static android.view.View.GONE;
@@ -34,6 +38,7 @@ import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
 import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE;
 import static android.view.inputmethod.EditorInfo.IME_ACTION_GO;
 import static java.util.Collections.emptyMap;
+import static xyz.uaapps.launcher.BuildConfig.DEBUG;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
@@ -63,12 +68,10 @@ import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Display;
 import android.view.KeyEvent;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowInsets;
@@ -100,7 +103,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import xyz.uaapps.launcher.BuildConfig;
 import xyz.uaapps.launcher.LaunchableActivity;
 import xyz.uaapps.launcher.LaunchableActivityPrefs;
 import xyz.uaapps.launcher.LaunchableAdapter;
@@ -114,8 +116,6 @@ import xyz.uaapps.launcher.swipe.SwipeLayout;
 
 public class SearchActivity extends Activity
         implements SharedPreferences.OnSharedPreferenceChangeListener, PackageChangeCallback {
-
-    private static final String SEARCH_EDIT_TEXT_KEY = "SearchEditText";
 
     /**
      * Synchronize to this lock when the Adapter is visible and might be called by multiple threads.
@@ -339,8 +339,6 @@ public class SearchActivity extends Activity
     }
 
     private void launchActivity(final LaunchableActivity launchableActivity) {
-        final LaunchableActivityPrefs launchableprefs = new LaunchableActivityPrefs(this);
-
         hideKeyboard();
         // Second conditional is always true, but this shuts up warnings.
         if (launchableActivity.isUserKnown() && SDK_INT >= N) {
@@ -348,23 +346,21 @@ public class SearchActivity extends Activity
             var launcher = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
             var userSerial = launchableActivity.getUserSerial();
             var userHandle = userManager.getUserForSerialNumber(userSerial);
-
-            launcher.startMainActivity(launchableActivity.getComponent(), userHandle,
-                    null, Bundle.EMPTY);
+            launcher.startMainActivity(launchableActivity.getComponent(), userHandle, null, Bundle.EMPTY);
         } else {
             try {
                 startActivity(launchableActivity.getLaunchIntent());
                 mSearchEditText.setText(null);
-                launchableprefs.writePreference(launchableActivity);
-
-                mAdapter.sortApps();
-            } catch (final ActivityNotFoundException e) {
-                if (BuildConfig.DEBUG) {
-                    throw e;
-                } else {
-                    var notFound = getString(R.string.activity_not_found);
-                    Toast.makeText(this, notFound, Toast.LENGTH_SHORT).show();
+                var prefs = new LaunchableActivityPrefs(this);
+                try {
+                    prefs.writePreference(launchableActivity);
+                } finally {
+                    prefs.close();
                 }
+                mAdapter.sortApps();
+            } catch (ActivityNotFoundException e) {
+                if (DEBUG) throw e;
+                else Toast.makeText(this, getString(R.string.activity_not_found), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -375,49 +371,41 @@ public class SearchActivity extends Activity
 
     public void launchApplicationDetails(final MenuItem item) {
         final LaunchableActivity activity = getLaunchableActivity(item);
-        final Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        final Intent intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
         intent.setData(Uri.parse("package:" + activity.getComponent().getPackageName()));
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
 
     private LaunchableAdapter<LaunchableActivity> loadLaunchableAdapter() {
-        final LaunchableAdapter<LaunchableActivity> adapter;
-        final Object object = getLastNonConfigurationInstance();
+        LaunchableAdapter<LaunchableActivity> adapter;
+        var pm = getPackageManager();
+        if (SDK_INT >= N) {
+            final UserManager manager = (UserManager) getSystemService(USER_SERVICE);
+            final LauncherApps launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
+            final ListIterator<UserHandle> iter = manager.getUserProfiles().listIterator();
+            int count = 0;
 
-        if (object == null) {
-            final PackageManager pm = getPackageManager();
-            if (SDK_INT >= N) {
-                final UserManager manager = (UserManager) getSystemService(USER_SERVICE);
-                final LauncherApps launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-                final ListIterator<UserHandle> iter = manager.getUserProfiles().listIterator();
-                int count = 0;
-
-                while (iter.hasNext()) {
-                    count += launcherApps.getActivityList(null, iter.next()).size();
-                }
-
-                adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, count);
-
-                while (iter.hasPrevious()) {
-                    var activityList = launcherApps.getActivityList(null, iter.previous());
-                    var labels = getLabels(activityList, pm);
-                    addToAdapter(adapter, activityList, labels);
-
-                }
-            } else {
-                final Collection<ResolveInfo> infoList = getLaunchableResolveInfos(pm, null);
-                adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoList.size());
-                var labels = getLabels_1(infoList, pm);
-                addToAdapter1(adapter, infoList, true, labels);
+            while (iter.hasNext()) {
+                count += launcherApps.getActivityList(null, iter.next()).size();
             }
-            adapter.sortApps();
-            adapter.notifyDataSetChanged();
-        } else {
-            adapter = new LaunchableAdapter<>(object, this, R.layout.app_grid_item);
-            adapter.setNotifyOnChange(true);
-        }
 
+            adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, count);
+
+            while (iter.hasPrevious()) {
+                var activityList = launcherApps.getActivityList(null, iter.previous());
+                var labels = getLabels(activityList, pm);
+                addToAdapter(adapter, activityList, labels);
+
+            }
+        } else {
+            final Collection<ResolveInfo> infoList = getLaunchableResolveInfos(pm, null);
+            adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoList.size());
+            var labels = getLabels_1(infoList, pm);
+            addToAdapter1(adapter, infoList, true, labels);
+        }
+        adapter.sortApps();
+        adapter.notifyDataSetChanged();
         return adapter;
     }
 
@@ -453,11 +441,8 @@ public class SearchActivity extends Activity
 
     @Override
     public void onBackPressed() {
-        if (isCurrentLauncher()) {
-            hideKeyboard();
-        } else {
-            moveTaskToBack(false);
-        }
+        if (isCurrentLauncher()) hideKeyboard();
+        else moveTaskToBack(false);
     }
 
     public void onClickClearButton(final View view) {
@@ -541,7 +526,8 @@ public class SearchActivity extends Activity
                     addToAdapter1(mAdapter, resolveInfos, false, labels);
                 }
                 mAdapter.sortApps();
-                updateFilter(mSearchEditText.getText());
+                final CharSequence cs = mSearchEditText.getText();
+                mAdapter.getFilter().filter(cs);
             }
         }
     }
@@ -550,7 +536,8 @@ public class SearchActivity extends Activity
     public void onPackageDisappeared(final String activityName, int[] uids) {
         synchronized (mLock) {
             mAdapter.removeAllByName(activityName);
-            updateFilter(mSearchEditText.getText());
+            final CharSequence cs = mSearchEditText.getText();
+            mAdapter.getFilter().filter(cs);
         }
     }
 
@@ -576,35 +563,15 @@ public class SearchActivity extends Activity
     }
 
     @Override
-    protected void onRestoreInstanceState(@NonNull final Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
-        final CharSequence searchEditText =
-                savedInstanceState.getCharSequence(SEARCH_EDIT_TEXT_KEY);
-
-        if (searchEditText != null) {
-            mSearchEditText.setText(searchEditText);
-            mSearchEditText.setSelection(searchEditText.length());
-        }
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
 
         var searchText = mSearchEditText.getText();
-        if (searchText.length() > 0) {
-            // This is a special case to show SearchEditText should have focus.
-            if (searchText.length() == 1 && searchText.charAt(0) == '\0') {
-                mSearchEditText.setText(null);
-            }
-            showKeyboard();
-        } else {
-            hideKeyboard();
-        }
+        if (searchText.length() > 0) showKeyboard();
+        else hideKeyboard();
 
         if (SDK_INT >= CUPCAKE) {
-            Uri accUri = Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION);
+            Uri accUri = Settings.System.getUriFor(ACCELEROMETER_ROTATION);
             getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
         }
     }
@@ -623,7 +590,7 @@ public class SearchActivity extends Activity
      */
     private void setRotation(final SharedLauncherPrefs prefs) {
         boolean systemRotationAllowed =
-                Settings.System.getInt(getContentResolver(), Settings.System.ACCELEROMETER_ROTATION, 0) == 1;
+                Settings.System.getInt(getContentResolver(), ACCELEROMETER_ROTATION, 0) == 1;
 
         if (systemRotationAllowed) {
             if (prefs.isRotationAllowed()) {
@@ -636,30 +603,6 @@ public class SearchActivity extends Activity
         } else {
             setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
         }
-    }
-
-    /**
-     * Retain the state of the adapter on configuration change.
-     *
-     * @return The attached {@link LaunchableAdapter}.
-     */
-    @Override
-    public Object onRetainNonConfigurationInstance() {
-        return mAdapter.export();
-    }
-
-    @Override
-    protected void onSaveInstanceState(final Bundle outState) {
-        final String searchEdit = mSearchEditText.getText().toString();
-
-        if (!searchEdit.isEmpty()) {
-            outState.putCharSequence(SEARCH_EDIT_TEXT_KEY, searchEdit);
-        } else if (mSearchEditText.hasFocus()) {
-            // This is a special case to show that the box had focus.
-            outState.putCharSequence(SEARCH_EDIT_TEXT_KEY, '\0' + "");
-        }
-
-        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -830,16 +773,7 @@ public class SearchActivity extends Activity
         setupActionBar();
     }
 
-    private void updateFilter(final CharSequence cs) {
-        final int seqLength = cs.length();
-
-        if (seqLength != 1 || cs.charAt(0) != '\0') {
-            mAdapter.getFilter().filter(cs);
-        }
-    }
-
-    private final class AppContainerListener implements AbsListView.OnScrollListener,
-            OnItemClickListener {
+    private final class AppContainerListener implements AbsListView.OnScrollListener, OnItemClickListener {
         @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             launchActivity(view);
         }
@@ -884,9 +818,8 @@ public class SearchActivity extends Activity
             return actionConsumed;
         }
         @Override
-        public void onTextChanged(final CharSequence s, final int start, final int before,
-                                  final int count) {
-            updateFilter(s);
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            mAdapter.getFilter().filter(s);
             findViewById(R.id.clear_button).setVisibility(s.length() > 0 ? VISIBLE : GONE);
         }
     }
