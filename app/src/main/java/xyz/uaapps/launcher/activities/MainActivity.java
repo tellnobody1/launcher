@@ -27,6 +27,7 @@ import static android.os.Build.VERSION_CODES.FROYO;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
 import static android.provider.Settings.System.ACCELEROMETER_ROTATION;
@@ -106,6 +107,7 @@ import xyz.uaapps.launcher.LaunchableActivity;
 import xyz.uaapps.launcher.LaunchableActivityPrefs;
 import xyz.uaapps.launcher.LaunchableAdapter;
 import xyz.uaapps.launcher.LauncherActivityInfoOps;
+import xyz.uaapps.launcher.LocaleConfig;
 import xyz.uaapps.launcher.R;
 import xyz.uaapps.launcher.ResolveInfoOps;
 import xyz.uaapps.launcher.SharedLauncherPrefs;
@@ -398,30 +400,42 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     @RequiresApi(api = N)
     private Map<LauncherActivityInfo, Map<Locale, String>> getLabels(List<LauncherActivityInfo> activityList, PackageManager pm) {
         var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
+        var locales = getLabelLocales();
         for (var activityInfo : activityList) {
             var ops = new LauncherActivityInfoOps(activityInfo);
-            labels.put(activityInfo, ops.getLabels(getLabelLocales(), pm));
+            labels.put(activityInfo, ops.getLabels(locales, pm));
         }
         return labels;
     }
 
     private Map<ResolveInfo, Map<Locale, String>> getLabels_1(Collection<ResolveInfo> infoList, PackageManager pm) {
         var labels = new HashMap<ResolveInfo, Map<Locale, String>>();
+        var locales = getLabelLocales();
         for (var resolveInfo : infoList) {
             var ops = new ResolveInfoOps(resolveInfo, pm);
-            labels.put(resolveInfo, ops.getLabels(getLabelLocales()));
+            labels.put(resolveInfo, ops.getLabels(locales));
         }
         return labels;
     }
 
+    /** @return defaults + assets + english */
     private Set<Locale> getLabelLocales() {
-        var locales = new HashSet<>(List.of(Locale.US, Locale.UK, new Locale("uk", "UA")));
+        var locales = new HashSet<>(List.of(Locale.US, Locale.UK));
+        // add default locales
         if (SDK_INT >= N) {
             var defaults = getResources().getConfiguration().getLocales();
             for (var i = 0; i < defaults.size(); i++) locales.add(defaults.get(i));
         } else {
             locales.add(Locale.getDefault());
         }
+        // add assets locales
+        for (var asset : LocaleConfig.LOCALES)
+            if (SDK_INT >= LOLLIPOP) {
+                locales.add(Locale.forLanguageTag(asset));
+            } else {
+                var parts = asset.split("-");
+                locales.add(parts.length >= 2 ? new Locale(parts[0], parts[1]) : new Locale(parts[0]));
+            }
         return locales;
     }
 

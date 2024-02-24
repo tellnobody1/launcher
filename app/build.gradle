@@ -38,6 +38,46 @@ android {
             var flavorName = project.gradle.startParameter.taskNames.any { it.contains("Lite") } ? '-lite' : ''
             outputFileName = "${rootProject.name.toLowerCase()}${flavorName}-${variant.versionName}${variantName}.apk"
         }
+
+        def generateLocalesTask = task("generate${variant.name.capitalize()}Locales") {
+            doFirst {
+                def locales = []
+                def resDirs = variant.sourceSets.collect { it.res.srcDirs }.flatten()
+                resDirs.each { dir ->
+                    def valuesDirs = dir.listFiles(new FilenameFilter() {
+                        @Override
+                        boolean accept(File dir2, String name) {
+                            return name.startsWith("values-")
+                        }
+                    })
+                    if (valuesDirs != null) {
+                        valuesDirs.each { valuesDir ->
+                            def stringsFile = new File(valuesDir, "strings.xml")
+                            if (stringsFile.exists()) {
+                                def locale = valuesDir.name.replaceFirst("values-", "").replaceFirst("-r", "-")
+                                locales.add(locale)
+                            }
+                        }
+                    }
+                }
+
+                def localesString = locales.unique().collect{"\"${it}\""}.join(', ')
+                def buildConfigClassContent = """\
+                    package ${variant.applicationId};
+                  
+                    public class LocaleConfig {
+                        public static final String[] LOCALES = {${localesString}};
+                    }
+                    """.stripIndent()
+                def buildConfigFilePath = "${project.buildDir}/generated/source/buildConfig/${variant.dirName}/${variant.applicationId.replace('.', '/')}/LocaleConfig.java"
+                def buildConfigFile = new File(buildConfigFilePath)
+                buildConfigFile.parentFile.mkdirs()
+                buildConfigFile.text = buildConfigClassContent
+            }
+        }
+        variant.javaCompileProvider.configure {
+            dependsOn(generateLocalesTask)
+        }
     }
 
     buildTypes {
