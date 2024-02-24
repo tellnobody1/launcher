@@ -16,6 +16,8 @@
  */
 package xyz.uaapps.launcher.swipe;
 
+import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Parcel;
@@ -36,7 +38,7 @@ import android.widget.ListView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.VisibleForTesting;
+import androidx.annotation.RequiresApi;
 import androidx.core.view.NestedScrollingChild;
 import androidx.core.view.NestedScrollingChild2;
 import androidx.core.view.NestedScrollingChild3;
@@ -48,16 +50,14 @@ import androidx.core.view.NestedScrollingParentHelper;
 import androidx.core.view.ViewCompat;
 import androidx.core.widget.ListViewCompat;
 
+@RequiresApi(api = ICE_CREAM_SANDWICH)
 public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
         NestedScrollingParent2, NestedScrollingChild3, NestedScrollingChild2, NestedScrollingParent,
         NestedScrollingChild {
 
-    @VisibleForTesting
     static final int CIRCLE_DIAMETER = 40;
 
     private static final String LOG_TAG = SwipeLayout.class.getSimpleName();
-
-    private static final int MAX_ALPHA = 255;
 
     private static final float DECELERATE_INTERPOLATION_FACTOR = 2f;
     private static final int INVALID_POINTER = -1;
@@ -134,16 +134,9 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
     private boolean mEnableLegacyRequestDisallowInterceptTouch;
 
     private final Animation.AnimationListener mRefreshListener = new Animation.AnimationListener() {
-        @Override
-        public void onAnimationStart(Animation animation) {
-        }
-
-        @Override
-        public void onAnimationRepeat(Animation animation) {
-        }
-
-        @Override
-        public void onAnimationEnd(Animation animation) {
+        @Override public void onAnimationStart(Animation animation) {}
+        @Override public void onAnimationRepeat(Animation animation) {}
+        @Override public void onAnimationEnd(Animation animation) {
             if (mRefreshing) {
                 if (mNotify) {
                     if (mListener != null) {
@@ -161,7 +154,6 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
         mCircleView.clearAnimation();
         // Return the circle to its start position
         if (mScale) {
-            setAnimationProgress(0 /* animation complete and view is hidden */);
         } else {
             setTargetOffsetTopAndBottom(mOriginalOffsetTop - mCurrentTargetOffsetTop);
         }
@@ -202,7 +194,7 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
         }
 
         public static final Parcelable.Creator<SavedState> CREATOR =
-                new Parcelable.Creator<SavedState>() {
+                new Parcelable.Creator<>() {
                     @Override
                     public SavedState createFromParcel(Parcel in) {
                         return new SavedState(in);
@@ -323,26 +315,13 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
     }
 
     private void startScaleUpAnimation(AnimationListener listener) {
-        Animation mScaleAnimation = new Animation() {
-            @Override
-            public void applyTransformation(float interpolatedTime, Transformation t) {
-                setAnimationProgress(interpolatedTime);
-            }
-        };
+        Animation mScaleAnimation = new Animation() {};
         mScaleAnimation.setDuration(mMediumAnimationDuration);
         if (listener != null) {
             mCircleView.setAnimationListener(listener);
         }
         mCircleView.clearAnimation();
         mCircleView.startAnimation(mScaleAnimation);
-    }
-
-    /**
-     * Pre API 11, this does an alpha animation.
-     */
-    void setAnimationProgress(float progress) {
-        mCircleView.setScaleX(progress);
-        mCircleView.setScaleY(progress);
     }
 
     private void setRefreshing(boolean refreshing, final boolean notify) {
@@ -359,12 +338,7 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
     }
 
     void startScaleDownAnimation(Animation.AnimationListener listener) {
-        Animation mScaleDownAnimation = new Animation() {
-            @Override
-            public void applyTransformation(float interpolatedTime, Transformation t) {
-                setAnimationProgress(1 - interpolatedTime);
-            }
-        };
+        Animation mScaleDownAnimation = new Animation() {};
         mScaleDownAnimation.setDuration(SCALE_DOWN_DURATION);
         mCircleView.setAnimationListener(listener);
         mCircleView.clearAnimation();
@@ -825,10 +799,6 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
 
         int targetY = mOriginalOffsetTop + (int) ((slingshotDist * dragPercent) + extraMove);
 
-        if (mScale) {
-            setAnimationProgress(Math.min(1f, overscrollTop / mTotalDragDistance));
-        }
-
         setTargetOffsetTopAndBottom(targetY - mCurrentTargetOffsetTop);
     }
 
@@ -1011,8 +981,6 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
         Animation mScaleDownToStartAnimation = new Animation() {
             @Override
             public void applyTransformation(float interpolatedTime, Transformation t) {
-                float targetScale = (mStartingScale + (-mStartingScale * interpolatedTime));
-                setAnimationProgress(targetScale);
                 moveToStart(interpolatedTime);
             }
         };

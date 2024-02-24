@@ -21,6 +21,7 @@ import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.FROYO;
+import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
 import static android.os.Build.VERSION_CODES.N;
@@ -497,11 +498,14 @@ public class SearchActivity extends Activity
 
         setContentView(R.layout.activity_search);
 
-        SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
-        swipeLayout.setOnRefreshListener(() -> {
-            showKeyboard();
-            swipeLayout.setRefreshing(false);
-        });
+        var prefs = new SharedLauncherPrefs(this);
+        if (prefs.isActionBarEnabled() && SDK_INT >= ICE_CREAM_SANDWICH) {
+            SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
+            swipeLayout.setOnRefreshListener(() -> {
+                showKeyboard();
+                swipeLayout.setRefreshing(false);
+            });
+        }
     }
 
     @Override

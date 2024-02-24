@@ -24,26 +24,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <xyz.uaapps.launcher.swipe.SwipeLayout
-        android:id="@+id/swipeLayout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <GridView
-            android:id="@+id/appsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:choiceMode="singleChoice"
-            android:clipToPadding="false"
-            android:columnWidth="@dimen/app_row_column_width"
-            android:fadingEdge="none"
-            android:horizontalSpacing="@dimen/app_row_horizontal_spacing"
-            android:numColumns="auto_fit"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            android:scrollbars="none"
-            android:stretchMode="spacingWidth"
-            android:verticalSpacing="@dimen/app_row_vertical_spacing" />
-    </xyz.uaapps.launcher.swipe.SwipeLayout>
+    <include layout="@layout/app_grid_container" />
 
     <LinearLayout
         android:id="@+id/customActionBar"
