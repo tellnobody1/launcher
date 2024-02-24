@@ -475,8 +475,15 @@ public class SearchActivity extends Activity
         return labels;
     }
 
-    private static Set<Locale> getLabelLocales() {
-        return new HashSet<>(List.of(Locale.getDefault(), Locale.US, Locale.UK, new Locale("uk", "UA")));
+    private Set<Locale> getLabelLocales() {
+        var locales = new HashSet<>(List.of(Locale.US, Locale.UK, new Locale("uk", "UA")));
+        if (SDK_INT >= N) {
+            var defaults = getResources().getConfiguration().getLocales();
+            for (var i = 0; i < defaults.size(); i++) locales.add(defaults.get(i));
+        } else {
+            locales.add(Locale.getDefault());
+        }
+        return locales;
     }
 
     @Override

@@ -16,6 +16,9 @@
 
 package xyz.uaapps.launcher;
 
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.N;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -79,6 +82,8 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     private final LaunchableActivityPrefs mPrefs;
 
+    private final Context context;
+
     /**
      * The resource indicating what views to inflate to display the content of this
      * array adapter in a drop down widget.
@@ -104,6 +109,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     public LaunchableAdapter(@NonNull final Context context, @LayoutRes final int resource,
                              final int initialSize) {
+        this.context = context;
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
         mPrefs = new LaunchableActivityPrefs(context);
@@ -435,7 +441,8 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
             final boolean notify = mNotifyOnChange;
             mNotifyOnChange = false;
 
-            final Collator collator = Collator.getInstance(Locale.getDefault());
+            var locale = SDK_INT >= N ? context.getResources().getConfiguration().getLocales().get(0) : Locale.getDefault();
+            final Collator collator = Collator.getInstance(locale);
             collator.setStrength(Collator.PRIMARY);
             sort((o1, o2) -> collator.compare(o1.toString(), o2.toString()));
 
