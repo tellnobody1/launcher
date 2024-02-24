@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.widget.ListView;
 
+import xyz.uaapps.launcher.R;
 import xyz.uaapps.launcher.fragments.SettingsFragment;
 
 public class SettingsActivity extends PreferenceActivity {
@@ -29,6 +30,7 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setTitle(R.string.title_activity_settings);
 
         final ListView listView = new ListView(this);
         listView.setId(android.R.id.list);
