@@ -13,13 +13,10 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package xyz.uaapps.launcher;
 
-import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -29,7 +26,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class LaunchableActivityPrefs extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 1;
 
     private static final String KEY_CLASSNAME = "ClassName";
 
@@ -39,7 +36,7 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
 
     private static final String TABLE_NAME = "ActivityLaunchNumbers";
 
-    public LaunchableActivityPrefs(final Context context) {
+    public LaunchableActivityPrefs(Context context) {
         super(context, TABLE_NAME, null, DATABASE_VERSION);
     }
 
@@ -49,35 +46,20 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
      * @param db        The database.
      * @param className The classname of the column to delete.
      */
-    private static void deletePreference(final SQLiteDatabase db, final String className) {
+    private static void deletePreference(SQLiteDatabase db, String className) {
         db.delete(TABLE_NAME, KEY_CLASSNAME + "=?", new String[]{className});
     }
 
-    /**
-     * This method deletes the {@link LaunchableActivity} from persistent storage.
-     *
-     * @param launchableActivity The LaunchableActivity to remove from persistent storage.
-     */
-    public void deletePreference(final LaunchableActivity launchableActivity) {
-        final SQLiteDatabase db = getWritableDatabase();
-
-        deletePreference(db, launchableActivity.getComponent().getClassName());
-
-        db.close();
-    }
-
     @Override
-    public void onCreate(final SQLiteDatabase db) {
-        final String tableCreate = String.format("CREATE TABLE %s (%S INTEGER PRIMARY KEY, " +
-                        "%s TEXT UNIQUE, %s INTEGER);",
-                TABLE_NAME, KEY_ID, KEY_CLASSNAME,
-                KEY_FAVORITE);
-
+    public void onCreate(SQLiteDatabase db) {
+        var tableCreate = String.format(
+                "CREATE TABLE %s (%S INTEGER PRIMARY KEY, %s TEXT UNIQUE, %s INTEGER);",
+                TABLE_NAME, KEY_ID, KEY_CLASSNAME, KEY_FAVORITE);
         db.execSQL(tableCreate);
     }
 
     @Override
-    public void onUpgrade(final SQLiteDatabase db, final int oldVersion, final int newVersion) {
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < DATABASE_VERSION && newVersion == DATABASE_VERSION) {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
             onCreate(db);
@@ -90,30 +72,22 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
      * @param launchableActivity The {@link LaunchableActivity} to update.
      */
     public void setPreferences(final LaunchableActivity launchableActivity) {
-        final SQLiteDatabase db = getReadableDatabase();
-        final ComponentName name = launchableActivity.getComponent();
-        final String[] whereArgs;
-        final String[] columns = {KEY_FAVORITE};
-        final Cursor cursor;
+        var db = getReadableDatabase();
+        var name = launchableActivity.getComponent();
+        var columns = new String[]{KEY_FAVORITE};
 
-        if (name == null) {
-            whereArgs = new String[]{launchableActivity.toString()};
-        } else {
-            whereArgs = new String[]{name.getClassName()};
-        }
+        var whereArgs = name == null ? new String[]{launchableActivity.toString()} : new String[]{name.getClassName()};
 
-        cursor = db.query(TABLE_NAME, columns, KEY_CLASSNAME + "=?", whereArgs, null,
-                null, null);
-
-        if (cursor.moveToFirst()) {
-            int column = cursor.getColumnIndex(KEY_FAVORITE);
-
-            if (column != -1) {
-                launchableActivity.setPriority(cursor.getInt(column));
+        var cursor = db.query(TABLE_NAME, columns, KEY_CLASSNAME + "=?", whereArgs, null, null, null);
+        try {
+            if (cursor.moveToFirst()) {
+                var column = cursor.getColumnIndex(KEY_FAVORITE);
+                if (column != -1)
+                    launchableActivity.setPriority(cursor.getInt(column));
             }
+        } finally {
+            cursor.close();
         }
-
-        cursor.close();
     }
 
     /**
@@ -122,29 +96,26 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
      * @param launchableActivity The {@link LaunchableActivity} to write to persistent storage.
      */
     public void writePreference(final LaunchableActivity launchableActivity) {
-        final SQLiteDatabase db = getWritableDatabase();
-        final ContentValues values = new ContentValues();
-        final int priority = launchableActivity.getPriority();
-        final ComponentName name = launchableActivity.getComponent();
-        final String className;
+        var values = new ContentValues();
+        var priority = launchableActivity.getPriority();
+        var name = launchableActivity.getComponent();
 
         if (priority > 0) {
             values.put(KEY_FAVORITE, priority);
         }
 
-        if (name == null) {
-            className = launchableActivity.toString();
-        } else {
-            className = name.getClassName();
-        }
+        var className = name == null ? launchableActivity.toString() : name.getClassName();
 
-        if (values.size() == 0) {
-            deletePreference(db, className);
-        } else {
-            values.put(KEY_CLASSNAME, className);
-            db.replace(TABLE_NAME, null, values);
+        var db = getWritableDatabase();
+        try {
+            if (values.size() == 0) {
+                deletePreference(db, className);
+            } else {
+                values.put(KEY_CLASSNAME, className);
+                db.replace(TABLE_NAME, null, values);
+            }
+        } finally {
+            db.close();
         }
-
-        db.close();
     }
 }

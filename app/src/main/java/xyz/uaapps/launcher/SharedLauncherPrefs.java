@@ -13,7 +13,6 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package xyz.uaapps.launcher;
 
 import android.content.Context;
@@ -22,36 +21,15 @@ import android.preference.PreferenceManager;
 
 import androidx.annotation.StringRes;
 
-/**
- * This class is used to retrieve shared preferences used by this package.
- */
 public class SharedLauncherPrefs {
-
-    /**
-     * The current Context.
-     */
     private final Context mContext;
-
-    /**
-     * A SharedPreferences object.
-     */
     private final SharedPreferences mPreferences;
 
-    /**
-     * The sole constructor.
-     *
-     * @param context The current context.
-     */
     public SharedLauncherPrefs(final Context context) {
         mContext = context;
         mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    /**
-     * The used {@link SharedPreferences} object.
-     *
-     * @return The used SharedPreferences object.
-     */
     public SharedPreferences getPreferences() {
         return mPreferences;
     }
@@ -68,23 +46,10 @@ public class SharedLauncherPrefs {
         return isPrefEnabled(R.string.pref_key_swipe, true);
     }
 
-    /**
-     * This method checks if a {@code boolean} preference is enabled by {@link StringRes} key.
-     *
-     * @param keyRes         The {@code StringRes} key.
-     * @param defaultBoolean The default if the key does not exist.
-     * @return {@code true} if the value of the {@code StringRes} boolean value is true,
-     * {@code false} otherwise.
-     */
-    private boolean isPrefEnabled(@StringRes final int keyRes, final boolean defaultBoolean) {
+    private boolean isPrefEnabled(@StringRes int keyRes, boolean defaultBoolean) {
         return mPreferences.getBoolean(getString(keyRes), defaultBoolean);
     }
 
-    /**
-     * This method returns if screen rotation should be allowed.
-     *
-     * @return {@code true} if screen rotation should be permitted, {@code false} otherwise.
-     */
     public boolean isRotationAllowed() {
         return isPrefEnabled(R.string.pref_key_allow_rotation, true);
     }

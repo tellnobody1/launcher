@@ -13,7 +13,6 @@
   ~ either express or implied. See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
@@ -33,24 +32,23 @@
         tools:targetApi="n">
 
         <activity
-            android:name="xyz.uaapps.launcher.activities.SearchActivity"
+            android:name=".activities.SearchActivity"
             android:alwaysRetainTaskState="true"
             android:exported="true"
             android:label="@string/title_activity_search"
             android:launchMode="singleTask"
             android:windowSoftInputMode="stateHidden|adjustResize">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.ASSIST" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.HOME" />
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name="xyz.uaapps.launcher.activities.SettingsActivity"
+            android:name=".activities.SettingsActivity"
             android:exported="true"
             android:label="@string/title_activity_settings"
             android:theme="@style/AppSettingsTheme">

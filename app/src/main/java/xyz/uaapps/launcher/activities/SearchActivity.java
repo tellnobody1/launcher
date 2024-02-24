@@ -13,18 +13,26 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package xyz.uaapps.launcher.activities;
 
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
+import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.FROYO;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
 import static android.os.Build.VERSION_CODES.N;
+import static android.view.KeyEvent.ACTION_DOWN;
+import static android.view.KeyEvent.KEYCODE_ENTER;
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
+import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
+import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE;
+import static android.view.inputmethod.EditorInfo.IME_ACTION_GO;
 import static java.util.Collections.emptyMap;
 
 import android.annotation.TargetApi;
@@ -42,7 +50,6 @@ import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.ContentObserver;
-import android.graphics.Insets;
 import android.graphics.Point;
 import android.hardware.display.DisplayManager;
 import android.net.Uri;
@@ -66,7 +73,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -111,11 +117,8 @@ public class SearchActivity extends Activity
 
     private static final String SEARCH_EDIT_TEXT_KEY = "SearchEditText";
 
-    private static final String TAG = "SearchActivity";
-
     /**
-     * Synchronize to this lock when the Adapter is visible and might be called by multiple
-     * threads.
+     * Synchronize to this lock when the Adapter is visible and might be called by multiple threads.
      */
     private final Object mLock = new Object();
 
@@ -132,8 +135,7 @@ public class SearchActivity extends Activity
     private DisplayManager.DisplayListener mDisplayListener = null;
 
     /**
-     * This ContentObserver is used by the ContentResolver to register a callback to set rotation in case it changes
-     * in the system settings.
+     * This ContentObserver is used by the ContentResolver to register a callback to set rotation in case it changes in the system settings.
      */
     private final ContentObserver mAccSettingObserver = new ContentObserver(new Handler()) {
         @Override
@@ -150,24 +152,9 @@ public class SearchActivity extends Activity
 
     private EditText mSearchEditText;
 
-    /**
-     * This method returns the size of the dimen
-     *
-     * @param resources The resources for the containing the named identifier.
-     * @param name      The name of the resource to get the id for.
-     * @return The dimension size, {@code 0} if the name for the identifier doesn't exist.
-     */
-    private static int getDimensionSize(final Resources resources, final String name) {
-        final int resourceId = resources.getIdentifier(name, "dimen", "android");
-        final int dimensionSize;
-
-        if (resourceId > 0) {
-            dimensionSize = resources.getDimensionPixelSize(resourceId);
-        } else {
-            dimensionSize = 0;
-        }
-
-        return dimensionSize;
+    private static int getDimensionSize(Resources resources, String name) {
+        var resourceId = resources.getIdentifier(name, "dimen", "android");
+        return resourceId > 0 ? resources.getDimensionPixelSize(resourceId) : 0;
     }
 
     private static LaunchableActivity getLaunchableActivity(final View view) {
@@ -182,67 +169,51 @@ public class SearchActivity extends Activity
         return getLaunchableActivity(item.getMenuInfo());
     }
 
-    private static Collection<ResolveInfo> getLaunchableResolveInfos(final PackageManager pm,
-                                                                     @Nullable final String activityName) {
-        final Intent intent = new Intent();
-
+    private static Collection<ResolveInfo> getLaunchableResolveInfos(PackageManager pm, @Nullable String activityName) {
+        var intent = new Intent();
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
         if (SDK_INT >= DONUT)
             intent.setPackage(activityName);
-
         return pm.queryIntentActivities(intent, 0);
     }
 
-    /**
-     * Retrieves the navigation bar height.
-     *
-     * @param resources The resources for the device.
-     * @return The height of the navigation bar.
-     */
     @DeprecatedSinceApi(api = VERSION_CODES.R, message =
             "Later APIs use get getNavigationBarHeight30()")
-    private static int getNavigationBarHeight15(final Resources resources) {
-        final int navBarHeight;
-        final Configuration configuration = resources.getConfiguration();
-
+    private static int getNavigationBarHeight15(Resources resources) {
+        var configuration = resources.getConfiguration();
         //Only phone between 0-599 has navigationbar can move
         final boolean isSmartphone = configuration.smallestScreenWidthDp < 600;
-        final boolean isPortrait =
-                configuration.orientation == Configuration.ORIENTATION_PORTRAIT;
+        final boolean isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT;
 
-        if (isSmartphone && !isPortrait) {
+        final int navBarHeight;
+        if (isSmartphone && !isPortrait)
             navBarHeight = 0;
-        } else if (isPortrait) {
+        else if (isPortrait)
             navBarHeight = getDimensionSize(resources, "navigation_bar_height");
-        } else {
+        else
             navBarHeight = getDimensionSize(resources, "navigation_bar_height_landscape");
-        }
-
         return navBarHeight;
     }
 
     public static int getAppUsableScreenSizeWidth(final Display defaultDisplay) {
         Point size = new Point();
         defaultDisplay.getSize(size);
-
         return size.x;
     }
 
-    public static int getRealScreenWidth(final Display defaultDisplay) {
-        final Point size = new Point();
-
-        if (SDK_INT >= 17) {
+    public static int getRealScreenWidth(Display defaultDisplay) {
+        var size = new Point();
+        if (SDK_INT >= JELLY_BEAN_MR1) {
             defaultDisplay.getRealSize(size);
-        } else if (SDK_INT >= 14) {
+        } else if (SDK_INT >= ICE_CREAM_SANDWICH) {
             try {
                 size.x = (Integer) Display.class.getMethod("getRawWidth").invoke(defaultDisplay);
-            } catch (IllegalAccessException e) {
-            } catch (InvocationTargetException e) {
-            } catch (NoSuchMethodException e) {
+            } catch (IllegalAccessException ignored) {
+            } catch (InvocationTargetException ignored) {
+            } catch (NoSuchMethodException ignored) {
             }
         }
-
         return size.x;
     }
 
@@ -261,16 +232,13 @@ public class SearchActivity extends Activity
      * the application usable space is less than the real space.
      */
     public static boolean isNavBarProblematic(final Context context) {
-        final Resources resources = context.getResources();
-        final boolean isLandscape = resources.getConfiguration().orientation ==
-                Configuration.ORIENTATION_LANDSCAPE;
-
+        var resources = context.getResources();
+        var isLandscape = resources.getConfiguration().orientation == ORIENTATION_LANDSCAPE;
         return !isInGestureMode(resources) && isLandscape && isRealSizeDifferentThanUsable(context);
     }
 
     public static boolean isInGestureMode(final Resources resources) {
-        final int resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
-
+        var resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
         return resourceId != 0 && resources.getInteger(resourceId) == 2;
     }
 
@@ -292,7 +260,7 @@ public class SearchActivity extends Activity
             @NonNull Iterable<LauncherActivityInfo> infoList,
             Map<LauncherActivityInfo, Map<Locale, String>> labels) {
         final String thisCanonicalName = getClass().getCanonicalName();
-        final UserManager manager = (UserManager) getSystemService(Context.USER_SERVICE);
+        final UserManager manager = (UserManager) getSystemService(USER_SERVICE);
         for (final var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                 Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
@@ -339,23 +307,24 @@ public class SearchActivity extends Activity
     }
 
     private void showKeyboard() {
-        var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
         mSearchEditText.requestFocus();
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        imm.showSoftInput(mSearchEditText, 0);
+        if (SDK_INT >= CUPCAKE) {
+            var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            getWindow().setSoftInputMode(SOFT_INPUT_STATE_VISIBLE);
+            imm.showSoftInput(mSearchEditText, 0);
+        }
     }
 
     private void hideKeyboard() {
-        final View focus = getCurrentFocus();
-
-        if (focus != null) {
-            final InputMethodManager imm =
-                    (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-
-            imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+        if (SDK_INT >= CUPCAKE) {
+            var focus = getCurrentFocus();
+            if (focus != null) {
+                var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+            }
+            getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
         }
         findViewById(R.id.appsContainer).requestFocus();
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
     private boolean isCurrentLauncher() {
@@ -374,13 +343,11 @@ public class SearchActivity extends Activity
 
         hideKeyboard();
         // Second conditional is always true, but this shuts up warnings.
-        if (launchableActivity.isUserKnown() &&
-                SDK_INT >= N) {
-            final UserManager userManager = (UserManager) getSystemService(Context.USER_SERVICE);
-            final LauncherApps launcher =
-                    (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
-            final long userSerial = launchableActivity.getUserSerial();
-            final UserHandle userHandle = userManager.getUserForSerialNumber(userSerial);
+        if (launchableActivity.isUserKnown() && SDK_INT >= N) {
+            var userManager = (UserManager) getSystemService(USER_SERVICE);
+            var launcher = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
+            var userSerial = launchableActivity.getUserSerial();
+            var userHandle = userManager.getUserForSerialNumber(userSerial);
 
             launcher.startMainActivity(launchableActivity.getComponent(), userHandle,
                     null, Bundle.EMPTY);
@@ -395,9 +362,7 @@ public class SearchActivity extends Activity
                 if (BuildConfig.DEBUG) {
                     throw e;
                 } else {
-                    final String notFound = getString(R.string.activity_not_found);
-
-                    Log.e(TAG, notFound, e);
+                    var notFound = getString(R.string.activity_not_found);
                     Toast.makeText(this, notFound, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -423,8 +388,8 @@ public class SearchActivity extends Activity
         if (object == null) {
             final PackageManager pm = getPackageManager();
             if (SDK_INT >= N) {
-                final UserManager manager = (UserManager) getSystemService(Context.USER_SERVICE);
-                final LauncherApps launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
+                final UserManager manager = (UserManager) getSystemService(USER_SERVICE);
+                final LauncherApps launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
                 final ListIterator<UserHandle> iter = manager.getUserProfiles().listIterator();
                 int count = 0;
 
@@ -505,8 +470,8 @@ public class SearchActivity extends Activity
 
         setContentView(R.layout.activity_search);
 
-        var prefs = new SharedLauncherPrefs(this);
         if (SDK_INT >= ICE_CREAM_SANDWICH) {
+            var prefs = new SharedLauncherPrefs(this);
             SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
             swipeLayout.setOnRefreshListener(() -> {
                 if (prefs.isActionBarEnabled() && prefs.isSwipeEnabled()) {
@@ -518,15 +483,14 @@ public class SearchActivity extends Activity
     }
 
     @Override
-    public void onCreateContextMenu(final ContextMenu menu, final View v,
-                                    final ContextMenuInfo menuInfo) {
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
 
-        final MenuInflater inflater = getMenuInflater();
+        var inflater = getMenuInflater();
         inflater.inflate(R.menu.app, menu);
 
-        final LaunchableActivity activity = getLaunchableActivity(menuInfo);
-        final MenuItem item = menu.findItem(R.id.appmenu_pin_to_top);
+        var activity = getLaunchableActivity(menuInfo);
+        var item = menu.findItem(R.id.appmenu_pin_to_top);
 
         item.setTitle(activity.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
     }
@@ -550,8 +514,8 @@ public class SearchActivity extends Activity
         closeOptionsMenu();
 
         // If the y coordinate is not at 0, let's reset it.
-        final GridView view = findViewById(R.id.appsContainer);
-        final int[] loc = {0, 0};
+        var view = this.<GridView>findViewById(R.id.appsContainer);
+        var loc = new int[]{0, 0};
         view.getLocationInWindow(loc);
         if (loc[1] != 0) {
             if (SDK_INT >= FROYO) view.smoothScrollToPosition(0);
@@ -561,11 +525,11 @@ public class SearchActivity extends Activity
 
     @Override
     public void onPackageAppeared(final String activityName, int[] uids) {
-        final PackageManager pm = getPackageManager();
+        var pm = getPackageManager();
         synchronized (mLock) {
             if (mAdapter.getClassNamePosition(activityName) == -1) {
                 if (SDK_INT >= N) {
-                    final var launcherApps = (LauncherApps) getSystemService(Context.LAUNCHER_APPS_SERVICE);
+                    final var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
                     for (int uid : uids) {
                         var activityList = launcherApps.getActivityList(activityName, UserHandle.getUserHandleForUid(uid));
                         var labels = getLabels(activityList, pm);
@@ -627,10 +591,8 @@ public class SearchActivity extends Activity
     @Override
     protected void onResume() {
         super.onResume();
-        final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
 
-        final Editable searchText = mSearchEditText.getText();
-
+        var searchText = mSearchEditText.getText();
         if (searchText.length() > 0) {
             // This is a special case to show SearchEditText should have focus.
             if (searchText.length() == 1 && searchText.charAt(0) == '\0') {
@@ -641,8 +603,10 @@ public class SearchActivity extends Activity
             hideKeyboard();
         }
 
-        final Uri accUri = Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION);
-        getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
+        if (SDK_INT >= CUPCAKE) {
+            Uri accUri = Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION);
+            getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
+        }
     }
 
     /**
@@ -737,26 +701,20 @@ public class SearchActivity extends Activity
     protected void onStop() {
         mAdapter.onStop();
         unregisterReceiver(mPackageChangeReceiver);
-
         super.onStop();
     }
 
-    /**
-     * This method prioritizes a {@link LaunchableActivity} to the top of the order when sorting.
-     *
-     * @param item The {@link MenuItem} containing the {@link LaunchableActivity} to be ordered.
-     */
-    public void pinToTop(final MenuItem item) {
-        final LaunchableActivity activity = getLaunchableActivity(item);
-        final LaunchableActivityPrefs prefs = new LaunchableActivityPrefs(this);
+    public void pinToTop(MenuItem item) {
+        var activity = getLaunchableActivity(item);
+        activity.setPriority(activity.getPriority() == 0 ? 1 : 0);
 
-        if (activity.getPriority() == 0) {
-            activity.setPriority(1);
-        } else {
-            activity.setPriority(0);
+        var prefs = new LaunchableActivityPrefs(this);
+        try {
+            prefs.writePreference(activity);
+        } finally {
+            prefs.close();
         }
 
-        prefs.writePreference(activity);
         mAdapter.sortApps();
     }
 
@@ -767,27 +725,21 @@ public class SearchActivity extends Activity
      */
     @RequiresApi(api = JELLY_BEAN_MR1)
     private void registerDisplayListener() {
-        final DisplayManager displayManager =
-                (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
-        final Handler handler = new Handler(Looper.getMainLooper());
-
+        var displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        var handler = new Handler(Looper.getMainLooper());
         displayManager.registerDisplayListener(mDisplayListener, handler);
     }
 
     @RequiresApi(api = VERSION_CODES.R)
     private int getNavigationBarHeight30() {
-        final int navBars = WindowInsets.Type.navigationBars();
-        final Insets insets = getWindowManager().getCurrentWindowMetrics()
-                .getWindowInsets().getInsets(navBars);
-
+        var navBars = WindowInsets.Type.navigationBars();
+        var insets = getWindowManager().getCurrentWindowMetrics().getWindowInsets().getInsets(navBars);
         return insets.bottom;
     }
 
     private static void setupMasterLayoutPadding(final View masterLayout, final int padding) {
         masterLayout.setFitsSystemWindows(isNavBarProblematic(masterLayout.getContext()));
-        final FrameLayout.LayoutParams masterParams =
-                (FrameLayout.LayoutParams) masterLayout.getLayoutParams();
-
+        var masterParams = (FrameLayout.LayoutParams) masterLayout.getLayoutParams();
         masterParams.setMargins(padding, 0, padding, 0);
     }
 
@@ -798,8 +750,7 @@ public class SearchActivity extends Activity
         final int searchTop;
 
         if (SDK_INT >= KITKAT && !isNavBarProblematic(context)) {
-            searchTop = getDimensionSize(context.getResources(), "status_bar_height") +
-                    padding;
+            searchTop = getDimensionSize(context.getResources(), "status_bar_height") + padding;
         } else {
             searchTop = padding;
         }
@@ -842,7 +793,6 @@ public class SearchActivity extends Activity
         final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
         final SharedPreferences preferences = prefs.getPreferences();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-
         preferences.registerOnSharedPreferenceChangeListener(this);
     }
 
@@ -861,9 +811,9 @@ public class SearchActivity extends Activity
         final SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
 
         if (prefs.isActionBarEnabled()) {
-            view.setVisibility(View.VISIBLE);
+            view.setVisibility(VISIBLE);
         } else {
-            view.setVisibility(View.GONE);
+            view.setVisibility(GONE);
         }
     }
 
@@ -890,23 +840,12 @@ public class SearchActivity extends Activity
 
     private final class AppContainerListener implements AbsListView.OnScrollListener,
             OnItemClickListener {
-
-        @Override
-        public void onItemClick(final AdapterView<?> parent, final View view,
-                                final int position, final long id) {
+        @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             launchActivity(view);
         }
-
-        @Override
-        public void onScroll(final AbsListView view, final int firstVisibleItem,
-                             final int visibleItemCount, final int totalItemCount) {
-        }
-
-        @Override
-        public void onScrollStateChanged(final AbsListView view, final int scrollState) {
-            if (scrollState != SCROLL_STATE_IDLE) {
-                hideKeyboard();
-            }
+        @Override public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
+        @Override public void onScrollStateChanged(AbsListView view, int scrollState) {
+            if (scrollState != SCROLL_STATE_IDLE) hideKeyboard();
         }
     }
 
@@ -919,43 +858,22 @@ public class SearchActivity extends Activity
      */
     @RequiresApi(api = JELLY_BEAN_MR1)
     private final class DisplayChangeListener implements DisplayManager.DisplayListener {
-
-        @Override
-        public void onDisplayAdded(final int displayId) {
-        }
-
-        @Override
-        public void onDisplayChanged(final int displayId) {
+        @Override public void onDisplayAdded(int displayId) {}
+        @Override public void onDisplayChanged(int displayId) {
             setupPadding();
         }
-
-        @Override
-        public void onDisplayRemoved(final int displayId) {
-        }
+        @Override public void onDisplayRemoved(int displayId) {}
     }
 
-    private final class SearchEditTextListeners
-            implements TextView.OnEditorActionListener, TextWatcher {
-
-        @Override
-        public void afterTextChanged(final Editable s) {
-            //do nothing
-        }
-
-        @Override
-        public void beforeTextChanged(final CharSequence s, final int start, final int count,
-                                      final int after) {
-            //do nothing
-        }
-
-        @Override
-        public boolean onEditorAction(final TextView v, final int actionId, final KeyEvent event) {
-            final boolean actionConsumed;
-            final boolean enterPressed = event != null &&
-                    event.getAction() == KeyEvent.ACTION_DOWN &&
-                    event.getKeyCode() == KeyEvent.KEYCODE_ENTER;
-
-            if (actionId == EditorInfo.IME_ACTION_GO || (enterPressed && !mAdapter.isEmpty())) {
+    private final class SearchEditTextListeners implements TextView.OnEditorActionListener, TextWatcher {
+        @Override public void afterTextChanged(Editable s) {}
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            boolean actionConsumed;
+            boolean enterPressed = event != null &&
+                    event.getAction() == ACTION_DOWN &&
+                    event.getKeyCode() == KEYCODE_ENTER;
+            if (actionId == IME_ACTION_GO || (enterPressed && !mAdapter.isEmpty())) {
                 if (mAdapter.getCount() > 0) {
                     launchActivity(mAdapter.getItem(0));
                     actionConsumed = true;
@@ -963,21 +881,13 @@ public class SearchActivity extends Activity
                     actionConsumed = false;
             } else
                 actionConsumed = false;
-
             return actionConsumed;
         }
-
         @Override
         public void onTextChanged(final CharSequence s, final int start, final int before,
                                   final int count) {
             updateFilter(s);
-            final View clearButton = findViewById(R.id.clear_button);
-
-            if (s.length() > 0) {
-                clearButton.setVisibility(View.VISIBLE);
-            } else {
-                clearButton.setVisibility(View.GONE);
-            }
+            findViewById(R.id.clear_button).setVisibility(s.length() > 0 ? VISIBLE : GONE);
         }
     }
 }
