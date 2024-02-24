@@ -153,8 +153,7 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
     void reset() {
         mCircleView.clearAnimation();
         // Return the circle to its start position
-        if (mScale) {
-        } else {
+        if (!mScale) {
             setTargetOffsetTopAndBottom(mOriginalOffsetTop - mCurrentTargetOffsetTop);
         }
         mCurrentTargetOffsetTop = mCircleView.getTop();

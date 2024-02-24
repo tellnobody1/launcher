@@ -20,7 +20,6 @@
     <string name="appmenu_info">Informações do aplicativo</string>
     <string name="activity_not_found">Atividade não encontrada.</string>
     <string name="launch">Abrir</string>
-    <string name="settings_autokeyboard">Abrir teclado automaticamente</string>
     <string name="settings_category_general_category">Geral</string>
     <string name="appmenu_pin_to_top">Manter no topo</string>
 </resources>

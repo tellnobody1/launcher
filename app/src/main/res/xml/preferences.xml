@@ -22,10 +22,10 @@
             android:key="@string/pref_key_actionbar"
             android:title="@string/pref_enable_actionbar" />
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:dependency="@string/pref_key_actionbar"
-            android:key="@string/pref_key_auto_keyboard"
-            android:title="@string/settings_autokeyboard" />
+            android:key="@string/pref_key_swipe"
+            android:title="@string/pref_enable_swipe" />
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="@string/pref_key_allow_rotation"
@@ -36,7 +36,6 @@
             android:id="@+id/about_version"
             android:key="about_version"
             android:title="@string/about_version_code" />
-
         <Preference
             android:id="@+id/about_project_website_url"
             android:key="about_project_website"

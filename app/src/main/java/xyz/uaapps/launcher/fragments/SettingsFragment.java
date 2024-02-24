@@ -16,6 +16,9 @@
 
 package xyz.uaapps.launcher.fragments;
 
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
+
 import android.content.Context;
 import android.content.Intent;
 import android.database.ContentObserver;
@@ -71,6 +74,8 @@ public class SettingsFragment extends PreferenceFragment {
         super.onCreate(savedInstanceState);
 
         addPreferencesFromResource(R.xml.preferences);
+
+        findPreference(getString(R.string.pref_key_swipe)).setEnabled(SDK_INT >= ICE_CREAM_SANDWICH);
     }
 
     @Override

@@ -499,10 +499,12 @@ public class SearchActivity extends Activity
         setContentView(R.layout.activity_search);
 
         var prefs = new SharedLauncherPrefs(this);
-        if (prefs.isActionBarEnabled() && SDK_INT >= ICE_CREAM_SANDWICH) {
+        if (SDK_INT >= ICE_CREAM_SANDWICH) {
             SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
             swipeLayout.setOnRefreshListener(() -> {
-                showKeyboard();
+                if (prefs.isActionBarEnabled() && prefs.isSwipeEnabled()) {
+                    showKeyboard();
+                }
                 swipeLayout.setRefreshing(false);
             });
         }
@@ -622,8 +624,7 @@ public class SearchActivity extends Activity
 
         final Editable searchText = mSearchEditText.getText();
 
-        if ((prefs.isActionBarEnabled() && prefs.isKeyboardAutomatic()) ||
-                searchText.length() > 0) {
+        if (searchText.length() > 0) {
             // This is a special case to show SearchEditText should have focus.
             if (searchText.length() == 1 && searchText.charAt(0) == '\0') {
                 mSearchEditText.setText(null);

@@ -56,13 +56,7 @@ public class SharedLauncherPrefs {
         return mPreferences;
     }
 
-    /**
-     * A simple caller to {@link Context#getString(int)}.
-     *
-     * @param resId The resource to retrieve the string from.
-     * @return The string value for the given resource.
-     */
-    private String getString(@StringRes final int resId) {
+    private String getString(@StringRes int resId) {
         return mContext.getString(resId);
     }
 
@@ -70,14 +64,8 @@ public class SharedLauncherPrefs {
         return isPrefEnabled(R.string.pref_key_actionbar, true);
     }
 
-    /**
-     * This returns whether the keyboard should be automatically loaded at startup.
-     *
-     * @return {@code true} if the keyboard should be automatically loaded at startup,
-     * {@code false} otherwise.
-     */
-    public boolean isKeyboardAutomatic() {
-        return isPrefEnabled(R.string.pref_key_auto_keyboard, false);
+    public boolean isSwipeEnabled() {
+        return isPrefEnabled(R.string.pref_key_swipe, true);
     }
 
     /**

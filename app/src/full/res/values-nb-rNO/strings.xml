@@ -23,7 +23,6 @@
     <string name="about_header">Om Ryūsei</string>
     <string name="about_version_code">Versjon</string>
     <string name="about_project_website">Prosjektnettside</string>
-    <string name="settings_autokeyboard">Åpne tastatur automatisk</string>
     <string name="settings_category_general_category">Generelt</string>
     <string name="appmenu_pin_to_top">Fest til toppen</string>
     <string name="appmenu_remove_pin">Løsne</string>
