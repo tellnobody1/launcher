@@ -34,13 +34,9 @@ import android.view.animation.Transformation;
 import android.widget.AbsListView;
 import android.widget.ListView;
 
-import androidx.annotation.ColorInt;
-import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.Px;
 import androidx.annotation.VisibleForTesting;
-import androidx.core.content.ContextCompat;
 import androidx.core.view.NestedScrollingChild;
 import androidx.core.view.NestedScrollingChild2;
 import androidx.core.view.NestedScrollingChild3;
@@ -52,58 +48,22 @@ import androidx.core.view.NestedScrollingParentHelper;
 import androidx.core.view.ViewCompat;
 import androidx.core.widget.ListViewCompat;
 
-/**
- * The SwipeRefreshLayout should be used whenever the user can refresh the
- * contents of a view via a vertical swipe gesture. The activity that
- * instantiates this view should add an OnRefreshListener to be notified
- * whenever the swipe to refresh gesture is completed. The SwipeRefreshLayout
- * will notify the listener each and every time the gesture is completed again;
- * the listener is responsible for correctly determining when to actually
- * initiate a refresh of its content. If the listener determines there should
- * not be a refresh, it must call setRefreshing(false) to cancel any visual
- * indication of a refresh. If an activity wishes to show just the progress
- * animation, it should call setRefreshing(true). To disable the gesture and
- * progress animation, call setEnabled(false) on the view.
- * <p>
- * This layout should be made the parent of the view that will be refreshed as a
- * result of the gesture and can only support one direct child. This view will
- * also be made the target of the gesture and will be forced to match both the
- * width and the height supplied in this layout. The SwipeRefreshLayout does not
- * provide accessibility events; instead, a menu item must be provided to allow
- * refresh of the content wherever this gesture is used.
- * </p>
- */
-public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingParent3,
+public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
         NestedScrollingParent2, NestedScrollingChild3, NestedScrollingChild2, NestedScrollingParent,
         NestedScrollingChild {
-    // Maps to ProgressBar.Large style
-    public static final int LARGE = CircularProgressDrawable.LARGE;
-    // Maps to ProgressBar default style
-    public static final int DEFAULT = CircularProgressDrawable.DEFAULT;
-
-    public static final int DEFAULT_SLINGSHOT_DISTANCE = -1;
 
     @VisibleForTesting
     static final int CIRCLE_DIAMETER = 40;
-    @VisibleForTesting
-    static final int CIRCLE_DIAMETER_LARGE = 56;
 
-    private static final String LOG_TAG = SwipeRefreshLayout.class.getSimpleName();
+    private static final String LOG_TAG = SwipeLayout.class.getSimpleName();
 
     private static final int MAX_ALPHA = 255;
-    private static final int STARTING_PROGRESS_ALPHA = (int) (.3f * MAX_ALPHA);
 
     private static final float DECELERATE_INTERPOLATION_FACTOR = 2f;
     private static final int INVALID_POINTER = -1;
     private static final float DRAG_RATE = .5f;
 
-    // Max amount of circle that can be filled by progress during swipe gesture,
-    // where 1.0 is a full circle
-    private static final float MAX_PROGRESS_ANGLE = .8f;
-
     private static final int SCALE_DOWN_DURATION = 150;
-
-    private static final int ALPHA_ANIMATION_DURATION = 300;
 
     private static final int ANIMATE_TO_TRIGGER_DURATION = 200;
 
@@ -115,7 +75,7 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
     private View mTarget; // the target of the gesture
     OnRefreshListener mListener;
     boolean mRefreshing = false;
-    private int mTouchSlop;
+    private final int mTouchSlop;
     private float mTotalDragDistance = -1;
 
     // If nested scrolling is enabled, the total amount that needed to be
@@ -132,7 +92,7 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
     private final int[] mNestedScrollingV2ConsumedCompat = new int[2];
     private boolean mNestedScrollInProgress;
 
-    private int mMediumAnimationDuration;
+    private final int mMediumAnimationDuration;
     int mCurrentTargetOffsetTop;
 
     private float mInitialMotionY;
@@ -150,7 +110,7 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
             android.R.attr.enabled
     };
 
-    CircleImageView mCircleView;
+    SwipeView mCircleView;
     private int mCircleViewIndex = -1;
 
     protected int mFrom;
@@ -163,31 +123,17 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
 
     int mCustomSlingshotDistance;
 
-    CircularProgressDrawable mProgress;
-
-    private Animation mScaleAnimation;
-
-    private Animation mScaleDownAnimation;
-
-    private Animation mAlphaStartAnimation;
-
-    private Animation mAlphaMaxAnimation;
-
-    private Animation mScaleDownToStartAnimation;
-
     boolean mNotify;
 
-    private int mCircleDiameter;
+    private final int mCircleDiameter;
 
     // Whether the client has set a custom starting position;
     boolean mUsingCustomStart;
 
-    private OnChildScrollUpCallback mChildScrollUpCallback;
-
     /** @see #setLegacyRequestDisallowInterceptTouchEventEnabled */
     private boolean mEnableLegacyRequestDisallowInterceptTouch;
 
-    private Animation.AnimationListener mRefreshListener = new Animation.AnimationListener() {
+    private final Animation.AnimationListener mRefreshListener = new Animation.AnimationListener() {
         @Override
         public void onAnimationStart(Animation animation) {
         }
@@ -199,9 +145,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         @Override
         public void onAnimationEnd(Animation animation) {
             if (mRefreshing) {
-                // Make sure the progress view is fully visible
-                mProgress.setAlpha(MAX_ALPHA);
-                mProgress.start();
                 if (mNotify) {
                     if (mListener != null) {
                         mListener.onRefresh();
@@ -216,9 +159,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
 
     void reset() {
         mCircleView.clearAnimation();
-        mProgress.stop();
-        mCircleView.setVisibility(View.GONE);
-        setColorViewAlpha(MAX_ALPHA);
         // Return the circle to its start position
         if (mScale) {
             setAnimationProgress(0 /* animation complete and view is hidden */);
@@ -240,7 +180,7 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         final boolean mRefreshing;
 
         /**
-         * Constructor called from {@link SwipeRefreshLayout#onSaveInstanceState()}
+         * Constructor called from {@link SwipeLayout#onSaveInstanceState()}
          */
         SavedState(Parcelable superState, boolean refreshing) {
             super(superState);
@@ -294,122 +234,10 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         reset();
     }
 
-    private void setColorViewAlpha(int targetAlpha) {
-        mCircleView.getBackground().setAlpha(targetAlpha);
-        mProgress.setAlpha(targetAlpha);
-    }
-
     /**
-     * The refresh indicator starting and resting position is always positioned
-     * near the top of the refreshing content. This position is a consistent
-     * location, but can be adjusted in either direction based on whether or not
-     * there is a toolbar or actionbar present.
-     * <p>
-     * <strong>Note:</strong> Calling this will reset the position of the refresh indicator to
-     * <code>start</code>.
-     * </p>
-     *
-     * @param scale Set to true if there is no view at a higher z-order than where the progress
-     *              spinner is set to appear. Setting it to true will cause indicator to be scaled
-     *              up rather than clipped.
-     * @param start The offset in pixels from the top of this view at which the
-     *              progress spinner should appear.
-     * @param end The offset in pixels from the top of this view at which the
-     *            progress spinner should come to rest after a successful swipe
-     *            gesture.
+     * Constructor that is called when inflating from XML.
      */
-    public void setProgressViewOffset(boolean scale, int start, int end) {
-        mScale = scale;
-        mOriginalOffsetTop = start;
-        mSpinnerOffsetEnd = end;
-        mUsingCustomStart = true;
-        reset();
-        mRefreshing = false;
-    }
-
-    /**
-     * @return The offset in pixels from the top of this view at which the progress spinner should
-     *         appear.
-     */
-    public int getProgressViewStartOffset() {
-        return mOriginalOffsetTop;
-    }
-
-    /**
-     * @return The offset in pixels from the top of this view at which the progress spinner should
-     *         come to rest after a successful swipe gesture.
-     */
-    public int getProgressViewEndOffset() {
-        return mSpinnerOffsetEnd;
-    }
-
-    /**
-     * The refresh indicator resting position is always positioned near the top
-     * of the refreshing content. This position is a consistent location, but
-     * can be adjusted in either direction based on whether or not there is a
-     * toolbar or actionbar present.
-     *
-     * @param scale Set to true if there is no view at a higher z-order than where the progress
-     *              spinner is set to appear. Setting it to true will cause indicator to be scaled
-     *              up rather than clipped.
-     * @param end The offset in pixels from the top of this view at which the
-     *            progress spinner should come to rest after a successful swipe
-     *            gesture.
-     */
-    public void setProgressViewEndTarget(boolean scale, int end) {
-        mSpinnerOffsetEnd = end;
-        mScale = scale;
-        mCircleView.invalidate();
-    }
-
-    /**
-     * Sets the distance that the refresh indicator can be pulled beyond its resting position during
-     * a swipe gesture. The default is {@link #DEFAULT_SLINGSHOT_DISTANCE}.
-     *
-     * @param slingshotDistance The distance in pixels that the refresh indicator can be pulled
-     *                          beyond its resting position.
-     */
-    public void setSlingshotDistance(@Px int slingshotDistance) {
-        mCustomSlingshotDistance = slingshotDistance;
-    }
-
-    /**
-     * One of DEFAULT, or LARGE.
-     */
-    public void setSize(int size) {
-        if (size != CircularProgressDrawable.LARGE && size != CircularProgressDrawable.DEFAULT) {
-            return;
-        }
-        final DisplayMetrics metrics = getResources().getDisplayMetrics();
-        if (size == CircularProgressDrawable.LARGE) {
-            mCircleDiameter = (int) (CIRCLE_DIAMETER_LARGE * metrics.density);
-        } else {
-            mCircleDiameter = (int) (CIRCLE_DIAMETER * metrics.density);
-        }
-        // force the bounds of the progress circle inside the circle view to
-        // update by setting it to null before updating its size and then
-        // re-setting it
-        mCircleView.setImageDrawable(null);
-        mProgress.setStyle(size);
-        mCircleView.setImageDrawable(mProgress);
-    }
-
-    /**
-     * Simple constructor to use when creating a SwipeRefreshLayout from code.
-     *
-     * @param context
-     */
-    public SwipeRefreshLayout(@NonNull Context context) {
-        this(context, null);
-    }
-
-    /**
-     * Constructor that is called when inflating SwipeRefreshLayout from XML.
-     *
-     * @param context
-     * @param attrs
-     */
-    public SwipeRefreshLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
+    public SwipeLayout(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
@@ -458,11 +286,7 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
     }
 
     private void createProgressView() {
-        mCircleView = new CircleImageView(getContext());
-        mProgress = new CircularProgressDrawable(getContext());
-        mProgress.setStyle(CircularProgressDrawable.DEFAULT);
-        mCircleView.setImageDrawable(mProgress);
-        mCircleView.setVisibility(View.GONE);
+        mCircleView = new SwipeView(getContext());
         addView(mCircleView);
     }
 
@@ -499,9 +323,7 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
     }
 
     private void startScaleUpAnimation(AnimationListener listener) {
-        mCircleView.setVisibility(View.VISIBLE);
-        mProgress.setAlpha(MAX_ALPHA);
-        mScaleAnimation = new Animation() {
+        Animation mScaleAnimation = new Animation() {
             @Override
             public void applyTransformation(float interpolatedTime, Transformation t) {
                 setAnimationProgress(interpolatedTime);
@@ -517,7 +339,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
 
     /**
      * Pre API 11, this does an alpha animation.
-     * @param progress
      */
     void setAnimationProgress(float progress) {
         mCircleView.setScaleX(progress);
@@ -538,7 +359,7 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
     }
 
     void startScaleDownAnimation(Animation.AnimationListener listener) {
-        mScaleDownAnimation = new Animation() {
+        Animation mScaleDownAnimation = new Animation() {
             @Override
             public void applyTransformation(float interpolatedTime, Transformation t) {
                 setAnimationProgress(1 - interpolatedTime);
@@ -548,100 +369,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         mCircleView.setAnimationListener(listener);
         mCircleView.clearAnimation();
         mCircleView.startAnimation(mScaleDownAnimation);
-    }
-
-    private void startProgressAlphaStartAnimation() {
-        mAlphaStartAnimation = startAlphaAnimation(mProgress.getAlpha(), STARTING_PROGRESS_ALPHA);
-    }
-
-    private void startProgressAlphaMaxAnimation() {
-        mAlphaMaxAnimation = startAlphaAnimation(mProgress.getAlpha(), MAX_ALPHA);
-    }
-
-    private Animation startAlphaAnimation(final int startingAlpha, final int endingAlpha) {
-        Animation alpha = new Animation() {
-            @Override
-            public void applyTransformation(float interpolatedTime, Transformation t) {
-                mProgress.setAlpha(
-                        (int) (startingAlpha + ((endingAlpha - startingAlpha) * interpolatedTime)));
-            }
-        };
-        alpha.setDuration(ALPHA_ANIMATION_DURATION);
-        // Clear out the previous animation listeners.
-        mCircleView.setAnimationListener(null);
-        mCircleView.clearAnimation();
-        mCircleView.startAnimation(alpha);
-        return alpha;
-    }
-
-    /**
-     * @deprecated Use {@link #setProgressBackgroundColorSchemeResource(int)}
-     */
-    @Deprecated
-    public void setProgressBackgroundColor(int colorRes) {
-        setProgressBackgroundColorSchemeResource(colorRes);
-    }
-
-    /**
-     * Set the background color of the progress spinner disc.
-     *
-     * @param colorRes Resource id of the color.
-     */
-    public void setProgressBackgroundColorSchemeResource(@ColorRes int colorRes) {
-        setProgressBackgroundColorSchemeColor(ContextCompat.getColor(getContext(), colorRes));
-    }
-
-    /**
-     * Set the background color of the progress spinner disc.
-     *
-     * @param color
-     */
-    public void setProgressBackgroundColorSchemeColor(@ColorInt int color) {
-        mCircleView.setBackgroundColor(color);
-    }
-
-    /**
-     * @deprecated Use {@link #setColorSchemeResources(int...)}
-     */
-    @Deprecated
-    public void setColorScheme(@ColorRes int... colors) {
-        setColorSchemeResources(colors);
-    }
-
-    /**
-     * Set the color resources used in the progress animation from color resources.
-     * The first color will also be the color of the bar that grows in response
-     * to a user swipe gesture.
-     *
-     * @param colorResIds
-     */
-    public void setColorSchemeResources(@ColorRes int... colorResIds) {
-        final Context context = getContext();
-        int[] colorRes = new int[colorResIds.length];
-        for (int i = 0; i < colorResIds.length; i++) {
-            colorRes[i] = ContextCompat.getColor(context, colorResIds[i]);
-        }
-        setColorSchemeColors(colorRes);
-    }
-
-    /**
-     * Set the colors used in the progress animation. The first
-     * color will also be the color of the bar that grows in response to a user
-     * swipe gesture.
-     *
-     * @param colors
-     */
-    public void setColorSchemeColors(@ColorInt int... colors) {
-        ensureTarget();
-        mProgress.setColorSchemeColors(colors);
-    }
-
-    /**
-     * @return Whether the SwipeRefreshWidget is actively showing refresh
-     *         progress.
-     */
-    public boolean isRefreshing() {
-        return mRefreshing;
     }
 
     private void ensureTarget() {
@@ -656,15 +383,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
                 }
             }
         }
-    }
-
-    /**
-     * Set the distance to trigger a sync in dips
-     *
-     * @param distance
-     */
-    public void setDistanceToTriggerSync(int distance) {
-        mTotalDragDistance = distance;
     }
 
     @Override
@@ -718,36 +436,14 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
     }
 
     /**
-     * Get the diameter of the progress circle that is displayed as part of the
-     * swipe to refresh layout.
-     *
-     * @return Diameter in pixels of the progress circle view.
-     */
-    public int getProgressCircleDiameter() {
-        return mCircleDiameter;
-    }
-
-    /**
      * @return Whether it is possible for the child view of this layout to
      *         scroll up. Override this if the child view is a custom view.
      */
     public boolean canChildScrollUp() {
-        if (mChildScrollUpCallback != null) {
-            return mChildScrollUpCallback.canChildScrollUp(this, mTarget);
-        }
         if (mTarget instanceof ListView) {
             return ListViewCompat.canScrollList((ListView) mTarget, -1);
         }
         return mTarget.canScrollVertically(-1);
-    }
-
-    /**
-     * Set a callback to override {@link SwipeRefreshLayout#canChildScrollUp()} method. Non-null
-     * callback will return the value provided by the callback and ignore all internal logic.
-     * @param callback Callback that should be called when canChildScrollUp() is called.
-     */
-    public void setOnChildScrollUpCallback(@Nullable OnChildScrollUpCallback callback) {
-        mChildScrollUpCallback = callback;
     }
 
     @Override
@@ -768,41 +464,33 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         }
 
         switch (action) {
-            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_DOWN -> {
                 setTargetOffsetTopAndBottom(mOriginalOffsetTop - mCircleView.getTop());
                 mActivePointerId = ev.getPointerId(0);
                 mIsBeingDragged = false;
-
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
                     return false;
                 }
                 mInitialDownY = ev.getY(pointerIndex);
-                break;
-
-            case MotionEvent.ACTION_MOVE:
+            }
+            case MotionEvent.ACTION_MOVE -> {
                 if (mActivePointerId == INVALID_POINTER) {
                     Log.e(LOG_TAG, "Got ACTION_MOVE event but don't have an active pointer id.");
                     return false;
                 }
-
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
                     return false;
                 }
                 final float y = ev.getY(pointerIndex);
                 startDragging(y);
-                break;
-
-            case MotionEvent.ACTION_POINTER_UP:
-                onSecondaryPointerUp(ev);
-                break;
-
-            case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+            }
+            case MotionEvent.ACTION_POINTER_UP -> onSecondaryPointerUp(ev);
+            case MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 mIsBeingDragged = false;
                 mActivePointerId = INVALID_POINTER;
-                break;
+            }
         }
 
         return mIsBeingDragged;
@@ -974,15 +662,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
             moveSpinner(mTotalUnconsumed);
         }
 
-        // If a client layout is using a custom start position for the circle
-        // view, they mean to hide it again before scrolling the child view
-        // If we get back to mTotalUnconsumed == 0 and there is more to go, hide
-        // the circle so it isn't exposed if its blocking content is moved
-        if (mUsingCustomStart && dy > 0 && mTotalUnconsumed == 0
-                && Math.abs(dy - consumed[1]) > 0) {
-            mCircleView.setVisibility(View.GONE);
-        }
-
         // Now let our nested parent consume the leftovers
         final int[] parentConsumed = mParentScrollConsumed;
         if (dispatchNestedPreScroll(dx - consumed[0], dy - consumed[1], parentConsumed, null)) {
@@ -1129,11 +808,9 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
     }
 
     private void moveSpinner(float overscrollTop) {
-        mProgress.setArrowEnabled(true);
         float originalDragPercent = overscrollTop / mTotalDragDistance;
 
         float dragPercent = Math.min(1f, Math.abs(originalDragPercent));
-        float adjustedPercent = (float) Math.max(dragPercent - .4, 0) * 5 / 3;
         float extraOS = Math.abs(overscrollTop) - mTotalDragDistance;
         float slingshotDist = mCustomSlingshotDistance > 0
                 ? mCustomSlingshotDistance
@@ -1147,36 +824,11 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         float extraMove = slingshotDist * tensionPercent * 2;
 
         int targetY = mOriginalOffsetTop + (int) ((slingshotDist * dragPercent) + extraMove);
-        // where 1.0f is a full circle
-        if (mCircleView.getVisibility() != View.VISIBLE) {
-            mCircleView.setVisibility(View.VISIBLE);
-        }
-        if (!mScale) {
-            mCircleView.setScaleX(1f);
-            mCircleView.setScaleY(1f);
-        }
 
         if (mScale) {
             setAnimationProgress(Math.min(1f, overscrollTop / mTotalDragDistance));
         }
-        if (overscrollTop < mTotalDragDistance) {
-            if (mProgress.getAlpha() > STARTING_PROGRESS_ALPHA
-                    && !isAnimationRunning(mAlphaStartAnimation)) {
-                // Animate the alpha
-                startProgressAlphaStartAnimation();
-            }
-        } else {
-            if (mProgress.getAlpha() < MAX_ALPHA && !isAnimationRunning(mAlphaMaxAnimation)) {
-                // Animate the alpha
-                startProgressAlphaMaxAnimation();
-            }
-        }
-        float strokeStart = adjustedPercent * .8f;
-        mProgress.setStartEndTrim(0f, Math.min(MAX_PROGRESS_ANGLE, strokeStart));
-        mProgress.setArrowScale(Math.min(1f, adjustedPercent));
 
-        float rotation = (-0.25f + .4f * adjustedPercent + tensionPercent * 2) * .5f;
-        mProgress.setProgressRotation(rotation);
         setTargetOffsetTopAndBottom(targetY - mCurrentTargetOffsetTop);
     }
 
@@ -1186,7 +838,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         } else {
             // cancel refresh
             mRefreshing = false;
-            mProgress.setStartEndTrim(0f, 0f);
             Animation.AnimationListener listener = null;
             if (!mScale) {
                 listener = new Animation.AnimationListener() {
@@ -1209,7 +860,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
                 };
             }
             animateOffsetToStartPosition(mCurrentTargetOffsetTop, listener);
-            mProgress.setArrowEnabled(false);
         }
     }
 
@@ -1229,12 +879,11 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         }
 
         switch (action) {
-            case MotionEvent.ACTION_DOWN:
+            case MotionEvent.ACTION_DOWN -> {
                 mActivePointerId = ev.getPointerId(0);
                 mIsBeingDragged = false;
-                break;
-
-            case MotionEvent.ACTION_MOVE: {
+            }
+            case MotionEvent.ACTION_MOVE -> {
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
                     Log.e(LOG_TAG, "Got ACTION_MOVE event but have an invalid active pointer id.");
@@ -1255,9 +904,8 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
                         return false;
                     }
                 }
-                break;
             }
-            case MotionEvent.ACTION_POINTER_DOWN: {
+            case MotionEvent.ACTION_POINTER_DOWN -> {
                 pointerIndex = ev.getActionIndex();
                 if (pointerIndex < 0) {
                     Log.e(LOG_TAG,
@@ -1265,14 +913,9 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
                     return false;
                 }
                 mActivePointerId = ev.getPointerId(pointerIndex);
-                break;
             }
-
-            case MotionEvent.ACTION_POINTER_UP:
-                onSecondaryPointerUp(ev);
-                break;
-
-            case MotionEvent.ACTION_UP: {
+            case MotionEvent.ACTION_POINTER_UP -> onSecondaryPointerUp(ev);
+            case MotionEvent.ACTION_UP -> {
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
                     Log.e(LOG_TAG, "Got ACTION_UP event but don't have an active pointer id.");
@@ -1288,8 +931,9 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
                 mActivePointerId = INVALID_POINTER;
                 return false;
             }
-            case MotionEvent.ACTION_CANCEL:
+            case MotionEvent.ACTION_CANCEL -> {
                 return false;
+            }
         }
 
         return true;
@@ -1300,7 +944,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
         if (yDiff > mTouchSlop && !mIsBeingDragged) {
             mInitialMotionY = mInitialDownY + mTouchSlop;
             mIsBeingDragged = true;
-            mProgress.setAlpha(STARTING_PROGRESS_ALPHA);
         }
     }
 
@@ -1345,7 +988,6 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
             int targetTop = (mFrom + (int) ((endTarget - mFrom) * interpolatedTime));
             int offset = targetTop - mCircleView.getTop();
             setTargetOffsetTopAndBottom(offset);
-            mProgress.setArrowScale(1 - interpolatedTime);
         }
     };
 
@@ -1366,10 +1008,10 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
             Animation.AnimationListener listener) {
         mFrom = from;
         mStartingScale = mCircleView.getScaleX();
-        mScaleDownToStartAnimation = new Animation() {
+        Animation mScaleDownToStartAnimation = new Animation() {
             @Override
             public void applyTransformation(float interpolatedTime, Transformation t) {
-                float targetScale = (mStartingScale + (-mStartingScale  * interpolatedTime));
+                float targetScale = (mStartingScale + (-mStartingScale * interpolatedTime));
                 setAnimationProgress(targetScale);
                 moveToStart(interpolatedTime);
             }
@@ -1408,22 +1050,5 @@ public class SwipeRefreshLayout extends ViewGroup implements NestedScrollingPare
          * Called when a swipe gesture triggers a refresh.
          */
         void onRefresh();
-    }
-
-    /**
-     * Classes that wish to override {@link SwipeRefreshLayout#canChildScrollUp()} method
-     * behavior should implement this interface.
-     */
-    public interface OnChildScrollUpCallback {
-        /**
-         * Callback that will be called when {@link SwipeRefreshLayout#canChildScrollUp()} method
-         * is called to allow the implementer to override its behavior.
-         *
-         * @param parent SwipeRefreshLayout that this callback is overriding.
-         * @param child The child view of SwipeRefreshLayout.
-         *
-         * @return Whether it is possible for the child view of parent layout to scroll up.
-         */
-        boolean canChildScrollUp(@NonNull SwipeRefreshLayout parent, @Nullable View child);
     }
 }

@@ -24,8 +24,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <xyz.uaapps.launcher.swipe.SwipeRefreshLayout
-        android:id="@+id/swiperefresh"
+    <xyz.uaapps.launcher.swipe.SwipeLayout
+        android:id="@+id/swipeLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -43,7 +43,7 @@
             android:scrollbars="none"
             android:stretchMode="spacingWidth"
             android:verticalSpacing="@dimen/app_row_vertical_spacing" />
-    </xyz.uaapps.launcher.swipe.SwipeRefreshLayout>
+    </xyz.uaapps.launcher.swipe.SwipeLayout>
 
     <LinearLayout
         android:id="@+id/customActionBar"

@@ -103,7 +103,7 @@ import xyz.uaapps.launcher.ResolveInfoOps;
 import xyz.uaapps.launcher.SharedLauncherPrefs;
 import xyz.uaapps.launcher.monitor.PackageChangeCallback;
 import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
-import xyz.uaapps.launcher.swipe.SwipeRefreshLayout;
+import xyz.uaapps.launcher.swipe.SwipeLayout;
 
 public class SearchActivity extends Activity
         implements SharedPreferences.OnSharedPreferenceChangeListener, PackageChangeCallback {
@@ -497,10 +497,10 @@ public class SearchActivity extends Activity
 
         setContentView(R.layout.activity_search);
 
-        SwipeRefreshLayout swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
-        swipeRefreshLayout.setOnRefreshListener(() -> {
+        SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
+        swipeLayout.setOnRefreshListener(() -> {
             showKeyboard();
-            swipeRefreshLayout.setRefreshing(false);
+            swipeLayout.setRefreshing(false);
         });
     }
 
