@@ -20,7 +20,6 @@ import static android.os.Build.VERSION_CODES.N;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -330,12 +329,9 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                 component = current.get(i).getComponent();
 
                 if (component.getClassName().startsWith(name)) {
-                    Log.d(TAG, "Removing " + name +
-                            " by starting with classname: " + component.getClassName());
                     current.remove(i);
                     removedCount++;
                 } else if (component.getPackageName().equals(name)) {
-                    Log.d(TAG, "Found position of " + name);
                     current.remove(i);
                     removedCount++;
                 }

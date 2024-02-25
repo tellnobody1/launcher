@@ -26,7 +26,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.SystemClock;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -131,7 +130,6 @@ public class PackageChangedReceiver extends BroadcastReceiver {
                 // This will happen if a second intent processes the delayed intent first.
                 break;
             default:
-                Log.w(TAG, "Received action without reaction: " + action);
                 break;
         }
     }
@@ -173,15 +171,12 @@ public class PackageChangedReceiver extends BroadcastReceiver {
 
                 switch (action) {
                     case PACKAGE_APPEARED:
-                        Log.d(TAG, "Package appeared: " + newPackage);
                         sCallback.onPackageAppeared(newPackage, users);
                         break;
                     case PACKAGE_CHANGED:
-                        Log.d(TAG, "Package changed: " + newPackage);
                         sCallback.onPackageModified(newPackage, users[0]);
                         break;
                     case PACKAGE_DISAPPEARED:
-                        Log.d(TAG, "Package disappeared: " + newPackage);
                         sCallback.onPackageDisappeared(newPackage, users);
                         break;
                     default:
@@ -215,9 +210,7 @@ public class PackageChangedReceiver extends BroadcastReceiver {
         final String intentAction = intent.getAction();
 
         if (intentAction == null) {
-            Log.w(TAG, "Received a Intent with no action.");
         } else if (sCallback == null) {
-            Log.d(TAG, "Callback was null, delaying intent: " + intent);
             if (!ACTION_DELAYED.equals(intentAction)) {
                 DELAYED_INTENTS.add(intent);
             }
