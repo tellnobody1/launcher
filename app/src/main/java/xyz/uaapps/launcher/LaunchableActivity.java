@@ -8,8 +8,6 @@ import java.util.Set;
 public interface LaunchableActivity {
     ComponentName getComponent();
 
-    void setPriority(int priority);
-
     int getPriority();
 
     boolean isUserKnown();

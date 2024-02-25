@@ -22,21 +22,17 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 /**
  * This is a convenience class write persistent information to save to restore
- * {@link LaunchableActivity} objects.
+ * {@link Pinnable} objects.
  */
-public class LaunchableActivityPrefs extends SQLiteOpenHelper {
+public class PinnablePrefs extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
-
     private static final String KEY_CLASSNAME = "ClassName";
-
     private static final String KEY_FAVORITE = "Favorite";
-
     private static final String KEY_ID = "Id";
+    private static final String TABLE_NAME = "PinnableFavorites";
 
-    private static final String TABLE_NAME = "ActivityLaunchNumbers";
-
-    public LaunchableActivityPrefs(Context context) {
+    public PinnablePrefs(Context context) {
         super(context, TABLE_NAME, null, DATABASE_VERSION);
     }
 
@@ -66,24 +62,18 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
         }
     }
 
-    /**
-     * This method updates a {@link LaunchableActivity} with persistent information.
-     *
-     * @param launchableActivity The {@link LaunchableActivity} to update.
-     */
-    public void setPreferences(final LaunchableActivity launchableActivity) {
+    public void setPreferences(Pinnable pinnable) {
         var db = getReadableDatabase();
-        var name = launchableActivity.getComponent();
         var columns = new String[]{KEY_FAVORITE};
 
-        var whereArgs = name == null ? new String[]{launchableActivity.toString()} : new String[]{name.getClassName()};
+        var whereArgs = new String[]{pinnable.getName()};
 
         var cursor = db.query(TABLE_NAME, columns, KEY_CLASSNAME + "=?", whereArgs, null, null, null);
         try {
             if (cursor.moveToFirst()) {
                 var column = cursor.getColumnIndex(KEY_FAVORITE);
                 if (column != -1)
-                    launchableActivity.setPriority(cursor.getInt(column));
+                    pinnable.setPriority(cursor.getInt(column));
             }
         } finally {
             cursor.close();
@@ -91,20 +81,19 @@ public class LaunchableActivityPrefs extends SQLiteOpenHelper {
     }
 
     /**
-     * Write the preferences from the {@link LaunchableActivity} to persistent storage.
+     * Write the preferences from the {@link Pinnable} to persistent storage.
      *
-     * @param launchableActivity The {@link LaunchableActivity} to write to persistent storage.
+     * @param pinnable The {@link Pinnable} to write to persistent storage.
      */
-    public void writePreference(final LaunchableActivity launchableActivity) {
+    public void writePreference(Pinnable pinnable) {
         var values = new ContentValues();
-        var priority = launchableActivity.getPriority();
-        var name = launchableActivity.getComponent();
+        var priority = pinnable.getPriority();
 
         if (priority > 0) {
             values.put(KEY_FAVORITE, priority);
         }
 
-        var className = name == null ? launchableActivity.toString() : name.getClassName();
+        var className = pinnable.getName();
 
         var db = getWritableDatabase();
         try {

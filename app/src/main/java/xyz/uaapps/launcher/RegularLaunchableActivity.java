@@ -37,7 +37,7 @@ import androidx.annotation.RequiresApi;
 import java.util.Collections;
 import java.util.Set;
 
-public class RegularLaunchableActivity implements LaunchableActivity {
+public class RegularLaunchableActivity implements LaunchableActivity, Pinnable {
 
     private final String mActivityLabel;
     private final Set<String> labels;
@@ -142,7 +142,7 @@ public class RegularLaunchableActivity implements LaunchableActivity {
         return mPriority;
     }
 
-    public void setPriority(final int priority) {
+    public void setPriority(int priority) {
         mPriority = priority;
     }
 
@@ -158,5 +158,9 @@ public class RegularLaunchableActivity implements LaunchableActivity {
     @Nullable
     public String getLabelEn() {
         return labelEn;
+    }
+
+    public String getName() {
+        return getComponent() == null ? mActivityLabel : getComponent().getClassName();
     }
 }

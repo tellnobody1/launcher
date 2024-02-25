@@ -104,10 +104,11 @@ import java.util.Map;
 import java.util.Set;
 
 import xyz.uaapps.launcher.LaunchableActivity;
-import xyz.uaapps.launcher.LaunchableActivityPrefs;
 import xyz.uaapps.launcher.LaunchableAdapter;
 import xyz.uaapps.launcher.LauncherActivityInfoOps;
 import xyz.uaapps.launcher.LocaleConfig;
+import xyz.uaapps.launcher.Pinnable;
+import xyz.uaapps.launcher.PinnablePrefs;
 import xyz.uaapps.launcher.R;
 import xyz.uaapps.launcher.RegularLaunchableActivity;
 import xyz.uaapps.launcher.ResolveInfoOps;
@@ -341,12 +342,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             try {
                 startActivity(launchableActivity.getLaunchIntent());
                 mSearchEditText.setText(null);
-                var prefs = new LaunchableActivityPrefs(this);
-                try {
-                    prefs.writePreference(launchableActivity);
-                } finally {
-                    prefs.close();
-                }
                 mAdapter.sortApps();
             } catch (ActivityNotFoundException e) {
                 if (DEBUG) throw e;
@@ -479,6 +474,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         var item = menu.findItem(R.id.appmenu_pin_to_top);
 
         item.setTitle(activity.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
+        item.setEnabled(activity instanceof Pinnable);
     }
 
     /**
@@ -641,16 +637,18 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     public void pinToTop(MenuItem item) {
         var activity = getLaunchableActivity(item);
-        activity.setPriority(activity.getPriority() == 0 ? 1 : 0);
+        if (activity instanceof Pinnable pinnable) {
+            pinnable.setPriority(pinnable.getPriority() == 0 ? 1 : 0);
 
-        var prefs = new LaunchableActivityPrefs(this);
-        try {
-            prefs.writePreference(activity);
-        } finally {
-            prefs.close();
+            var prefs = new PinnablePrefs(this);
+            try {
+                prefs.writePreference(pinnable);
+            } finally {
+                prefs.close();
+            }
+
+            mAdapter.sortApps();
         }
-
-        mAdapter.sortApps();
     }
 
     /**

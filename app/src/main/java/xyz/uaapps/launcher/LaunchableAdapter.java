@@ -78,7 +78,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * This field contains the database used to store persistent values for
      * {@link LaunchableActivity} objects.
      */
-    private final LaunchableActivityPrefs mPrefs;
+    private final PinnablePrefs mPrefs;
 
     private final Context context;
 
@@ -110,7 +110,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         this.context = context;
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
-        mPrefs = new LaunchableActivityPrefs(context);
+        mPrefs = new PinnablePrefs(context);
     }
 
     /**
@@ -119,7 +119,8 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * @param object The object to add at the end of the array.
      */
     public void add(@Nullable final T object) {
-        mPrefs.setPreferences(object);
+        if (object instanceof Pinnable pinnable)
+            mPrefs.setPreferences(pinnable);
 
         synchronized (mLock) {
             if (mOriginalValues == null) {
