@@ -16,6 +16,7 @@
 package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 
 import android.content.ComponentName;
@@ -412,6 +413,11 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                 } else {
                     var query = stripAccents(constraint).toLowerCase();
                     var newValues = new LinkedList<T>();
+
+                    var phoneMatcher = Pattern.compile("^\\+?[\\d\\s\\-()]+$").matcher(query);
+                    if (phoneMatcher.find() && SDK_INT >= LOLLIPOP) {
+                        newValues.add((T) new DialLaunchableActivity(phoneMatcher.group()));
+                    }
 
                     var allTargets = new LinkedHashMap<T, Set<String>>();
                     for (var value : values)
