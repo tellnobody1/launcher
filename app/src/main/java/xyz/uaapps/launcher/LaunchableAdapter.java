@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -384,9 +385,9 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
     }
 
     /**
-     * <p>An array filter constrains the content of the array adapter with
+     * An array filter constrains the content of the array adapter with
      * a prefix. Each item that does not start with the supplied prefix
-     * is removed from the list.</p>
+     * is removed from the list.
      */
     private final class LaunchableFilter extends Filter {
         @Override protected FilterResults performFiltering(final CharSequence constraint) {
@@ -412,12 +413,13 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                     results.values = values;
                     results.count = count;
                 } else {
-                    final String prefixString = stripAccents(constraint).toLowerCase();
+                    var query = stripAccents(constraint).toLowerCase();
+                    var newValues = new LinkedList<T>();
 
                     var allTargets = new LinkedHashMap<T, Set<String>>();
                     for (var value : values)
                         allTargets.put(value, value.getLabels());
-                    var newValues = QueryVariants.checkAll(prefixString, allTargets);
+                    newValues.addAll(QueryVariants.checkAll(query, allTargets));
 
                     results.values = newValues;
                     results.count = newValues.size();

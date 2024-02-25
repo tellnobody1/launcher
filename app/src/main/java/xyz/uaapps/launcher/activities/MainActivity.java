@@ -109,6 +109,7 @@ import xyz.uaapps.launcher.LaunchableAdapter;
 import xyz.uaapps.launcher.LauncherActivityInfoOps;
 import xyz.uaapps.launcher.LocaleConfig;
 import xyz.uaapps.launcher.R;
+import xyz.uaapps.launcher.RegularLaunchableActivity;
 import xyz.uaapps.launcher.ResolveInfoOps;
 import xyz.uaapps.launcher.SharedLauncherPrefs;
 import xyz.uaapps.launcher.monitor.PackageChangeCallback;
@@ -262,7 +263,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         for (var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                 Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
-                adapter.add(new LaunchableActivity(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
+                adapter.add(new RegularLaunchableActivity(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
             }
     }
 
@@ -288,7 +289,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 @Nullable var activityLabels = labels.get(info);
                 @NonNull Map<Locale, String> activityLabels2 = activityLabels == null ? Collections.emptyMap() : activityLabels;
                 String labelEn = activityLabels2.containsKey(Locale.US) ? activityLabels2.get(Locale.US) : null;
-                adapter.add(new LaunchableActivity(info, prefs, manager, valuesSet(activityLabels2), labelEn));
+                adapter.add(new RegularLaunchableActivity(info, prefs, manager, valuesSet(activityLabels2), labelEn));
             }
         }
     }
