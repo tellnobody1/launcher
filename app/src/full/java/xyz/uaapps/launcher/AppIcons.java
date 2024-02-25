@@ -14,7 +14,9 @@ public class AppIcons {
     static {
         icons.put("AmicPay", R.drawable.ic_local_gas_station);
         icons.put("Aurora Store", R.drawable.ic_storefront);
+        icons.put("Authenticator", R.drawable.ic_shield_lock);
         icons.put("Bebbo", R.drawable.ic_child_care);
+        icons.put("Bitwarden", R.drawable.ic_password);
         icons.put("Book Reader", R.drawable.ic_book);
         icons.put("Calculator", R.drawable.ic_calculate);
         icons.put("Calendar", R.drawable.ic_calendar_month);
@@ -33,11 +35,13 @@ public class AppIcons {
         icons.put("HELSI", R.drawable.ic_local_hospital);
         icons.put("IBKR", R.drawable.ic_timeline);
         icons.put("Joplin", R.drawable.ic_notes);
+        icons.put("Kindle", R.drawable.ic_book);
         icons.put("Lens", R.drawable.ic_filter_center_focus);
         icons.put("Maps", R.drawable.ic_map);
         icons.put("Medikom", R.drawable.ic_local_hospital);
         icons.put("Messages", R.drawable.ic_sms);
         icons.put("NewPipe", R.drawable.ic_live_tv);
+        icons.put("Openreads", R.drawable.ic_book);
         icons.put("Organic Maps", R.drawable.ic_map);
         icons.put("Phone", R.drawable.ic_call);
         icons.put("Photos", R.drawable.ic_photo_library);
