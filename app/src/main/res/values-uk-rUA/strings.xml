@@ -23,6 +23,7 @@
     <string name="appmenu_pin_to_top">Закріпити</string>
     <string name="appmenu_remove_pin">Відкрипити</string>
     <string name="clear_button">Кнопка очищення тексту</string>
+    <string name="dial">Набрати…</string>
     <string name="launch">Гаразд</string>
     <string name="pref_allow_rotation">Зміна орієнтації</string>
     <string name="pref_enable_actionbar">Показати пошук</string>

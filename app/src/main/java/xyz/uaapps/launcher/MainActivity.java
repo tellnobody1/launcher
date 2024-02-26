@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.uaapps.launcher.activities;
+package xyz.uaapps.launcher;
 
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
@@ -27,7 +27,6 @@ import static android.os.Build.VERSION_CODES.FROYO;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
 import static android.provider.Settings.System.ACCELEROMETER_ROTATION;
@@ -103,14 +102,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import xyz.uaapps.launcher.LaunchableActivity;
-import xyz.uaapps.launcher.LaunchableActivityPrefs;
-import xyz.uaapps.launcher.LaunchableAdapter;
-import xyz.uaapps.launcher.LauncherActivityInfoOps;
-import xyz.uaapps.launcher.LocaleConfig;
-import xyz.uaapps.launcher.R;
-import xyz.uaapps.launcher.ResolveInfoOps;
-import xyz.uaapps.launcher.SharedLauncherPrefs;
 import xyz.uaapps.launcher.monitor.PackageChangeCallback;
 import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
 import xyz.uaapps.launcher.swipe.SwipeLayout;
@@ -147,7 +138,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      * An adapter, based off {@link android.widget.ArrayAdapter}, to handle
      * {@link LaunchableActivity} items.
      */
-    private LaunchableAdapter<LaunchableActivity> mAdapter;
+    private LaunchableAdapter mAdapter;
 
     private EditText mSearchEditText;
 
@@ -177,8 +168,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         return pm.queryIntentActivities(intent, 0);
     }
 
-    @DeprecatedSinceApi(api = VERSION_CODES.R, message =
-            "Later APIs use get getNavigationBarHeight30()")
+    @DeprecatedSinceApi(api = VERSION_CODES.R, message = "Later APIs use get getNavigationBarHeight30()")
     private static int getNavigationBarHeight15(Resources resources) {
         var configuration = resources.getConfiguration();
         //Only phone between 0-599 has navigationbar can move
@@ -254,7 +244,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      */
     @TargetApi(N)
     private void addToAdapter(
-            @NonNull LaunchableAdapter<LaunchableActivity> adapter,
+            @NonNull LaunchableAdapter adapter,
             @NonNull Iterable<LauncherActivityInfo> infoList,
             Map<LauncherActivityInfo, Map<Locale, String>> labels) {
         var thisCanonicalName = getClass().getCanonicalName();
@@ -262,7 +252,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         for (var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                 Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
-                adapter.add(new LaunchableActivity(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
+                adapter.add(new RegularUserLaunchableActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
             }
     }
 
@@ -275,7 +265,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      * @param useReadCache Whether to use a read cache.
      */
     private void addToAdapter1(
-            @NonNull LaunchableAdapter<LaunchableActivity> adapter,
+            @NonNull LaunchableAdapter adapter,
             @NonNull Iterable<ResolveInfo> infoList,
             boolean useReadCache,
             Map<ResolveInfo, Map<Locale, String>> labels) {
@@ -288,7 +278,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 @Nullable var activityLabels = labels.get(info);
                 @NonNull Map<Locale, String> activityLabels2 = activityLabels == null ? Collections.emptyMap() : activityLabels;
                 String labelEn = activityLabels2.containsKey(Locale.US) ? activityLabels2.get(Locale.US) : null;
-                adapter.add(new LaunchableActivity(info, prefs, manager, valuesSet(activityLabels2), labelEn));
+                adapter.add(new RegularIntentLaunchableActivityImpl(info, prefs, manager, valuesSet(activityLabels2), labelEn));
             }
         }
     }
@@ -329,28 +319,23 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     private void launchActivity(LaunchableActivity launchableActivity) {
         hideKeyboard();
-        // Second conditional is always true, but this shuts up warnings.
-        if (launchableActivity.isUserKnown() && SDK_INT >= N) {
+        if (launchableActivity instanceof RegularUserLaunchableActivity activity) {
             var userManager = (UserManager) getSystemService(USER_SERVICE);
             var launcher = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-            var userSerial = launchableActivity.getUserSerial();
+            var userSerial = activity.getUserSerial();
             var userHandle = userManager.getUserForSerialNumber(userSerial);
-            launcher.startMainActivity(launchableActivity.getComponent(), userHandle, null, Bundle.EMPTY);
-        } else {
+            launcher.startMainActivity(activity.getComponent(), userHandle, null, Bundle.EMPTY);
+        } else if (launchableActivity instanceof IntentLaunchableActivity activity) {
             try {
-                startActivity(launchableActivity.getLaunchIntent());
+                startActivity(activity.getLaunchIntent());
                 mSearchEditText.setText(null);
-                var prefs = new LaunchableActivityPrefs(this);
-                try {
-                    prefs.writePreference(launchableActivity);
-                } finally {
-                    prefs.close();
-                }
                 mAdapter.sortApps();
             } catch (ActivityNotFoundException e) {
                 if (DEBUG) throw e;
                 else Toast.makeText(this, getString(R.string.activity_not_found), Toast.LENGTH_SHORT).show();
             }
+        } else {
+            Toast.makeText(this, getString(R.string.activity_not_found), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -358,16 +343,8 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         launchActivity(getLaunchableActivity(view));
     }
 
-    public void launchApplicationDetails(MenuItem item) {
-        var activity = getLaunchableActivity(item);
-        var intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
-        intent.setData(Uri.parse("package:" + activity.getComponent().getPackageName()));
-        intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-    }
-
-    private LaunchableAdapter<LaunchableActivity> loadLaunchableAdapter() {
-        LaunchableAdapter<LaunchableActivity> adapter;
+    private LaunchableAdapter loadLaunchableAdapter() {
+        LaunchableAdapter adapter;
         var pm = getPackageManager();
         if (SDK_INT >= N) {
             var manager = (UserManager) getSystemService(USER_SERVICE);
@@ -379,7 +356,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 count += launcherApps.getActivityList(null, iter.next()).size();
             }
 
-            adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, count);
+            adapter = new LaunchableAdapter(this, R.layout.app_grid_item, count);
 
             while (iter.hasPrevious()) {
                 var activityList = launcherApps.getActivityList(null, iter.previous());
@@ -388,7 +365,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             }
         } else {
             var infoList = getLaunchableResolveInfos(pm, null);
-            adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoList.size());
+            adapter = new LaunchableAdapter(this, R.layout.app_grid_item, infoList.size());
             var labels = getLabels_1(infoList, pm);
             addToAdapter1(adapter, infoList, true, labels);
         }
@@ -400,7 +377,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     @RequiresApi(api = N)
     private Map<LauncherActivityInfo, Map<Locale, String>> getLabels(List<LauncherActivityInfo> activityList, PackageManager pm) {
         var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
-        var locales = getLabelLocales();
+        var locales = AppLocales.getLabelLocales(getResources().getConfiguration());
         for (var activityInfo : activityList) {
             var ops = new LauncherActivityInfoOps(activityInfo);
             labels.put(activityInfo, ops.getLabels(locales, pm));
@@ -410,33 +387,12 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     private Map<ResolveInfo, Map<Locale, String>> getLabels_1(Collection<ResolveInfo> infoList, PackageManager pm) {
         var labels = new HashMap<ResolveInfo, Map<Locale, String>>();
-        var locales = getLabelLocales();
+        var locales = AppLocales.getLabelLocales(getResources().getConfiguration());
         for (var resolveInfo : infoList) {
             var ops = new ResolveInfoOps(resolveInfo, pm);
             labels.put(resolveInfo, ops.getLabels(locales));
         }
         return labels;
-    }
-
-    /** @return defaults + assets + english */
-    private Set<Locale> getLabelLocales() {
-        var locales = new HashSet<>(List.of(Locale.US, Locale.UK));
-        // add default locales
-        if (SDK_INT >= N) {
-            var defaults = getResources().getConfiguration().getLocales();
-            for (var i = 0; i < defaults.size(); i++) locales.add(defaults.get(i));
-        } else {
-            locales.add(Locale.getDefault());
-        }
-        // add assets locales
-        for (var asset : LocaleConfig.LOCALES)
-            if (SDK_INT >= LOLLIPOP) {
-                locales.add(Locale.forLanguageTag(asset));
-            } else {
-                var parts = asset.split("-");
-                locales.add(parts.length >= 2 ? new Locale(parts[0], parts[1]) : new Locale(parts[0]));
-            }
-        return locales;
     }
 
     @Override
@@ -475,9 +431,14 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         inflater.inflate(R.menu.app, menu);
 
         var activity = getLaunchableActivity(menuInfo);
-        var item = menu.findItem(R.id.appmenu_pin_to_top);
 
-        item.setTitle(activity.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
+        var pinItem = menu.findItem(R.id.appmenu_pin);
+        if (activity instanceof RegularLaunchableActivity a)
+            pinItem.setTitle(a.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
+        pinItem.setEnabled(activity instanceof RegularLaunchableActivity);
+
+        var appInfoItem = menu.findItem(R.id.appmenu_app_info);
+        appInfoItem.setEnabled(activity instanceof RegularLaunchableActivity);
     }
 
     /**
@@ -640,16 +601,28 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     public void pinToTop(MenuItem item) {
         var activity = getLaunchableActivity(item);
-        activity.setPriority(activity.getPriority() == 0 ? 1 : 0);
+        if (activity instanceof RegularLaunchableActivity a) {
+            a.setPriority(a.getPriority() == 0 ? 1 : 0);
 
-        var prefs = new LaunchableActivityPrefs(this);
-        try {
-            prefs.writePreference(activity);
-        } finally {
-            prefs.close();
+            var prefs = new RegularLaunchableActivityPrefs(this);
+            try {
+                prefs.writePreference(a);
+            } finally {
+                prefs.close();
+            }
+
+            mAdapter.sortApps();
         }
+    }
 
-        mAdapter.sortApps();
+    public void launchApplicationDetails(MenuItem item) {
+        var activity = getLaunchableActivity(item);
+        if (activity instanceof RegularLaunchableActivity regular) {
+            var intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + regular.getComponent().getPackageName()));
+            intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
+        }
     }
 
     /**

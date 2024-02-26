@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package xyz.uaapps.launcher.activities;
+package xyz.uaapps.launcher;
 
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.widget.ListView;
 
-import xyz.uaapps.launcher.R;
 import xyz.uaapps.launcher.fragments.SettingsFragment;
 
 public class SettingsActivity extends PreferenceActivity {

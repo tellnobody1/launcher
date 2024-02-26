@@ -24,7 +24,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -449,7 +448,6 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
             }
             case MotionEvent.ACTION_MOVE -> {
                 if (mActivePointerId == INVALID_POINTER) {
-                    Log.e(LOG_TAG, "Got ACTION_MOVE event but don't have an active pointer id.");
                     return false;
                 }
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
@@ -855,7 +853,6 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
             case MotionEvent.ACTION_MOVE -> {
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
-                    Log.e(LOG_TAG, "Got ACTION_MOVE event but have an invalid active pointer id.");
                     return false;
                 }
 
@@ -877,8 +874,6 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
             case MotionEvent.ACTION_POINTER_DOWN -> {
                 pointerIndex = ev.getActionIndex();
                 if (pointerIndex < 0) {
-                    Log.e(LOG_TAG,
-                            "Got ACTION_POINTER_DOWN event but have an invalid action index.");
                     return false;
                 }
                 mActivePointerId = ev.getPointerId(pointerIndex);
@@ -887,7 +882,6 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
             case MotionEvent.ACTION_UP -> {
                 pointerIndex = ev.findPointerIndex(mActivePointerId);
                 if (pointerIndex < 0) {
-                    Log.e(LOG_TAG, "Got ACTION_UP event but don't have an active pointer id.");
                     return false;
                 }
 
