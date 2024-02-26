@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package xyz.uaapps.launcher.fragments;
+package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
@@ -34,9 +34,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.StringRes;
-
-import xyz.uaapps.launcher.BuildConfig;
-import xyz.uaapps.launcher.R;
 
 public class SettingsFragment extends PreferenceFragment {
 

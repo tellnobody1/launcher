@@ -35,24 +35,24 @@ public class RegularLaunchableActivityPrefs extends SQLiteOpenHelper {
     }
 
     private static void deletePreference(SQLiteDatabase db, String className) {
-        db.delete(TABLE_NAME, KEY_CLASSNAME + "=?", new String[]{className});
+        db.delete(TABLE_NAME, String.format("%s=?", KEY_CLASSNAME), new String[]{className});
     }
 
     public void onCreate(SQLiteDatabase db) {
         var tableCreate = String.format(
-                "CREATE TABLE %s (%S INTEGER PRIMARY KEY, %s TEXT UNIQUE, %s INTEGER);",
-                TABLE_NAME, KEY_ID, KEY_CLASSNAME, KEY_FAVORITE);
+            "CREATE TABLE %s (%S INTEGER PRIMARY KEY, %s TEXT UNIQUE, %s INTEGER);",
+            TABLE_NAME, KEY_ID, KEY_CLASSNAME, KEY_FAVORITE);
         db.execSQL(tableCreate);
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < DATABASE_VERSION && newVersion == DATABASE_VERSION) {
-            db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+            db.execSQL(String.format("DROP TABLE IF EXISTS %s", TABLE_NAME));
             onCreate(db);
         }
     }
 
-    public void setPreferences(RegularLaunchableActivity activity) {
+    public void restoreFavorite(RegularLaunchableActivity activity) {
         var db = getReadableDatabase();
         var columns = new String[]{KEY_FAVORITE};
 
@@ -63,30 +63,26 @@ public class RegularLaunchableActivityPrefs extends SQLiteOpenHelper {
             if (cursor.moveToFirst()) {
                 var column = cursor.getColumnIndex(KEY_FAVORITE);
                 if (column != -1)
-                    activity.setPriority(cursor.getInt(column));
+                    activity.setFavorite(cursor.getInt(column) == 1);
             }
         } finally {
             cursor.close();
         }
     }
 
-    public void writePreference(RegularLaunchableActivity activity) {
-        var values = new ContentValues();
-        var priority = activity.getPriority();
-
-        if (priority > 0) {
-            values.put(KEY_FAVORITE, priority);
-        }
-
+    public void saveFavorite(RegularLaunchableActivity activity) {
+        var favorite = activity.isFavorite();
         var className = activity.getName();
 
         var db = getWritableDatabase();
         try {
-            if (values.size() == 0) {
-                deletePreference(db, className);
-            } else {
+            if (favorite) {
+                var values = new ContentValues();
+                values.put(KEY_FAVORITE, 1);
                 values.put(KEY_CLASSNAME, className);
                 db.replace(TABLE_NAME, null, values);
+            } else {
+                deletePreference(db, className);
             }
         } finally {
             db.close();

@@ -3,7 +3,6 @@ package xyz.uaapps.launcher;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
-
 import static java.util.Locale.ENGLISH;
 
 import android.content.res.Configuration;

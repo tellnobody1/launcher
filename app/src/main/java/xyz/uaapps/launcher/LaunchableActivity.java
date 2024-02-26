@@ -17,8 +17,8 @@ interface IntentLaunchableActivity extends LaunchableActivity {
 interface RegularLaunchableActivity extends LaunchableActivity {
     ComponentName getComponent();
 
-    void setPriority(int priority);
-    int getPriority();
+    void setFavorite(boolean priority);
+    boolean isFavorite();
     String getName();
 
     Set<String> getLabels();

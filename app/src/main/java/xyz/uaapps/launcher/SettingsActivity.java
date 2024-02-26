@@ -22,8 +22,6 @@ import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.widget.ListView;
 
-import xyz.uaapps.launcher.fragments.SettingsFragment;
-
 public class SettingsActivity extends PreferenceActivity {
 
     @Override

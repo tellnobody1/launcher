@@ -104,7 +104,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
     }
 
     public void add(RegularLaunchableActivity object) {
-        mPrefs.setPreferences(object);
+        mPrefs.restoreFavorite(object);
 
         synchronized (mLock) {
             if (mOriginalValues == null) {
@@ -376,11 +376,11 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
             sort(comparator1, comparator2);
 
             Comparator<LaunchableActivity> comparator3 = (o1, o2) -> {
-                var p1 = o1 instanceof RegularLaunchableActivity a ? a.getPriority() : 0;
-                var p2 = o2 instanceof RegularLaunchableActivity a ? a.getPriority() : 0;
+                var p1 = o1 instanceof RegularLaunchableActivity a ? (a.isFavorite() ? 1 : 0) : 0;
+                var p2 = o2 instanceof RegularLaunchableActivity a ? (a.isFavorite() ? 1 : 0) : 0;
                 return p2 - p1;
             };
-            Comparator<RegularLaunchableActivity> comparator4 = (o1, o2) -> o2.getPriority() - o1.getPriority();
+            Comparator<RegularLaunchableActivity> comparator4 = (o1, o2) -> (o2.isFavorite() ? 1 : 0) - (o1.isFavorite() ? 1 : 0);
             sort(comparator3, comparator4);
 
             if (notify) {

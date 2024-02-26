@@ -15,7 +15,6 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.N;
 
 import android.content.ComponentName;
@@ -28,7 +27,6 @@ import android.content.pm.ResolveInfo;
 import androidx.annotation.DeprecatedSinceApi;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import java.util.Collections;
 import java.util.Set;
@@ -41,13 +39,7 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
 
     private final Intent mLaunchIntent;
 
-    /**
-     * The user serial, to be used to retrieve a {@link android.os.UserHandle} as necessary.
-     * Defined as {@code Long.MIN_VALUE} if there is no user serial assigned to this object.
-     */
-    private final long mUserSerial;
-
-    private int mPriority;
+    private boolean favorite;
 
     /**
      * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}, for
@@ -78,7 +70,6 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
             prefs.edit().putString(activityInfo.packageName, mActivityLabel).apply();
         }
 
-        mUserSerial = Long.MIN_VALUE;
         this.labels = labels;
         this.iconKey = iconKey;
     }
@@ -92,21 +83,6 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
         return launchIntent;
     }
 
-    public boolean isUserKnown() {
-        return mUserSerial != Long.MIN_VALUE;
-    }
-
-    /**
-     * The user serial, to be used to retrieve a {@link android.os.UserHandle} as necessary.
-     *
-     * @return A user serial, {@code Long.MIN_VALUE} if there is no user serial assigned to this
-     * object.
-     */
-    @RequiresApi(api = JELLY_BEAN_MR1)
-    public long getUserSerial() {
-        return mUserSerial;
-    }
-
     public ComponentName getComponent() {
         return mLaunchIntent.getComponent();
     }
@@ -115,12 +91,12 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
         return mLaunchIntent;
     }
 
-    public int getPriority() {
-        return mPriority;
+    public boolean isFavorite() {
+        return favorite;
     }
 
-    public void setPriority(int priority) {
-        mPriority = priority;
+    public void setFavorite(boolean priority) {
+        favorite = priority;
     }
 
     public Set<String> getLabels() {

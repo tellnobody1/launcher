@@ -28,6 +28,7 @@ import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.KITKAT;
 import static android.os.Build.VERSION_CODES.N;
+import static android.os.Build.VERSION_CODES.TIRAMISU;
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
 import static android.provider.Settings.System.ACCELEROMETER_ROTATION;
 import static android.view.KeyEvent.ACTION_DOWN;
@@ -63,7 +64,6 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.UserHandle;
 import android.os.UserManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -103,21 +103,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import xyz.uaapps.launcher.monitor.PackageChangeCallback;
-import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
-import xyz.uaapps.launcher.swipe.SwipeLayout;
+public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener, PackageChangeCallback {
-
-    /**
-     * Synchronize to this lock when the Adapter is visible and might be called by multiple threads.
-     */
-    private final Object mLock = new Object();
-
-    /**
-     * This {@link BroadcastReceiver} implements an updater for package changes.
-     */
-    private final BroadcastReceiver mPackageChangeReceiver = new PackageChangedReceiver();
+    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver();
 
     /**
      * This implements a listener for orientation change, see {@link DisplayChangeListener} for
@@ -422,6 +410,18 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 swipeLayout.setRefreshing(false);
             });
         }
+
+        if (SDK_INT >= TIRAMISU) {
+            registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter(), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter());
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterReceiver(packageChangeReceiver);
+        super.onDestroy();
     }
 
     @Override
@@ -435,7 +435,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
         var pinItem = menu.findItem(R.id.appmenu_pin);
         if (activity instanceof RegularLaunchableActivity a)
-            pinItem.setTitle(a.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
+            pinItem.setTitle(a.isFavorite() ? R.string.appmenu_remove_pin : R.string.appmenu_pin_to_top);
         pinItem.setEnabled(activity instanceof RegularLaunchableActivity);
 
         var appInfoItem = menu.findItem(R.id.appmenu_app_info);
@@ -467,47 +467,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         if (loc[1] != 0) {
             if (SDK_INT >= FROYO) view.smoothScrollToPosition(0);
             else view.setSelection(0);
-        }
-    }
-
-    @Override
-    public void onPackageAppeared(String activityName, int[] uids) {
-        var pm = getPackageManager();
-        synchronized (mLock) {
-            if (mAdapter.getClassNamePosition(activityName) == -1) {
-                if (SDK_INT >= N) {
-                    var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-                    for (int uid : uids) {
-                        var activityList = launcherApps.getActivityList(activityName, UserHandle.getUserHandleForUid(uid));
-                        var labels = getLabels(activityList, pm);
-                        addToAdapter(mAdapter, activityList, labels);
-                    }
-                } else {
-                    Collection<ResolveInfo> resolveInfos = getLaunchableResolveInfos(pm, activityName);
-                    var labels = getLabels_1(resolveInfos, pm);
-                    addToAdapter1(mAdapter, resolveInfos, false, labels);
-                }
-                mAdapter.sortApps();
-                var cs = mSearchEditText.getText();
-                mAdapter.getFilter().filter(cs);
-            }
-        }
-    }
-
-    @Override
-    public void onPackageDisappeared(String activityName, int[] uids) {
-        synchronized (mLock) {
-            mAdapter.removeAllByName(activityName);
-            var cs = mSearchEditText.getText();
-            mAdapter.getFilter().filter(cs);
-        }
-    }
-
-    @Override
-    public void onPackageModified(String activityName, int uid) {
-        synchronized (mLock) {
-            onPackageDisappeared(activityName, new int[]{uid});
-            onPackageAppeared(activityName, new int[]{uid});
         }
     }
 
@@ -578,9 +537,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             mDisplayListener = new DisplayChangeListener();
         }
 
-        registerReceiver(mPackageChangeReceiver, PackageChangedReceiver.getFilter());
-        PackageChangedReceiver.setCallback(this);
-
         setupPadding();
         setupPreferences();
         setupViews();
@@ -592,18 +548,17 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     @Override
     protected void onStop() {
         mAdapter.onStop();
-        unregisterReceiver(mPackageChangeReceiver);
         super.onStop();
     }
 
     public void pinToTop(MenuItem item) {
         var activity = getLaunchableActivity(item);
         if (activity instanceof RegularLaunchableActivity a) {
-            a.setPriority(a.getPriority() == 0 ? 1 : 0);
+            a.setFavorite(!a.isFavorite());
 
             var prefs = new RegularLaunchableActivityPrefs(this);
             try {
-                prefs.writePreference(a);
+                prefs.saveFavorite(a);
             } finally {
                 prefs.close();
             }

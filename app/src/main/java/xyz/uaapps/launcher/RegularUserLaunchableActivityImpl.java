@@ -15,6 +15,7 @@
  */
 package xyz.uaapps.launcher;
 
+import static android.os.Build.VERSION_CODES.HONEYCOMB;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 
@@ -44,7 +45,7 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
      */
     private final long mUserSerial;
 
-    private int mPriority;
+    private boolean favorite;
 
     /**
      * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}
@@ -65,6 +66,7 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
         this.labels = labels;
     }
 
+    @RequiresApi(api = HONEYCOMB)
     private static Intent getLaunchableIntent(final ComponentName componentName) {
         final Intent launchIntent = Intent.makeMainActivity(componentName);
 
@@ -72,10 +74,6 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
                 Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
 
         return launchIntent;
-    }
-
-    public boolean isUserKnown() {
-        return mUserSerial != Long.MIN_VALUE;
     }
 
     /**
@@ -93,12 +91,12 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
         return mLaunchIntent.getComponent();
     }
 
-    public int getPriority() {
-        return mPriority;
+    public boolean isFavorite() {
+        return favorite;
     }
 
-    public void setPriority(int priority) {
-        mPriority = priority;
+    public void setFavorite(boolean priority) {
+        favorite = priority;
     }
 
     public Set<String> getLabels() {

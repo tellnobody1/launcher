@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.uaapps.launcher.swipe;
+package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 

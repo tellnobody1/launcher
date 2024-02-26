@@ -57,9 +57,5 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-
-        <receiver
-            android:name=".monitor.PackageChangedReceiver"
-            android:enabled="false" />
     </application>
 </manifest>
