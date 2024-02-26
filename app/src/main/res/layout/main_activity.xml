@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_margin="16dp"
+    android:layout_margin="@dimen/activity_margin"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingTop="@dimen/status_bar_height">
@@ -10,6 +10,7 @@
         android:id="@+id/customActionBar"
         android:layout_width="match_parent"
         android:layout_height="56dp"
+        android:layout_marginBottom="@dimen/activity_margin"
         android:visibility="gone"
         android:background="@drawable/rounded_background">
 
@@ -57,7 +58,7 @@
             android:id="@+id/search_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Search" />
+            android:text="@string/search" />
 
         <GridView
             android:id="@+id/grid_view"

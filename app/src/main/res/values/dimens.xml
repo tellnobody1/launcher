@@ -17,8 +17,7 @@
     <dimen name="actionbar_icon_padding">10dp</dimen>
 
     <!-- Default screen margins, per the Android Design guidelines -->
-    <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="activity_margin">16dp</dimen>
     <dimen name="status_bar_height">25dp</dimen>
 
     <!-- This anchors the text right below the app_icon_size -->

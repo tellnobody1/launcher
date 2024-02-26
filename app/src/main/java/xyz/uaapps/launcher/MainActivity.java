@@ -72,6 +72,7 @@ import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -320,6 +321,12 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter(), Context.RECEIVER_NOT_EXPORTED);
         } else {
             registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter());
+        }
+
+        if (SDK_INT < DONUT) {
+            this.<ImageButton>findViewById(R.id.clear_button).setOnClickListener(v -> {
+                onClickClearButton(null);
+            });
         }
     }
 
