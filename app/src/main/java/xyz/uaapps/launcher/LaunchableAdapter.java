@@ -75,7 +75,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
      * This field contains the database used to store persistent values for
      * {@link LaunchableActivity} objects.
      */
-    private final PinnablePrefs mPrefs;
+    private final RegularLaunchableActivityPrefs mPrefs;
 
     private final Context context;
 
@@ -102,7 +102,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         this.context = context;
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
-        mPrefs = new PinnablePrefs(context);
+        mPrefs = new RegularLaunchableActivityPrefs(context);
     }
 
     public void add(RegularLaunchableActivity object) {
@@ -136,7 +136,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
             final int currentSize = current.size();
             for (int i = 0; i < currentSize && position == -1; i++) {
                 var x = current.get(i);
-                if (x instanceof Regular regular){
+                if (x instanceof RegularLaunchableActivity regular){
                     var componentName = regular.getComponent().getClassName();
                     position = getPosition(className, position, i, componentName);
                 }
@@ -272,7 +272,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         appLabelView.setText(label);
 
         appIconView.setTag(launchableActivity);
-        appIconView.set(label, launchableActivity.getLabelEn());
+        appIconView.set(label, launchableActivity.getIconKey());
 
         return view;
     }
@@ -323,7 +323,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
                 var current = mObjects;
                 for (int i = current.size() - 1; i >= 0; i--) {
                     var x = current.get(i);
-                    if (x instanceof Regular regular) {
+                    if (x instanceof RegularLaunchableActivity regular) {
                         component = regular.getComponent();
 
                         if (component.getClassName().startsWith(name)) {
@@ -378,8 +378,8 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
             sort(comparator1, comparator2);
 
             Comparator<LaunchableActivity> comparator3 = (o1, o2) -> {
-                var p1 = o1 instanceof Pinnable pinnable ? pinnable.getPriority() : 0;
-                var p2 = o2 instanceof Pinnable pinnable ? pinnable.getPriority() : 0;
+                var p1 = o1 instanceof RegularLaunchableActivity a ? a.getPriority() : 0;
+                var p2 = o2 instanceof RegularLaunchableActivity a ? a.getPriority() : 0;
                 return p2 - p1;
             };
             Comparator<RegularLaunchableActivity> comparator4 = (o1, o2) -> o2.getPriority() - o1.getPriority();
@@ -433,7 +433,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
 
                     var phoneMatcher = Pattern.compile("^\\+?[\\d\\s\\-()]+$").matcher(query);
                     if (phoneMatcher.find() && SDK_INT >= LOLLIPOP) {
-                        newValues.add(new DialLaunchableActivity(phoneMatcher.group()));
+                        newValues.add(new DialIntentLaunchableActivity(phoneMatcher.group()));
                     }
 
                     var allTargets = new LinkedHashMap<LaunchableActivity, Set<String>>();

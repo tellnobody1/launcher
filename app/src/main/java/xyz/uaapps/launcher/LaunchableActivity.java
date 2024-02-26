@@ -7,33 +7,25 @@ import java.util.Set;
 
 public interface LaunchableActivity {
     String getActivityLabel();
-    String getLabelEn(); //todo getIconLabel
+    String getIconKey();
     Set<String> getLabels();
 }
 
-interface UserLaunchableActivity extends RegularLaunchableActivity {
-    long getUserSerial();
+interface IntentLaunchableActivity extends LaunchableActivity {
+    Intent getLaunchIntent();
 }
 
-interface IntentLaunchableActivity extends RegularLaunchableActivity, HasIntent {
-}
+interface RegularLaunchableActivity extends LaunchableActivity {
+    ComponentName getComponent();
 
-interface VirtualLaunchableActivity extends LaunchableActivity, HasIntent {
-}
-
-interface Pinnable {
     void setPriority(int priority);
     int getPriority();
     String getName();
 }
 
-interface Regular extends Pinnable {
-    ComponentName getComponent();
+interface RegularUserLaunchableActivity extends RegularLaunchableActivity {
+    long getUserSerial();
 }
 
-interface RegularLaunchableActivity extends Regular, LaunchableActivity {
-}
-
-interface HasIntent {
-    Intent getLaunchIntent();
+interface RegularIntentLaunchableActivity extends RegularLaunchableActivity, IntentLaunchableActivity {
 }

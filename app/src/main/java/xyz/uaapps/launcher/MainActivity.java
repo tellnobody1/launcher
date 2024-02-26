@@ -169,8 +169,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         return pm.queryIntentActivities(intent, 0);
     }
 
-    @DeprecatedSinceApi(api = VERSION_CODES.R, message =
-            "Later APIs use get getNavigationBarHeight30()")
+    @DeprecatedSinceApi(api = VERSION_CODES.R, message = "Later APIs use get getNavigationBarHeight30()")
     private static int getNavigationBarHeight15(Resources resources) {
         var configuration = resources.getConfiguration();
         //Only phone between 0-599 has navigationbar can move
@@ -254,7 +253,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         for (var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                 Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
-                adapter.add(new UserLaunchableActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
+                adapter.add(new RegularUserLaunchableActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
             }
     }
 
@@ -280,7 +279,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 @Nullable var activityLabels = labels.get(info);
                 @NonNull Map<Locale, String> activityLabels2 = activityLabels == null ? Collections.emptyMap() : activityLabels;
                 String labelEn = activityLabels2.containsKey(Locale.US) ? activityLabels2.get(Locale.US) : null;
-                adapter.add(new IntentLaunchableActivityImpl(info, prefs, manager, valuesSet(activityLabels2), labelEn));
+                adapter.add(new RegularIntentLaunchableActivityImpl(info, prefs, manager, valuesSet(activityLabels2), labelEn));
             }
         }
     }
@@ -321,15 +320,15 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     private void launchActivity(LaunchableActivity launchableActivity) {
         hideKeyboard();
-        if (launchableActivity instanceof UserLaunchableActivity userLaunchableActivity) {
+        if (launchableActivity instanceof RegularUserLaunchableActivity activity) {
             var userManager = (UserManager) getSystemService(USER_SERVICE);
             var launcher = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-            var userSerial = userLaunchableActivity.getUserSerial();
+            var userSerial = activity.getUserSerial();
             var userHandle = userManager.getUserForSerialNumber(userSerial);
-            launcher.startMainActivity(userLaunchableActivity.getComponent(), userHandle, null, Bundle.EMPTY);
-        } else if (launchableActivity instanceof HasIntent hasIntent) {
+            launcher.startMainActivity(activity.getComponent(), userHandle, null, Bundle.EMPTY);
+        } else if (launchableActivity instanceof IntentLaunchableActivity activity) {
             try {
-                startActivity(hasIntent.getLaunchIntent());
+                startActivity(activity.getLaunchIntent());
                 mSearchEditText.setText(null);
                 mAdapter.sortApps();
             } catch (ActivityNotFoundException e) {
@@ -456,12 +455,12 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         var activity = getLaunchableActivity(menuInfo);
 
         var pinItem = menu.findItem(R.id.appmenu_pin);
-        if (activity instanceof Pinnable pinnable)
-            pinItem.setTitle(pinnable.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
-        pinItem.setEnabled(activity instanceof Pinnable);
+        if (activity instanceof RegularLaunchableActivity a)
+            pinItem.setTitle(a.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
+        pinItem.setEnabled(activity instanceof RegularLaunchableActivity);
 
         var appInfoItem = menu.findItem(R.id.appmenu_app_info);
-        appInfoItem.setEnabled(activity instanceof Regular);
+        appInfoItem.setEnabled(activity instanceof RegularLaunchableActivity);
     }
 
     /**
@@ -624,12 +623,12 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     public void pinToTop(MenuItem item) {
         var activity = getLaunchableActivity(item);
-        if (activity instanceof Pinnable pinnable) {
-            pinnable.setPriority(pinnable.getPriority() == 0 ? 1 : 0);
+        if (activity instanceof RegularLaunchableActivity a) {
+            a.setPriority(a.getPriority() == 0 ? 1 : 0);
 
-            var prefs = new PinnablePrefs(this);
+            var prefs = new RegularLaunchableActivityPrefs(this);
             try {
-                prefs.writePreference(pinnable);
+                prefs.writePreference(a);
             } finally {
                 prefs.close();
             }
@@ -640,7 +639,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     public void launchApplicationDetails(MenuItem item) {
         var activity = getLaunchableActivity(item);
-        if (activity instanceof Regular regular) {
+        if (activity instanceof RegularLaunchableActivity regular) {
             var intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.parse("package:" + regular.getComponent().getPackageName()));
             intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);

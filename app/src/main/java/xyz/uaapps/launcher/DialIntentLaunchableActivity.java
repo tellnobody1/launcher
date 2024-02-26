@@ -8,10 +8,10 @@ import android.net.Uri;
 import java.util.Collections;
 import java.util.Set;
 
-public class DialLaunchableActivity implements VirtualLaunchableActivity {
+public class DialIntentLaunchableActivity implements IntentLaunchableActivity {
     private final Intent intent;
 
-    public DialLaunchableActivity(String phoneNumber) {
+    public DialIntentLaunchableActivity(String phoneNumber) {
         this.intent = new Intent(ACTION_DIAL);
         this.intent.setData(Uri.parse("tel:" + phoneNumber));
     }
@@ -20,7 +20,7 @@ public class DialLaunchableActivity implements VirtualLaunchableActivity {
         return "Dial..."; //todo
     }
 
-    public String getLabelEn() {
+    public String getIconKey() {
         return "Phone"; //todo
     }
 

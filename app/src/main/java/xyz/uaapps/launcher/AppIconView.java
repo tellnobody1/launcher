@@ -43,9 +43,9 @@ public class AppIconView extends View {
         paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24, getResources().getDisplayMetrics()));
     }
 
-    public void set(CharSequence label, @Nullable String labelEn) {
-        if (labelEn != null && getIcons().containsKey(labelEn) && SDK_INT >= LOLLIPOP) {
-            vectorDrawable = (VectorDrawable) getContext().getDrawable(getIcons().get(labelEn));
+    public void set(CharSequence label, @Nullable String iconKey) {
+        if (iconKey != null && getIcons().containsKey(iconKey) && SDK_INT >= LOLLIPOP) {
+            vectorDrawable = (VectorDrawable) getContext().getDrawable(getIcons().get(iconKey));
             vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
             letter = null;
         } else if (label.length() > 0) {

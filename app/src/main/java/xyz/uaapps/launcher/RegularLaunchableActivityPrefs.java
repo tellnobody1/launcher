@@ -21,32 +21,23 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
- * This is a convenience class write persistent information to save to restore
- * {@link Pinnable} objects.
+ * This is a convenience class write persistent information to save to restore {@link RegularLaunchableActivity} objects.
  */
-public class PinnablePrefs extends SQLiteOpenHelper {
-
+public class RegularLaunchableActivityPrefs extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String KEY_CLASSNAME = "ClassName";
     private static final String KEY_FAVORITE = "Favorite";
     private static final String KEY_ID = "Id";
-    private static final String TABLE_NAME = "PinnableFavorites";
+    private static final String TABLE_NAME = "Favorites";
 
-    public PinnablePrefs(Context context) {
+    public RegularLaunchableActivityPrefs(Context context) {
         super(context, TABLE_NAME, null, DATABASE_VERSION);
     }
 
-    /**
-     * This method deletes a column based on the classname.
-     *
-     * @param db        The database.
-     * @param className The classname of the column to delete.
-     */
     private static void deletePreference(SQLiteDatabase db, String className) {
         db.delete(TABLE_NAME, KEY_CLASSNAME + "=?", new String[]{className});
     }
 
-    @Override
     public void onCreate(SQLiteDatabase db) {
         var tableCreate = String.format(
                 "CREATE TABLE %s (%S INTEGER PRIMARY KEY, %s TEXT UNIQUE, %s INTEGER);",
@@ -54,7 +45,6 @@ public class PinnablePrefs extends SQLiteOpenHelper {
         db.execSQL(tableCreate);
     }
 
-    @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         if (oldVersion < DATABASE_VERSION && newVersion == DATABASE_VERSION) {
             db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
@@ -62,38 +52,33 @@ public class PinnablePrefs extends SQLiteOpenHelper {
         }
     }
 
-    public void setPreferences(Pinnable pinnable) {
+    public void setPreferences(RegularLaunchableActivity activity) {
         var db = getReadableDatabase();
         var columns = new String[]{KEY_FAVORITE};
 
-        var whereArgs = new String[]{pinnable.getName()};
+        var whereArgs = new String[]{activity.getName()};
 
         var cursor = db.query(TABLE_NAME, columns, KEY_CLASSNAME + "=?", whereArgs, null, null, null);
         try {
             if (cursor.moveToFirst()) {
                 var column = cursor.getColumnIndex(KEY_FAVORITE);
                 if (column != -1)
-                    pinnable.setPriority(cursor.getInt(column));
+                    activity.setPriority(cursor.getInt(column));
             }
         } finally {
             cursor.close();
         }
     }
 
-    /**
-     * Write the preferences from the {@link Pinnable} to persistent storage.
-     *
-     * @param pinnable The {@link Pinnable} to write to persistent storage.
-     */
-    public void writePreference(Pinnable pinnable) {
+    public void writePreference(RegularLaunchableActivity activity) {
         var values = new ContentValues();
-        var priority = pinnable.getPriority();
+        var priority = activity.getPriority();
 
         if (priority > 0) {
             values.put(KEY_FAVORITE, priority);
         }
 
-        var className = pinnable.getName();
+        var className = activity.getName();
 
         var db = getWritableDatabase();
         try {

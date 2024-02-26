@@ -16,16 +16,13 @@
 package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
-import static android.os.Build.VERSION_CODES.N;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
 
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
+import android.content.pm.LauncherActivityInfo;
+import android.os.UserManager;
 
-import androidx.annotation.DeprecatedSinceApi;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
@@ -33,7 +30,7 @@ import androidx.annotation.RequiresApi;
 import java.util.Collections;
 import java.util.Set;
 
-public class IntentLaunchableActivityImpl implements IntentLaunchableActivity {
+public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableActivity {
 
     private final String mActivityLabel;
     private final Set<String> labels;
@@ -49,57 +46,23 @@ public class IntentLaunchableActivityImpl implements IntentLaunchableActivity {
 
     private int mPriority;
 
-//    /**
-//     * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}
-//     *
-//     * @param info Information to derive the LaunchableActivity from.
-//     * @param manager The service to retrieve user information about the activity from.
-//     */
-//    @RequiresApi(api = LOLLIPOP)
-//    public IntentLaunchableActivityImpl(
-//            @NonNull LauncherActivityInfo info,
-//            UserManager manager,
-//            Set<String> labels,
-//            @Nullable String labelEn) {
-//        mLaunchIntent = getLaunchableIntent(info.getComponentName());
-//        mActivityLabel = info.getLabel().toString();
-//        this.labelEn = labelEn;
-//        mUserSerial = manager.getSerialNumberForUser(info.getUser());
-//        this.labels = labels;
-//    }
-
     /**
-     * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}, for
-     * APIs 15-20.
+     * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}
      *
-     * @param info    Information to derive the LaunchableActivity from.
-     * @param prefs   The {@link SharedPreferences} to load the label for this from.
-     * @param manager The {@link PackageManager} to load the label for this from. If null, the
-     *                local store will not cache the label.
+     * @param info Information to derive the LaunchableActivity from.
+     * @param manager The service to retrieve user information about the activity from.
      */
-    @DeprecatedSinceApi(api = N, message = "Later APIs use addToAdapter24()")
-    public IntentLaunchableActivityImpl(
-            @NonNull ResolveInfo info,
-            @NonNull SharedPreferences prefs,
-            @Nullable PackageManager manager,
+    @RequiresApi(api = LOLLIPOP)
+    public RegularUserLaunchableActivityImpl(
+            @NonNull LauncherActivityInfo info,
+            UserManager manager,
             Set<String> labels,
             @Nullable String labelEn) {
-        final ActivityInfo activityInfo = info.activityInfo;
-        final ComponentName name =
-                new ComponentName(activityInfo.packageName, activityInfo.name);
-        mLaunchIntent = getLaunchableIntent(name);
-
-        /* Returns the actual label from the info and stores it locally, or retrieve it locally. */
-        if (prefs.contains(activityInfo.packageName) && manager != null) {
-            mActivityLabel = prefs.getString(activityInfo.packageName, null);
-        } else {
-            mActivityLabel = info.loadLabel(manager).toString();
-            prefs.edit().putString(activityInfo.packageName, mActivityLabel).apply();
-        }
-
-        mUserSerial = Long.MIN_VALUE;
-        this.labels = labels;
+        mLaunchIntent = getLaunchableIntent(info.getComponentName());
+        mActivityLabel = info.getLabel().toString();
         this.labelEn = labelEn;
+        mUserSerial = manager.getSerialNumberForUser(info.getUser());
+        this.labels = labels;
     }
 
     private static Intent getLaunchableIntent(final ComponentName componentName) {
@@ -130,10 +93,6 @@ public class IntentLaunchableActivityImpl implements IntentLaunchableActivity {
         return mLaunchIntent.getComponent();
     }
 
-    public Intent getLaunchIntent() {
-        return mLaunchIntent;
-    }
-
     public int getPriority() {
         return mPriority;
     }
@@ -151,7 +110,7 @@ public class IntentLaunchableActivityImpl implements IntentLaunchableActivity {
     }
 
     @Nullable
-    public String getLabelEn() {
+    public String getIconKey() {
         return labelEn;
     }
 
