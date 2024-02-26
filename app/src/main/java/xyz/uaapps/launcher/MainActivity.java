@@ -70,6 +70,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
@@ -301,6 +302,10 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         mSearchEditText.setText(null);
     }
 
+    public void onClickSearch(View view) {
+        showKeyboard();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -324,9 +329,8 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         }
 
         if (SDK_INT < DONUT) {
-            this.<ImageButton>findViewById(R.id.clear_button).setOnClickListener(v -> {
-                onClickClearButton(null);
-            });
+            this.<ImageButton>findViewById(R.id.clear_button).setOnClickListener(v -> onClickClearButton(null));
+            this.<Button>findViewById(R.id.search_button).setOnClickListener(v -> onClickSearch(null));
         }
     }
 

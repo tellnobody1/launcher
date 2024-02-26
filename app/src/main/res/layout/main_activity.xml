@@ -56,8 +56,11 @@
 
         <Button
             android:id="@+id/search_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:background="@drawable/rounded_background"
+            android:onClick="onClickSearch"
             android:text="@string/search" />
 
         <GridView
