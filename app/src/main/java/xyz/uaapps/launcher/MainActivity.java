@@ -181,6 +181,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     }
 
     private void showKeyboard() {
+        findViewById(R.id.customActionBar).setVisibility(VISIBLE);
         mSearchEditText.requestFocus();
         if (SDK_INT >= CUPCAKE) {
             var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
@@ -197,6 +198,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
             }
             getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
+            findViewById(R.id.customActionBar).setVisibility(GONE);
         }
         findViewById(R.id.appsContainer).requestFocus();
     }
@@ -307,7 +309,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             var prefs = new SharedLauncherPrefs(this);
             SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
             swipeLayout.setOnRefreshListener(() -> {
-                if (prefs.isActionBarEnabled() && prefs.isSwipeEnabled()) {
+                if (prefs.isSwipeEnabled()) {
                     showKeyboard();
                 }
                 swipeLayout.setRefreshing(false);
@@ -464,10 +466,9 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     }
 
     private void setupPreferences() {
-        var prefs = new SharedLauncherPrefs(this);
-        var preferences = prefs.getPreferences();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        preferences.registerOnSharedPreferenceChangeListener(this);
+        var prefs = new SharedLauncherPrefs(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
     private EditText setupSearchEditText() {
@@ -480,12 +481,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         return searchEditText;
     }
 
-    private void setupActionBar() {
-//        var view = findViewById(R.id.customActionBar);
-//        var prefs = new SharedLauncherPrefs(this);
-//        view.setVisibility(prefs.isActionBarEnabled() ? VISIBLE : GONE);
-    }
-
     private void setupViews() {
         var appContainer = this.<GridView>findViewById(R.id.appsContainer);
         var listener = new AppContainerListener();
@@ -496,7 +491,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         appContainer.setOnScrollListener(listener);
         appContainer.setAdapter(mAdapter);
         appContainer.setOnItemClickListener(listener);
-        setupActionBar();
     }
 
     private class AppContainerListener implements AbsListView.OnScrollListener, OnItemClickListener {
