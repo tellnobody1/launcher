@@ -37,7 +37,7 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
 
     private final String mActivityLabel;
     private final Set<String> labels;
-    @Nullable private final String labelEn;
+    @Nullable private final String iconKey;
 
     private final Intent mLaunchIntent;
 
@@ -64,7 +64,7 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
             @NonNull SharedPreferences prefs,
             @Nullable PackageManager manager,
             Set<String> labels,
-            @Nullable String labelEn) {
+            @Nullable String iconKey) {
         final ActivityInfo activityInfo = info.activityInfo;
         final ComponentName name =
                 new ComponentName(activityInfo.packageName, activityInfo.name);
@@ -80,7 +80,7 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
 
         mUserSerial = Long.MIN_VALUE;
         this.labels = labels;
-        this.labelEn = labelEn;
+        this.iconKey = iconKey;
     }
 
     private static Intent getLaunchableIntent(final ComponentName componentName) {
@@ -133,7 +133,7 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
 
     @Nullable
     public String getIconKey() {
-        return labelEn;
+        return iconKey;
     }
 
     public String getName() {

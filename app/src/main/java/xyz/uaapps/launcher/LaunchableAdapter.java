@@ -17,7 +17,6 @@ package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
-import static android.os.Build.VERSION_CODES.N;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -41,7 +40,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -369,7 +367,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
             final boolean notify = mNotifyOnChange;
             mNotifyOnChange = false;
 
-            var locale = SDK_INT >= N ? context.getResources().getConfiguration().getLocales().get(0) : Locale.getDefault();
+            var locale = AppLocales.getDefault(context.getResources().getConfiguration());
             final Collator collator = Collator.getInstance(locale);
             collator.setStrength(Collator.PRIMARY);
 
@@ -433,7 +431,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
 
                     var phoneMatcher = Pattern.compile("^\\+?[\\d\\s\\-()]+$").matcher(query);
                     if (phoneMatcher.find() && SDK_INT >= LOLLIPOP) {
-                        newValues.add(new DialIntentLaunchableActivity(phoneMatcher.group()));
+                        newValues.add(new DialIntentLaunchableActivity(phoneMatcher.group(), context.getResources().getString(R.string.dial)));
                     }
 
                     var allTargets = new LinkedHashMap<LaunchableActivity, Set<String>>();

@@ -34,7 +34,7 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
 
     private final String mActivityLabel;
     private final Set<String> labels;
-    @Nullable private final String labelEn;
+    @Nullable private final String iconKey;
 
     private final Intent mLaunchIntent;
 
@@ -57,10 +57,10 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
             @NonNull LauncherActivityInfo info,
             UserManager manager,
             Set<String> labels,
-            @Nullable String labelEn) {
+            @Nullable String iconKey) {
         mLaunchIntent = getLaunchableIntent(info.getComponentName());
         mActivityLabel = info.getLabel().toString();
-        this.labelEn = labelEn;
+        this.iconKey = iconKey;
         mUserSerial = manager.getSerialNumberForUser(info.getUser());
         this.labels = labels;
     }
@@ -111,7 +111,7 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
 
     @Nullable
     public String getIconKey() {
-        return labelEn;
+        return iconKey;
     }
 
     public String getName() {

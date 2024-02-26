@@ -5,27 +5,22 @@ import static android.content.Intent.ACTION_DIAL;
 import android.content.Intent;
 import android.net.Uri;
 
-import java.util.Collections;
-import java.util.Set;
-
 public class DialIntentLaunchableActivity implements IntentLaunchableActivity {
     private final Intent intent;
+    private final String label;
 
-    public DialIntentLaunchableActivity(String phoneNumber) {
+    public DialIntentLaunchableActivity(String phoneNumber, String label) {
         this.intent = new Intent(ACTION_DIAL);
         this.intent.setData(Uri.parse("tel:" + phoneNumber));
+        this.label = label;
     }
 
     public String getActivityLabel() {
-        return "Dial..."; //todo
+        return label;
     }
 
     public String getIconKey() {
-        return "Phone"; //todo
-    }
-
-    public Set<String> getLabels() {
-        return Collections.emptySet(); //todo
+        return "Phone";
     }
 
     public Intent getLaunchIntent() {

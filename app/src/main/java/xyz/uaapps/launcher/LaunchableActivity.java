@@ -8,7 +8,6 @@ import java.util.Set;
 public interface LaunchableActivity {
     String getActivityLabel();
     String getIconKey();
-    Set<String> getLabels();
 }
 
 interface IntentLaunchableActivity extends LaunchableActivity {
@@ -21,6 +20,8 @@ interface RegularLaunchableActivity extends LaunchableActivity {
     void setPriority(int priority);
     int getPriority();
     String getName();
+
+    Set<String> getLabels();
 }
 
 interface RegularUserLaunchableActivity extends RegularLaunchableActivity {
