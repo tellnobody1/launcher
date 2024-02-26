@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_margin="16dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/status_bar_height">
+
+    <!-- Top panel -->
+    <RelativeLayout
+        android:id="@+id/customActionBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:visibility="gone"
+        android:background="@drawable/rounded_background">
+
+        <ImageButton
+            android:id="@+id/clear_button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center_vertical"
+            android:background="@null"
+            android:contentDescription="@string/clear_button"
+            android:onClick="onClickClearButton"
+            android:padding="@dimen/actionbar_icon_padding"
+            android:src="@drawable/cancel"
+            android:tint="#ffffff"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/user_search_input"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_toLeftOf="@id/clear_button"
+            android:paddingStart="12dp"
+            android:paddingLeft="12dp"
+            android:background="@null"
+            android:ellipsize="end"
+            android:imeActionLabel="@string/launch"
+            android:imeOptions="actionGo"
+            android:importantForAutofill="noExcludeDescendants"
+            android:inputType="text|textNoSuggestions|textFilter"
+            android:maxLines="1"
+            android:selectAllOnFocus="true"
+            android:textColor="#ffffff"
+            android:textSize="18sp" />
+    </RelativeLayout>
+
+    <!-- Bottom panel -->
+    <RelativeLayout
+        android:id="@+id/bottom_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            android:id="@+id/search_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Search" />
+
+        <GridView
+            android:id="@+id/grid_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/search_button"
+            android:numColumns="auto_fit"
+            android:visibility="gone"
+            android:horizontalSpacing="10dp"
+            android:verticalSpacing="10dp"
+            android:stretchMode="columnWidth"
+            android:gravity="center" />
+    </RelativeLayout>
+
+    <!-- Middle GridView -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottom_panel"
+        android:layout_below="@id/customActionBar">
+
+        <include layout="@layout/app_grid_container" />
+    </RelativeLayout>
+
+</RelativeLayout>
