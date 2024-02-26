@@ -38,6 +38,7 @@ import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
 import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE;
 import static android.view.inputmethod.EditorInfo.IME_ACTION_GO;
 import static java.util.Collections.emptyMap;
+import static java.util.Locale.ENGLISH;
 import static xyz.uaapps.launcher.BuildConfig.DEBUG;
 
 import android.annotation.TargetApi;
@@ -252,7 +253,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         for (var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                 Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
-                adapter.add(new RegularUserLaunchableActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
+                adapter.add(new RegularUserLaunchableActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(ENGLISH, null)));
             }
     }
 
@@ -277,7 +278,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
                 @Nullable var activityLabels = labels.get(info);
                 @NonNull Map<Locale, String> activityLabels2 = activityLabels == null ? Collections.emptyMap() : activityLabels;
-                String labelEn = activityLabels2.containsKey(Locale.US) ? activityLabels2.get(Locale.US) : null;
+                String labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
                 adapter.add(new RegularIntentLaunchableActivityImpl(info, prefs, manager, valuesSet(activityLabels2), labelEn));
             }
         }
@@ -526,12 +527,8 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     protected void onResume() {
         super.onResume();
 
-        var searchText = mSearchEditText.getText();
-        if (searchText.length() > 0) showKeyboard();
-        else hideKeyboard();
-
         if (SDK_INT >= CUPCAKE) {
-            Uri accUri = Settings.System.getUriFor(ACCELEROMETER_ROTATION);
+            var accUri = Settings.System.getUriFor(ACCELEROMETER_ROTATION);
             getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
         }
     }

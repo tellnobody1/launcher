@@ -4,6 +4,8 @@ import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 
+import static java.util.Locale.ENGLISH;
+
 import android.content.res.Configuration;
 
 import java.util.HashSet;
@@ -14,7 +16,7 @@ import java.util.Set;
 public class AppLocales {
     /** @return english + defaults + assets */
     static Set<Locale> getLabelLocales(Configuration configuration) {
-        var locales = new HashSet<>(List.of(Locale.US, Locale.UK)); //todo Locale.ENGLISH
+        var locales = new HashSet<>(List.of(ENGLISH));
         // add default locales
         if (SDK_INT >= N) {
             var defaults = configuration.getLocales();
