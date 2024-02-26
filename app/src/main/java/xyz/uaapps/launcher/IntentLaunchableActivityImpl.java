@@ -13,21 +13,17 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
-import android.content.pm.LauncherActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.os.UserManager;
 
 import androidx.annotation.DeprecatedSinceApi;
 import androidx.annotation.NonNull;
@@ -37,7 +33,7 @@ import androidx.annotation.RequiresApi;
 import java.util.Collections;
 import java.util.Set;
 
-public class RegularLaunchableActivity implements LaunchableActivity, Pinnable {
+public class IntentLaunchableActivityImpl implements IntentLaunchableActivity {
 
     private final String mActivityLabel;
     private final Set<String> labels;
@@ -53,24 +49,24 @@ public class RegularLaunchableActivity implements LaunchableActivity, Pinnable {
 
     private int mPriority;
 
-    /**
-     * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}
-     *
-     * @param info Information to derive the LaunchableActivity from.
-     * @param manager The service to retrieve user information about the activity from.
-     */
-    @RequiresApi(api = LOLLIPOP)
-    public RegularLaunchableActivity(
-            @NonNull LauncherActivityInfo info,
-            UserManager manager,
-            Set<String> labels,
-            @Nullable String labelEn) {
-        mLaunchIntent = getLaunchableIntent(info.getComponentName());
-        mActivityLabel = info.getLabel().toString();
-        this.labelEn = labelEn;
-        mUserSerial = manager.getSerialNumberForUser(info.getUser());
-        this.labels = labels;
-    }
+//    /**
+//     * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}
+//     *
+//     * @param info Information to derive the LaunchableActivity from.
+//     * @param manager The service to retrieve user information about the activity from.
+//     */
+//    @RequiresApi(api = LOLLIPOP)
+//    public IntentLaunchableActivityImpl(
+//            @NonNull LauncherActivityInfo info,
+//            UserManager manager,
+//            Set<String> labels,
+//            @Nullable String labelEn) {
+//        mLaunchIntent = getLaunchableIntent(info.getComponentName());
+//        mActivityLabel = info.getLabel().toString();
+//        this.labelEn = labelEn;
+//        mUserSerial = manager.getSerialNumberForUser(info.getUser());
+//        this.labels = labels;
+//    }
 
     /**
      * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}, for
@@ -82,7 +78,7 @@ public class RegularLaunchableActivity implements LaunchableActivity, Pinnable {
      *                local store will not cache the label.
      */
     @DeprecatedSinceApi(api = N, message = "Later APIs use addToAdapter24()")
-    public RegularLaunchableActivity(
+    public IntentLaunchableActivityImpl(
             @NonNull ResolveInfo info,
             @NonNull SharedPreferences prefs,
             @Nullable PackageManager manager,
@@ -146,13 +142,12 @@ public class RegularLaunchableActivity implements LaunchableActivity, Pinnable {
         mPriority = priority;
     }
 
-    @Override
-    public String toString() {
-        return mActivityLabel;
-    }
-
     public Set<String> getLabels() {
         return Collections.unmodifiableSet(labels);
+    }
+
+    public String getActivityLabel() {
+        return mActivityLabel;
     }
 
     @Nullable

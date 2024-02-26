@@ -15,10 +15,11 @@
   -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/appmenu_pin_to_top"
+        android:id="@+id/appmenu_pin"
         android:onClick="pinToTop"
         android:title="@string/appmenu_pin_to_top" />
     <item
+        android:id="@+id/appmenu_app_info"
         android:onClick="launchApplicationDetails"
         android:title="@string/appmenu_info" />
 </menu>

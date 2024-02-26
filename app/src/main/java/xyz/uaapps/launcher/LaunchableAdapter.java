@@ -36,7 +36,6 @@ import androidx.annotation.Nullable;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -49,12 +48,9 @@ import java.util.regex.Pattern;
 /**
  * This class is an adapter for LaunchableActivities, originally inspired by the ArrayAdapter class.
  */
-public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter implements Filterable {
+public class LaunchableAdapter extends BaseAdapter implements Filterable {
 
-    private static final Pattern DIACRITICAL_MARKS =
-            Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-
-    private static final String TAG = "LaunchableAdapter";
+    private static final Pattern DIACRITICAL_MARKS = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
 
     /**
      * The {@link Filter} used by this list {@code Adapter}.
@@ -73,7 +69,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * Contains the list of objects that represent the data of this ArrayAdapter.
      * The content of this list is referred to as "the array" in the documentation.
      */
-    private final List<T> mObjects;
+    private final List<LaunchableActivity> mObjects;
 
     /**
      * This field contains the database used to store persistent values for
@@ -97,31 +93,20 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
 
     // A copy of the original mObjects array, initialized from and then used instead as soon as
     // the mFilter ArrayFilter is used. mObjects will then only contain the filtered values.
-    private List<T> mOriginalValues;
+    private List<RegularLaunchableActivity> mOriginalValues;
 
     /**
-     * Constructor
-     *
-     * @param context  The current context.
-     * @param resource The resource ID for a layout file containing a TextView to use when
-     *                 instantiating views.
+     * @param resource The resource ID for a layout file containing a TextView to use when instantiating views.
      */
-    public LaunchableAdapter(@NonNull final Context context, @LayoutRes final int resource,
-                             final int initialSize) {
+    public LaunchableAdapter(@NonNull Context context, @LayoutRes int resource, int initialSize) {
         this.context = context;
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
         mPrefs = new PinnablePrefs(context);
     }
 
-    /**
-     * Adds the specified object at the end of the array.
-     *
-     * @param object The object to add at the end of the array.
-     */
-    public void add(@Nullable final T object) {
-        if (object instanceof Pinnable pinnable)
-            mPrefs.setPreferences(pinnable);
+    public void add(RegularLaunchableActivity object) {
+        mPrefs.setPreferences(object);
 
         synchronized (mLock) {
             if (mOriginalValues == null) {
@@ -146,28 +131,44 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
     public int getClassNamePosition(@NonNull final String className) {
         int position = -1;
 
-        var current = mOriginalValues == null ? mObjects : mOriginalValues;
-
-        final int currentSize = current.size();
-        for (int i = 0; i < currentSize && position == -1; i++) {
-            final String componentName = current.get(i).getComponent().getClassName();
-            final int firstIndex = componentName.indexOf('.');
-            final int lastIndex = componentName.lastIndexOf('.');
-
-            // The component classname is actually the ActivityName which will likely be longer
-            // than the classname. Make sure the activity name is somewhat valid before attempting
-            // to match with the beginning.
-            if (firstIndex == -1 || lastIndex == -1 || firstIndex == lastIndex) {
-                if (componentName.equals(className)) {
-                    position = i;
+        if (mOriginalValues == null) {
+            var current = mObjects;
+            final int currentSize = current.size();
+            for (int i = 0; i < currentSize && position == -1; i++) {
+                var x = current.get(i);
+                if (x instanceof Regular regular){
+                    var componentName = regular.getComponent().getClassName();
+                    position = getPosition(className, position, i, componentName);
                 }
-            } else {
-                if (componentName.startsWith(className)) {
-                    position = i;
-                }
+            }
+        } else {
+            var current = mOriginalValues;
+            final int currentSize = current.size();
+            for (int i = 0; i < currentSize && position == -1; i++) {
+                var componentName = current.get(i).getComponent().getClassName();
+                position = getPosition(className, position, i, componentName);
             }
         }
 
+        return position;
+    }
+
+    private static int getPosition(@NonNull String className, int position, int i, String componentName) {
+        final int firstIndex = componentName.indexOf('.');
+        final int lastIndex = componentName.lastIndexOf('.');
+
+        // The component classname is actually the ActivityName which will likely be longer
+        // than the classname. Make sure the activity name is somewhat valid before attempting
+        // to match with the beginning.
+        if (firstIndex == -1 || lastIndex == -1 || firstIndex == lastIndex) {
+            if (componentName.equals(className)) {
+                position = i;
+            }
+        } else {
+            if (componentName.startsWith(className)) {
+                position = i;
+            }
+        }
         return position;
     }
 
@@ -222,7 +223,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     @Nullable
     @Override
-    public T getItem(final int position) {
+    public LaunchableActivity getItem(int position) {
         return mObjects.get(position);
     }
 
@@ -264,7 +265,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         synchronized (mLock) {
             launchableActivity = getItem(position);
         }
-        var label = launchableActivity.toString();
+        var label = launchableActivity.getActivityLabel();
         var appLabelView = view.<TextView>findViewById(R.id.appLabel);
         var appIconView = view.<AppIconView>findViewById(R.id.appIcon);
 
@@ -313,29 +314,35 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      * this critical method.
      *
      * @param name The name. See the description for more information.
-     * @return The number of packages removed by this method.
      */
-    public int removeAllByName(@NonNull final String name) {
+    public void removeAllByName(@NonNull final String name) {
         ComponentName component;
-        final List<T> current;
-        int removedCount = 0;
 
         synchronized (mLock) {
             if (mOriginalValues == null) {
-                current = mObjects;
+                var current = mObjects;
+                for (int i = current.size() - 1; i >= 0; i--) {
+                    var x = current.get(i);
+                    if (x instanceof Regular regular) {
+                        component = regular.getComponent();
+
+                        if (component.getClassName().startsWith(name)) {
+                            current.remove(i);
+                        } else if (component.getPackageName().equals(name)) {
+                            current.remove(i);
+                        }
+                    }
+                }
             } else {
-                current = mOriginalValues;
-            }
+                var current = mOriginalValues;
+                for (int i = current.size() - 1; i >= 0; i--) {
+                    component = current.get(i).getComponent();
 
-            for (int i = current.size() - 1; i >= 0; i--) {
-                component = current.get(i).getComponent();
-
-                if (component.getClassName().startsWith(name)) {
-                    current.remove(i);
-                    removedCount++;
-                } else if (component.getPackageName().equals(name)) {
-                    current.remove(i);
-                    removedCount++;
+                    if (component.getClassName().startsWith(name)) {
+                        current.remove(i);
+                    } else if (component.getPackageName().equals(name)) {
+                        current.remove(i);
+                    }
                 }
             }
         }
@@ -343,15 +350,13 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         if (mNotifyOnChange) {
             notifyDataSetChanged();
         }
-
-        return removedCount;
     }
 
-    public void sort(@NonNull Comparator<? super T> comparator) {
+    public void sort(Comparator<LaunchableActivity> comparator1, Comparator<RegularLaunchableActivity> comparator2) {
         synchronized (mLock) {
-            Collections.sort(mObjects, comparator);
+            Collections.sort(mObjects, comparator1);
             if (mOriginalValues != null) {
-                Collections.sort(mOriginalValues, comparator);
+                Collections.sort(mOriginalValues, comparator2);
             }
         }
         if (mNotifyOnChange) {
@@ -367,9 +372,18 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
             var locale = SDK_INT >= N ? context.getResources().getConfiguration().getLocales().get(0) : Locale.getDefault();
             final Collator collator = Collator.getInstance(locale);
             collator.setStrength(Collator.PRIMARY);
-            sort((o1, o2) -> collator.compare(o1.toString(), o2.toString()));
 
-            sort((o1, o2) -> o2.getPriority() - o1.getPriority());
+            Comparator<LaunchableActivity> comparator1 = (o1, o2) -> collator.compare(o1.getActivityLabel(), o2.getActivityLabel());
+            Comparator<RegularLaunchableActivity> comparator2 = (o1, o2) -> collator.compare(o1.getActivityLabel(), o2.getActivityLabel());
+            sort(comparator1, comparator2);
+
+            Comparator<LaunchableActivity> comparator3 = (o1, o2) -> {
+                var p1 = o1 instanceof Pinnable pinnable ? pinnable.getPriority() : 0;
+                var p2 = o2 instanceof Pinnable pinnable ? pinnable.getPriority() : 0;
+                return p2 - p1;
+            };
+            Comparator<RegularLaunchableActivity> comparator4 = (o1, o2) -> o2.getPriority() - o1.getPriority();
+            sort(comparator3, comparator4);
 
             if (notify) {
                 notifyDataSetChanged();
@@ -389,7 +403,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
      */
     private final class LaunchableFilter extends Filter {
         @Override protected FilterResults performFiltering(final CharSequence constraint) {
-            List<T> values;
+            List<RegularLaunchableActivity> values;
             FilterResults results = new FilterResults();
 
             // Don't act upon a blank constraint if the filter hasn't been used yet.
@@ -399,7 +413,10 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
             } else {
                 if (mOriginalValues == null) {
                     synchronized (mLock) {
-                        mOriginalValues = new ArrayList<>(mObjects);
+                        mOriginalValues = new LinkedList<>();
+                        for (var x : mObjects)
+                            if (x instanceof RegularLaunchableActivity regularLaunchableActivity)
+                                mOriginalValues.add(regularLaunchableActivity);
                     }
                 }
 
@@ -412,14 +429,14 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
                     results.count = count;
                 } else {
                     var query = stripAccents(constraint).toLowerCase();
-                    var newValues = new LinkedList<T>();
+                    var newValues = new LinkedList<LaunchableActivity>();
 
                     var phoneMatcher = Pattern.compile("^\\+?[\\d\\s\\-()]+$").matcher(query);
                     if (phoneMatcher.find() && SDK_INT >= LOLLIPOP) {
-                        newValues.add((T) new DialLaunchableActivity(phoneMatcher.group()));
+                        newValues.add(new DialLaunchableActivity(phoneMatcher.group()));
                     }
 
-                    var allTargets = new LinkedHashMap<T, Set<String>>();
+                    var allTargets = new LinkedHashMap<LaunchableActivity, Set<String>>();
                     for (var value : values)
                         allTargets.put(value, value.getLabels());
                     newValues.addAll(QueryVariants.checkAll(query, allTargets));
@@ -435,7 +452,7 @@ public class LaunchableAdapter<T extends LaunchableActivity> extends BaseAdapter
         @Override protected void publishResults(final CharSequence constraint, final FilterResults results) {
             if (mObjects != results.values) {
                 mObjects.clear();
-                mObjects.addAll((Collection<T>) results.values);
+                mObjects.addAll((List<LaunchableActivity>) results.values);
 
                 if (results.count > 0) notifyDataSetChanged();
                 else notifyDataSetInvalidated();

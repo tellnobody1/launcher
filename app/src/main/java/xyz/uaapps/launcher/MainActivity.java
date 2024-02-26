@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package xyz.uaapps.launcher.activities;
+package xyz.uaapps.launcher;
 
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
@@ -103,16 +103,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import xyz.uaapps.launcher.LaunchableActivity;
-import xyz.uaapps.launcher.LaunchableAdapter;
-import xyz.uaapps.launcher.LauncherActivityInfoOps;
-import xyz.uaapps.launcher.LocaleConfig;
-import xyz.uaapps.launcher.Pinnable;
-import xyz.uaapps.launcher.PinnablePrefs;
-import xyz.uaapps.launcher.R;
-import xyz.uaapps.launcher.RegularLaunchableActivity;
-import xyz.uaapps.launcher.ResolveInfoOps;
-import xyz.uaapps.launcher.SharedLauncherPrefs;
 import xyz.uaapps.launcher.monitor.PackageChangeCallback;
 import xyz.uaapps.launcher.monitor.PackageChangedReceiver;
 import xyz.uaapps.launcher.swipe.SwipeLayout;
@@ -149,7 +139,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      * An adapter, based off {@link android.widget.ArrayAdapter}, to handle
      * {@link LaunchableActivity} items.
      */
-    private LaunchableAdapter<LaunchableActivity> mAdapter;
+    private LaunchableAdapter mAdapter;
 
     private EditText mSearchEditText;
 
@@ -256,7 +246,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      */
     @TargetApi(N)
     private void addToAdapter(
-            @NonNull LaunchableAdapter<LaunchableActivity> adapter,
+            @NonNull LaunchableAdapter adapter,
             @NonNull Iterable<LauncherActivityInfo> infoList,
             Map<LauncherActivityInfo, Map<Locale, String>> labels) {
         var thisCanonicalName = getClass().getCanonicalName();
@@ -264,7 +254,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         for (var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                 Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
-                adapter.add(new RegularLaunchableActivity(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
+                adapter.add(new UserLaunchableActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(Locale.US, null)));
             }
     }
 
@@ -277,7 +267,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      * @param useReadCache Whether to use a read cache.
      */
     private void addToAdapter1(
-            @NonNull LaunchableAdapter<LaunchableActivity> adapter,
+            @NonNull LaunchableAdapter adapter,
             @NonNull Iterable<ResolveInfo> infoList,
             boolean useReadCache,
             Map<ResolveInfo, Map<Locale, String>> labels) {
@@ -290,7 +280,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 @Nullable var activityLabels = labels.get(info);
                 @NonNull Map<Locale, String> activityLabels2 = activityLabels == null ? Collections.emptyMap() : activityLabels;
                 String labelEn = activityLabels2.containsKey(Locale.US) ? activityLabels2.get(Locale.US) : null;
-                adapter.add(new RegularLaunchableActivity(info, prefs, manager, valuesSet(activityLabels2), labelEn));
+                adapter.add(new IntentLaunchableActivityImpl(info, prefs, manager, valuesSet(activityLabels2), labelEn));
             }
         }
     }
@@ -331,22 +321,23 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     private void launchActivity(LaunchableActivity launchableActivity) {
         hideKeyboard();
-        // Second conditional is always true, but this shuts up warnings.
-        if (launchableActivity.isUserKnown() && SDK_INT >= N) {
+        if (launchableActivity instanceof UserLaunchableActivity userLaunchableActivity) {
             var userManager = (UserManager) getSystemService(USER_SERVICE);
             var launcher = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-            var userSerial = launchableActivity.getUserSerial();
+            var userSerial = userLaunchableActivity.getUserSerial();
             var userHandle = userManager.getUserForSerialNumber(userSerial);
-            launcher.startMainActivity(launchableActivity.getComponent(), userHandle, null, Bundle.EMPTY);
-        } else {
+            launcher.startMainActivity(userLaunchableActivity.getComponent(), userHandle, null, Bundle.EMPTY);
+        } else if (launchableActivity instanceof HasIntent hasIntent) {
             try {
-                startActivity(launchableActivity.getLaunchIntent());
+                startActivity(hasIntent.getLaunchIntent());
                 mSearchEditText.setText(null);
                 mAdapter.sortApps();
             } catch (ActivityNotFoundException e) {
                 if (DEBUG) throw e;
                 else Toast.makeText(this, getString(R.string.activity_not_found), Toast.LENGTH_SHORT).show();
             }
+        } else {
+            Toast.makeText(this, getString(R.string.activity_not_found), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -354,16 +345,8 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         launchActivity(getLaunchableActivity(view));
     }
 
-    public void launchApplicationDetails(MenuItem item) {
-        var activity = getLaunchableActivity(item);
-        var intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
-        intent.setData(Uri.parse("package:" + activity.getComponent().getPackageName()));
-        intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-    }
-
-    private LaunchableAdapter<LaunchableActivity> loadLaunchableAdapter() {
-        LaunchableAdapter<LaunchableActivity> adapter;
+    private LaunchableAdapter loadLaunchableAdapter() {
+        LaunchableAdapter adapter;
         var pm = getPackageManager();
         if (SDK_INT >= N) {
             var manager = (UserManager) getSystemService(USER_SERVICE);
@@ -375,7 +358,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 count += launcherApps.getActivityList(null, iter.next()).size();
             }
 
-            adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, count);
+            adapter = new LaunchableAdapter(this, R.layout.app_grid_item, count);
 
             while (iter.hasPrevious()) {
                 var activityList = launcherApps.getActivityList(null, iter.previous());
@@ -384,7 +367,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             }
         } else {
             var infoList = getLaunchableResolveInfos(pm, null);
-            adapter = new LaunchableAdapter<>(this, R.layout.app_grid_item, infoList.size());
+            adapter = new LaunchableAdapter(this, R.layout.app_grid_item, infoList.size());
             var labels = getLabels_1(infoList, pm);
             addToAdapter1(adapter, infoList, true, labels);
         }
@@ -471,10 +454,14 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         inflater.inflate(R.menu.app, menu);
 
         var activity = getLaunchableActivity(menuInfo);
-        var item = menu.findItem(R.id.appmenu_pin_to_top);
 
-        item.setTitle(activity.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
-        item.setEnabled(activity instanceof Pinnable);
+        var pinItem = menu.findItem(R.id.appmenu_pin);
+        if (activity instanceof Pinnable pinnable)
+            pinItem.setTitle(pinnable.getPriority() == 0 ? R.string.appmenu_pin_to_top : R.string.appmenu_remove_pin);
+        pinItem.setEnabled(activity instanceof Pinnable);
+
+        var appInfoItem = menu.findItem(R.id.appmenu_app_info);
+        appInfoItem.setEnabled(activity instanceof Regular);
     }
 
     /**
@@ -648,6 +635,16 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             }
 
             mAdapter.sortApps();
+        }
+    }
+
+    public void launchApplicationDetails(MenuItem item) {
+        var activity = getLaunchableActivity(item);
+        if (activity instanceof Regular regular) {
+            var intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.parse("package:" + regular.getComponent().getPackageName()));
+            intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
         }
     }
 
