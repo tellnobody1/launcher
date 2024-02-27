@@ -92,6 +92,8 @@ import java.util.Set;
 
 public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
+    private SharedLauncherPrefs prefs;
+
     private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver();
 
     /**
@@ -99,7 +101,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      */
     private final ContentObserver mAccSettingObserver = new ContentObserver(new Handler()) {
         @Override public void onChange(boolean selfChange) {
-            setRotation(new SharedLauncherPrefs(MainActivity.this));
+            setRotation();
         }
     };
 
@@ -307,10 +309,10 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+        prefs = new SharedLauncherPrefs(this);
 
         if (SDK_INT >= ICE_CREAM_SANDWICH) {
-            var prefs = new SharedLauncherPrefs(this);
-            SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
+            var swipeLayout = this.<SwipeLayout>findViewById(R.id.swipeLayout);
             swipeLayout.setOnRefreshListener(() -> {
                 if (prefs.isSwipeEnabled()) {
                     showKeyboard();
@@ -324,6 +326,9 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         } else {
             registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter());
         }
+
+        if (prefs.isShowSearchButton())
+            findViewById(R.id.search_button).setVisibility(VISIBLE);
 
         if (SDK_INT < DONUT) {
             this.<ImageButton>findViewById(R.id.clear_button).setOnClickListener(v -> onClickClearButton(null));
@@ -413,7 +418,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      * <li> If rotation is not allowed by local settings set orientation as portrait.
      * </ul><p>
      */
-    private void setRotation(SharedLauncherPrefs prefs) {
+    private void setRotation() {
         var systemRotationAllowed = Settings.System.getInt(getContentResolver(), ACCELEROMETER_ROTATION, 0) == 1;
         if (systemRotationAllowed)
             if (prefs.isRotationAllowed())
@@ -428,7 +433,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         //does this need to run in uiThread?
         if (getString(R.string.pref_key_allow_rotation).equals(key))
-            setRotation(new SharedLauncherPrefs(this));
+            setRotation();
     }
 
     @Override
@@ -442,7 +447,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         setupPreferences();
         setupAppContainer();
         setupSearchEditText();
-        setRotation(new SharedLauncherPrefs(this));
+        setRotation();
     }
 
     @Override
@@ -479,7 +484,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     private void setupPreferences() {
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        var prefs = new SharedLauncherPrefs(this);
         prefs.registerOnSharedPreferenceChangeListener(this);
     }
 

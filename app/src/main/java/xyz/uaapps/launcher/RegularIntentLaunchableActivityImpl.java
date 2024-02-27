@@ -15,6 +15,9 @@
  */
 package xyz.uaapps.launcher;
 
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.GINGERBREAD;
+
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -63,7 +66,11 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
             mActivityLabel = prefs.getString(activityInfo.packageName, null);
         } else {
             mActivityLabel = info.loadLabel(manager).toString();
-            prefs.edit().putString(activityInfo.packageName, mActivityLabel).apply();
+            if (SDK_INT >= GINGERBREAD) {
+                prefs.edit().putString(activityInfo.packageName, mActivityLabel).apply();
+            } else {
+                var result = prefs.edit().putString(activityInfo.packageName, mActivityLabel).commit();
+            }
         }
 
         this.labels = labels;

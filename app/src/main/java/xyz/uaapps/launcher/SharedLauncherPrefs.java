@@ -38,6 +38,10 @@ public class SharedLauncherPrefs {
         return mContext.getString(resId);
     }
 
+    public boolean isShowSearchButton() {
+        return isPrefEnabled(R.string.pref_key_search_button, true);
+    }
+
     public boolean isSwipeEnabled() {
         return isPrefEnabled(R.string.pref_key_swipe, true);
     }

@@ -62,7 +62,8 @@
             android:layout_marginTop="@dimen/activity_margin"
             android:background="@drawable/rounded_background"
             android:onClick="onClickSearch"
-            android:text="@string/search" />
+            android:text="@string/search"
+            android:visibility="gone"/>
 
     </RelativeLayout>
 
