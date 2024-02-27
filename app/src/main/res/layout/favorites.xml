@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/favorites"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_marginTop="@dimen/activity_margin"
+    android:padding="@dimen/activity_margin"
+    android:numColumns="auto_fit"
+    android:horizontalSpacing="@dimen/app_row_horizontal_spacing"
+    android:verticalSpacing="@dimen/app_row_vertical_spacing"
+    android:stretchMode="spacingWidth"
+    android:columnWidth="@dimen/app_row_column_width"
+    android:scrollbars="none"
+    android:gravity="center" />

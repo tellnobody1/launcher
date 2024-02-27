@@ -43,9 +43,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-/**
- * This class is an adapter for LaunchableActivities, originally inspired by the ArrayAdapter class.
- */
 public class LaunchableAdapter extends BaseAdapter implements Filterable {
 
     private static final Pattern DIACRITICAL_MARKS = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
@@ -118,58 +115,6 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         }
     }
 
-    /**
-     * Returns the position of a {@link LaunchableActivity} where the
-     * {@link LaunchableActivity#getComponent()}.{@link ComponentName#getClassName()} is equal to
-     * the {@code className} parameter.
-     *
-     * @param className The classname to find.
-     * @return The LaunchableActivity matching the classname parameter, {@code -1} if not found.
-     */
-    public int getClassNamePosition(@NonNull final String className) {
-        int position = -1;
-
-        if (mOriginalValues == null) {
-            var current = mObjects;
-            final int currentSize = current.size();
-            for (int i = 0; i < currentSize && position == -1; i++) {
-                var x = current.get(i);
-                if (x instanceof RegularLaunchableActivity regular){
-                    var componentName = regular.getComponent().getClassName();
-                    position = getPosition(className, position, i, componentName);
-                }
-            }
-        } else {
-            var current = mOriginalValues;
-            final int currentSize = current.size();
-            for (int i = 0; i < currentSize && position == -1; i++) {
-                var componentName = current.get(i).getComponent().getClassName();
-                position = getPosition(className, position, i, componentName);
-            }
-        }
-
-        return position;
-    }
-
-    private static int getPosition(@NonNull String className, int position, int i, String componentName) {
-        final int firstIndex = componentName.indexOf('.');
-        final int lastIndex = componentName.lastIndexOf('.');
-
-        // The component classname is actually the ActivityName which will likely be longer
-        // than the classname. Make sure the activity name is somewhat valid before attempting
-        // to match with the beginning.
-        if (firstIndex == -1 || lastIndex == -1 || firstIndex == lastIndex) {
-            if (componentName.equals(className)) {
-                position = i;
-            }
-        } else {
-            if (componentName.startsWith(className)) {
-                position = i;
-            }
-        }
-        return position;
-    }
-
     @Override
     public int getCount() {
         return mObjects.size();
@@ -225,12 +170,6 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         return mObjects.get(position);
     }
 
-    /**
-     * This returns the position given.
-     *
-     * @param position The position given.
-     * @return The position from the {@code position} argument.
-     */
     @Override
     public long getItemId(final int position) {
         return position;
@@ -239,16 +178,14 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
     /**
      * The {@link View} used as a grid item for the LaunchableAdapter {@code GridView}.
      *
-     * @param position    The position to of the {@link LaunchableActivity} to return a {@code
-     *                    View} for.
+     * @param position    The position to of the {@link LaunchableActivity} to return a {@code View} for.
      * @param convertView The old {@code View} to reuse, if possible.
      * @param parent      The parent {@code View}.
      * @return The {@code View} to use in the {@code GridView}.
      */
     @NonNull
     @Override
-    public View getView(final int position, final View convertView,
-                        @NonNull final ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         final View view;
 
         if (convertView == null) {
@@ -375,14 +312,6 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
             Comparator<RegularLaunchableActivity> comparator2 = (o1, o2) -> collator.compare(o1.getActivityLabel(), o2.getActivityLabel());
             sort(comparator1, comparator2);
 
-            Comparator<LaunchableActivity> comparator3 = (o1, o2) -> {
-                var p1 = o1 instanceof RegularLaunchableActivity a ? (a.isFavorite() ? 1 : 0) : 0;
-                var p2 = o2 instanceof RegularLaunchableActivity a ? (a.isFavorite() ? 1 : 0) : 0;
-                return p2 - p1;
-            };
-            Comparator<RegularLaunchableActivity> comparator4 = (o1, o2) -> (o2.isFavorite() ? 1 : 0) - (o1.isFavorite() ? 1 : 0);
-            sort(comparator3, comparator4);
-
             if (notify) {
                 notifyDataSetChanged();
             }
@@ -394,15 +323,30 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         return mOriginalValues == null ? mObjects.toString() : mOriginalValues.toString();
     }
 
+    public List<RegularLaunchableActivity> getFavorites() {
+        var results = new LinkedList<RegularLaunchableActivity>();
+        if (mOriginalValues != null) {
+            for (var x : mOriginalValues)
+                if (x.isFavorite())
+                    results.add(x);
+        } else {
+            for (var y : mObjects)
+                if (y instanceof RegularLaunchableActivity regular)
+                    if (regular.isFavorite())
+                        results.add(regular);
+        }
+        return results;
+    }
+
     /**
      * An array filter constrains the content of the array adapter with
      * a prefix. Each item that does not start with the supplied prefix
      * is removed from the list.
      */
     private final class LaunchableFilter extends Filter {
-        @Override protected FilterResults performFiltering(final CharSequence constraint) {
+        @Override protected FilterResults performFiltering(CharSequence constraint) {
             List<RegularLaunchableActivity> values;
-            FilterResults results = new FilterResults();
+            var results = new FilterResults();
 
             // Don't act upon a blank constraint if the filter hasn't been used yet.
             if (mOriginalValues == null && constraint.length() == 0) {
@@ -413,8 +357,8 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
                     synchronized (mLock) {
                         mOriginalValues = new LinkedList<>();
                         for (var x : mObjects)
-                            if (x instanceof RegularLaunchableActivity regularLaunchableActivity)
-                                mOriginalValues.add(regularLaunchableActivity);
+                            if (x instanceof RegularLaunchableActivity regular)
+                                mOriginalValues.add(regular);
                     }
                 }
 

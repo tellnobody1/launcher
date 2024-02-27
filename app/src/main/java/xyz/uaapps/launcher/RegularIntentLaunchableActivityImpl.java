@@ -15,8 +15,6 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION_CODES.N;
-
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,7 +22,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 
-import androidx.annotation.DeprecatedSinceApi;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -50,7 +47,6 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
      * @param manager The {@link PackageManager} to load the label for this from. If null, the
      *                local store will not cache the label.
      */
-    @DeprecatedSinceApi(api = N, message = "Later APIs use addToAdapter24()")
     public RegularIntentLaunchableActivityImpl(
             @NonNull ResolveInfo info,
             @NonNull SharedPreferences prefs,

@@ -59,21 +59,12 @@
             android:layout_centerHorizontal="true"
             android:layout_width="wrap_content"
             android:layout_height="24dp"
+            android:layout_marginTop="@dimen/activity_margin"
             android:background="@drawable/rounded_background"
             android:onClick="onClickSearch"
             android:text="@string/search" />
 
-        <GridView
-            android:id="@+id/grid_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/search_button"
-            android:numColumns="auto_fit"
-            android:visibility="gone"
-            android:horizontalSpacing="10dp"
-            android:verticalSpacing="10dp"
-            android:stretchMode="columnWidth"
-            android:gravity="center" />
+        <include layout="@layout/favorites_container" />
     </RelativeLayout>
 
     <!-- Middle GridView -->

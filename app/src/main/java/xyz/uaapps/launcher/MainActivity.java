@@ -63,8 +63,10 @@ import android.text.TextWatcher;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -74,6 +76,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -103,12 +106,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         }
     };
 
-    /**
-     * An adapter, based off {@link android.widget.ArrayAdapter}, to handle {@link LaunchableActivity} items.
-     */
     private LaunchableAdapter mAdapter;
-
-    private EditText mSearchEditText;
 
     private static LaunchableActivity getLaunchableActivity(View view) {
         return (LaunchableActivity) view.findViewById(R.id.appIcon).getTag();
@@ -159,7 +157,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      * @param infoList     The ResolveInfo object to add to the adapter.
      * @param useReadCache Whether to use a read cache.
      */
-    private void addToAdapter1(
+    private void addToAdapter_1(
             @NonNull LaunchableAdapter adapter,
             @NonNull Iterable<ResolveInfo> infoList,
             boolean useReadCache,
@@ -184,11 +182,12 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     private void showKeyboard() {
         findViewById(R.id.customActionBar).setVisibility(VISIBLE);
-        mSearchEditText.requestFocus();
+        var searchEditText = findViewById(R.id.user_search_input);
+        searchEditText.requestFocus();
         if (SDK_INT >= CUPCAKE) {
             var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             getWindow().setSoftInputMode(SOFT_INPUT_STATE_VISIBLE);
-            imm.showSoftInput(mSearchEditText, 0);
+            imm.showSoftInput(searchEditText, 0);
         }
     }
 
@@ -225,7 +224,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         } else if (launchableActivity instanceof IntentLaunchableActivity activity) {
             try {
                 startActivity(activity.getLaunchIntent());
-                mSearchEditText.setText(null);
+                clearSearchEditText();
                 mAdapter.sortApps();
             } catch (ActivityNotFoundException e) {
                 if (DEBUG) throw e;
@@ -264,10 +263,13 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             var infoList = getLaunchableResolveInfos(pm, null);
             adapter = new LaunchableAdapter(this, R.layout.app_grid_item, infoList.size());
             var labels = getLabels_1(infoList, pm);
-            addToAdapter1(adapter, infoList, true, labels);
+            addToAdapter_1(adapter, infoList, true, labels);
         }
         adapter.sortApps();
         adapter.notifyDataSetChanged();
+
+        setupFavorites(adapter);
+
         return adapter;
     }
 
@@ -299,7 +301,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     }
 
     public void onClickClearButton(View view) {
-        mSearchEditText.setText(null);
+        clearSearchEditText();
     }
 
     public void onClickSearch(View view) {
@@ -369,7 +371,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         super.onNewIntent(intent);
 
         // If search has been typed, and home is hit, clear it.
-        mSearchEditText.setText(null);
+        clearSearchEditText();
 
         closeContextMenu();
         closeOptionsMenu();
@@ -394,12 +396,16 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     protected void onResume() {
         super.onResume();
 
-        mSearchEditText.setText(null);
+        clearSearchEditText();
 
         if (SDK_INT >= CUPCAKE) {
             var accUri = Settings.System.getUriFor(ACCELEROMETER_ROTATION);
             getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
         }
+    }
+
+    private void clearSearchEditText() {
+        this.<EditText>findViewById(R.id.user_search_input).setText(null);
     }
 
     /**
@@ -436,11 +442,11 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
         // In a perfect world, this all could happen in onCreate(), but there are problems
         // with BroadcastReceiver registration and unregistration with that scenario.
-        mSearchEditText = findViewById(R.id.user_search_input);
         mAdapter = loadLaunchableAdapter();
 
         setupPreferences();
-        setupViews();
+        setupAppContainer();
+        setupSearchEditText();
         setRotation(new SharedLauncherPrefs(this));
     }
 
@@ -482,25 +488,40 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
-    private EditText setupSearchEditText() {
+    private void setupSearchEditText() {
         var listeners = new SearchEditTextListeners();
         var searchEditText = this.<EditText>findViewById(R.id.user_search_input);
-
         searchEditText.addTextChangedListener(listeners);
         searchEditText.setOnEditorActionListener(listeners);
-
-        return searchEditText;
     }
 
-    private void setupViews() {
+    private void setupFavorites(LaunchableAdapter adapter) {
+        var favorites = this.<LinearLayout>findViewById(R.id.favorites);
+        favorites.removeAllViews();
+        for (var x : adapter.getFavorites())
+            favorites.addView(favoriteItem(x, favorites));
+        registerForContextMenu(favorites);
+    }
+
+    private View favoriteItem(RegularLaunchableActivity launchableActivity, ViewGroup parent) {
+        var inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        var layout = inflater.inflate(R.layout.app_icon, parent, false);
+        var appIconView = layout.<AppIconView>findViewById(R.id.appIcon);
+        appIconView.setTag(launchableActivity);
+        var label = launchableActivity.getActivityLabel();
+        appIconView.set(label, launchableActivity.getIconKey());
+        appIconView.setOnClickListener(v -> new AppContainerListener().onItemClick(null, v, 0, 0));
+        return appIconView;
+    }
+
+    private void setupAppContainer() {
         var appContainer = this.<GridView>findViewById(R.id.appsContainer);
-        var listener = new AppContainerListener();
-        mSearchEditText = setupSearchEditText();
+        appContainer.setAdapter(mAdapter);
 
         registerForContextMenu(appContainer);
 
+        var listener = new AppContainerListener();
         appContainer.setOnScrollListener(listener);
-        appContainer.setAdapter(mAdapter);
         appContainer.setOnItemClickListener(listener);
     }
 
