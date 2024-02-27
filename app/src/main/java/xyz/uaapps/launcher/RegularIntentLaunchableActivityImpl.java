@@ -15,7 +15,8 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION_CODES.N;
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.GINGERBREAD;
 
 import android.content.ComponentName;
 import android.content.Intent;
@@ -24,7 +25,6 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 
-import androidx.annotation.DeprecatedSinceApi;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -50,7 +50,6 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
      * @param manager The {@link PackageManager} to load the label for this from. If null, the
      *                local store will not cache the label.
      */
-    @DeprecatedSinceApi(api = N, message = "Later APIs use addToAdapter24()")
     public RegularIntentLaunchableActivityImpl(
             @NonNull ResolveInfo info,
             @NonNull SharedPreferences prefs,
@@ -67,7 +66,11 @@ public class RegularIntentLaunchableActivityImpl implements RegularIntentLauncha
             mActivityLabel = prefs.getString(activityInfo.packageName, null);
         } else {
             mActivityLabel = info.loadLabel(manager).toString();
-            prefs.edit().putString(activityInfo.packageName, mActivityLabel).apply();
+            if (SDK_INT >= GINGERBREAD) {
+                prefs.edit().putString(activityInfo.packageName, mActivityLabel).apply();
+            } else {
+                var result = prefs.edit().putString(activityInfo.packageName, mActivityLabel).commit();
+            }
         }
 
         this.labels = labels;

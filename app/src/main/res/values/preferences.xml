@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="pref_key_actionbar" translatable="false">pref_enable_actionbar</string>
+    <string name="pref_key_search_button" translatable="false">pref_show_search_button</string>
     <string name="pref_key_allow_rotation" translatable="false">pref_allow_rotation</string>
     <string name="pref_key_swipe" translatable="false">pref_enable_swipe</string>
 </resources>

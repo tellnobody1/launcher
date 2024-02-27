@@ -19,11 +19,10 @@
         android:title="@string/settings_category_general_category">
         <CheckBoxPreference
             android:defaultValue="true"
-            android:key="@string/pref_key_actionbar"
-            android:title="@string/pref_enable_actionbar" />
+            android:key="@string/pref_key_search_button"
+            android:title="@string/pref_show_search_button" />
         <CheckBoxPreference
             android:defaultValue="true"
-            android:dependency="@string/pref_key_actionbar"
             android:key="@string/pref_key_swipe"
             android:title="@string/pref_enable_swipe" />
         <CheckBoxPreference

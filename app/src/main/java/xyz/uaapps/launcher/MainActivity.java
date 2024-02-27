@@ -18,15 +18,13 @@ package xyz.uaapps.launcher;
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR;
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
-import static android.content.res.Configuration.ORIENTATION_LANDSCAPE;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.FROYO;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
-import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
-import static android.os.Build.VERSION_CODES.KITKAT;
 import static android.os.Build.VERSION_CODES.N;
 import static android.os.Build.VERSION_CODES.TIRAMISU;
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
@@ -49,21 +47,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.database.ContentObserver;
-import android.graphics.Point;
-import android.hardware.display.DisplayManager;
 import android.net.Uri;
-import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.UserManager;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
@@ -71,29 +62,25 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
-import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowInsets;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.GridView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.DeprecatedSinceApi;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -105,36 +92,20 @@ import java.util.Set;
 
 public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener {
 
-    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver();
+    private SharedLauncherPrefs prefs;
 
-    /**
-     * This implements a listener for orientation change, see {@link DisplayChangeListener} for
-     * more information.
-     */
-    @RequiresApi(api = JELLY_BEAN_MR1)
-    private DisplayManager.DisplayListener mDisplayListener = null;
+    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver();
 
     /**
      * This ContentObserver is used by the ContentResolver to register a callback to set rotation in case it changes in the system settings.
      */
     private final ContentObserver mAccSettingObserver = new ContentObserver(new Handler()) {
         @Override public void onChange(boolean selfChange) {
-            setRotation(new SharedLauncherPrefs(MainActivity.this));
+            setRotation();
         }
     };
 
-    /**
-     * An adapter, based off {@link android.widget.ArrayAdapter}, to handle
-     * {@link LaunchableActivity} items.
-     */
     private LaunchableAdapter mAdapter;
-
-    private EditText mSearchEditText;
-
-    private static int getDimensionSize(Resources resources, String name) {
-        var resourceId = resources.getIdentifier(name, "dimen", "android");
-        return resourceId > 0 ? resources.getDimensionPixelSize(resourceId) : 0;
-    }
 
     private static LaunchableActivity getLaunchableActivity(View view) {
         return (LaunchableActivity) view.findViewById(R.id.appIcon).getTag();
@@ -155,74 +126,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         if (SDK_INT >= DONUT)
             intent.setPackage(activityName);
         return pm.queryIntentActivities(intent, 0);
-    }
-
-    @DeprecatedSinceApi(api = VERSION_CODES.R, message = "Later APIs use get getNavigationBarHeight30()")
-    private static int getNavigationBarHeight15(Resources resources) {
-        var configuration = resources.getConfiguration();
-        //Only phone between 0-599 has navigationbar can move
-        var isSmartphone = configuration.smallestScreenWidthDp < 600;
-        var isPortrait = configuration.orientation == Configuration.ORIENTATION_PORTRAIT;
-
-        int navBarHeight;
-        if (isSmartphone && !isPortrait)
-            navBarHeight = 0;
-        else if (isPortrait)
-            navBarHeight = getDimensionSize(resources, "navigation_bar_height");
-        else
-            navBarHeight = getDimensionSize(resources, "navigation_bar_height_landscape");
-        return navBarHeight;
-    }
-
-    public static int getAppUsableScreenSizeWidth(Display defaultDisplay) {
-        Point size = new Point();
-        defaultDisplay.getSize(size);
-        return size.x;
-    }
-
-    public static int getRealScreenWidth(Display defaultDisplay) {
-        var size = new Point();
-        if (SDK_INT >= JELLY_BEAN_MR1) {
-            defaultDisplay.getRealSize(size);
-        } else if (SDK_INT >= ICE_CREAM_SANDWICH) {
-            try {
-                size.x = (Integer) Display.class.getMethod("getRawWidth").invoke(defaultDisplay);
-            } catch (IllegalAccessException ignored) {
-            } catch (InvocationTargetException ignored) {
-            } catch (NoSuchMethodException ignored) {
-            }
-        }
-        return size.x;
-    }
-
-    /**
-     * This is a workaround. Unfortunately, Android does not have a way in it's API to
-     * accurately detect the position of the navigation bar when it's translucent.
-     * This becomes highly problematic in landscape where we really don't want Launchables
-     * underneath the navigation bar when in landscape mode. This forces the master layout outside
-     * of the status bar and the navigation bar. Ideally, we would be forced outside of the
-     * navigation bar alone and be able to travel underneath the status bar. The inconsistency of
-     * this layout which affects landscape orientation and non-gesture mode is outweighed by the
-     * really crappy hacks that used to try to work around this.
-     *
-     * @param context The current context.
-     * @return True if the navigation bar is not in gesture mode, the device is in landscape, and
-     * the application usable space is less than the real space.
-     */
-    public static boolean isNavBarProblematic(Context context) {
-        var resources = context.getResources();
-        var isLandscape = resources.getConfiguration().orientation == ORIENTATION_LANDSCAPE;
-        return !isInGestureMode(resources) && isLandscape && isRealSizeDifferentThanUsable(context);
-    }
-
-    public static boolean isInGestureMode(Resources resources) {
-        var resourceId = resources.getIdentifier("config_navBarInteractionMode", "integer", "android");
-        return resourceId != 0 && resources.getInteger(resourceId) == 2;
-    }
-
-    private static boolean isRealSizeDifferentThanUsable(Context context) {
-        var display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-        return getAppUsableScreenSizeWidth(display) < getRealScreenWidth(display);
     }
 
     /**
@@ -253,7 +156,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      * @param infoList     The ResolveInfo object to add to the adapter.
      * @param useReadCache Whether to use a read cache.
      */
-    private void addToAdapter1(
+    private void addToAdapter_1(
             @NonNull LaunchableAdapter adapter,
             @NonNull Iterable<ResolveInfo> infoList,
             boolean useReadCache,
@@ -277,11 +180,13 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     }
 
     private void showKeyboard() {
-        mSearchEditText.requestFocus();
+        findViewById(R.id.customActionBar).setVisibility(VISIBLE);
+        var searchEditText = findViewById(R.id.user_search_input);
+        searchEditText.requestFocus();
         if (SDK_INT >= CUPCAKE) {
             var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
             getWindow().setSoftInputMode(SOFT_INPUT_STATE_VISIBLE);
-            imm.showSoftInput(mSearchEditText, 0);
+            imm.showSoftInput(searchEditText, 0);
         }
     }
 
@@ -293,6 +198,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
             }
             getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
+            findViewById(R.id.customActionBar).setVisibility(GONE);
         }
         findViewById(R.id.appsContainer).requestFocus();
     }
@@ -317,7 +223,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         } else if (launchableActivity instanceof IntentLaunchableActivity activity) {
             try {
                 startActivity(activity.getLaunchIntent());
-                mSearchEditText.setText(null);
+                clearSearchEditText();
                 mAdapter.sortApps();
             } catch (ActivityNotFoundException e) {
                 if (DEBUG) throw e;
@@ -356,10 +262,11 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             var infoList = getLaunchableResolveInfos(pm, null);
             adapter = new LaunchableAdapter(this, R.layout.app_grid_item, infoList.size());
             var labels = getLabels_1(infoList, pm);
-            addToAdapter1(adapter, infoList, true, labels);
+            addToAdapter_1(adapter, infoList, true, labels);
         }
         adapter.sortApps();
         adapter.notifyDataSetChanged();
+
         return adapter;
     }
 
@@ -391,20 +298,23 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     }
 
     public void onClickClearButton(View view) {
-        mSearchEditText.setText("");
+        clearSearchEditText();
+    }
+
+    public void onClickSearch(View view) {
+        showKeyboard();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_search);
+        setContentView(R.layout.main_activity);
+        prefs = new SharedLauncherPrefs(this);
 
         if (SDK_INT >= ICE_CREAM_SANDWICH) {
-            var prefs = new SharedLauncherPrefs(this);
-            SwipeLayout swipeLayout = (SwipeLayout) findViewById(R.id.swipeLayout);
+            var swipeLayout = this.<SwipeLayout>findViewById(R.id.swipeLayout);
             swipeLayout.setOnRefreshListener(() -> {
-                if (prefs.isActionBarEnabled() && prefs.isSwipeEnabled()) {
+                if (prefs.isSwipeEnabled()) {
                     showKeyboard();
                 }
                 swipeLayout.setRefreshing(false);
@@ -415,6 +325,14 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter(), Context.RECEIVER_NOT_EXPORTED);
         } else {
             registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter());
+        }
+
+        if (prefs.isShowSearchButton())
+            findViewById(R.id.search_button).setVisibility(VISIBLE);
+
+        if (SDK_INT < DONUT) {
+            this.<ImageButton>findViewById(R.id.clear_button).setOnClickListener(v -> onClickClearButton(null));
+            this.<Button>findViewById(R.id.search_button).setOnClickListener(v -> onClickSearch(null));
         }
     }
 
@@ -453,9 +371,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         super.onNewIntent(intent);
 
         // If search has been typed, and home is hit, clear it.
-        if (mSearchEditText.length() > 0) {
-            mSearchEditText.setText(null);
-        }
+        clearSearchEditText();
 
         closeContextMenu();
         closeOptionsMenu();
@@ -472,13 +388,7 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
     @Override
     protected void onPause() {
-        if (SDK_INT >= JELLY_BEAN_MR1) {
-            var manager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
-            manager.unregisterDisplayListener(mDisplayListener);
-        }
-
         getContentResolver().unregisterContentObserver(mAccSettingObserver);
-
         super.onPause();
     }
 
@@ -486,10 +396,16 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     protected void onResume() {
         super.onResume();
 
+        clearSearchEditText();
+
         if (SDK_INT >= CUPCAKE) {
             var accUri = Settings.System.getUriFor(ACCELEROMETER_ROTATION);
             getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
         }
+    }
+
+    private void clearSearchEditText() {
+        this.<EditText>findViewById(R.id.user_search_input).setText(null);
     }
 
     /**
@@ -502,26 +418,22 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
      * <li> If rotation is not allowed by local settings set orientation as portrait.
      * </ul><p>
      */
-    private void setRotation(SharedLauncherPrefs prefs) {
+    private void setRotation() {
         var systemRotationAllowed = Settings.System.getInt(getContentResolver(), ACCELEROMETER_ROTATION, 0) == 1;
-        if (systemRotationAllowed) {
-            if (prefs.isRotationAllowed()) {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-                if (SDK_INT >= KITKAT)
-                    registerDisplayListener();
-            } else {
+        if (systemRotationAllowed)
+            if (prefs.isRotationAllowed())
+                setRequestedOrientation(SCREEN_ORIENTATION_SENSOR);
+            else
                 setRequestedOrientation(SCREEN_ORIENTATION_PORTRAIT);
-            }
-        } else {
+        else
             setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
-        }
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         //does this need to run in uiThread?
         if (getString(R.string.pref_key_allow_rotation).equals(key))
-            setRotation(new SharedLauncherPrefs(this));
+            setRotation();
     }
 
     @Override
@@ -530,19 +442,12 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
 
         // In a perfect world, this all could happen in onCreate(), but there are problems
         // with BroadcastReceiver registration and unregistration with that scenario.
-        mSearchEditText = findViewById(R.id.user_search_input);
         mAdapter = loadLaunchableAdapter();
 
-        if (SDK_INT >= JELLY_BEAN_MR1) {
-            mDisplayListener = new DisplayChangeListener();
-        }
-
-        setupPadding();
         setupPreferences();
-        setupViews();
-        setRotation(new SharedLauncherPrefs(this));
-
-        setupPadding();
+        setupAppContainer();
+        setupSearchEditText();
+        setRotation();
     }
 
     @Override
@@ -577,133 +482,44 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         }
     }
 
-    /**
-     * This method registers a display listener for JB MR1 and higher to workaround a Android
-     * deficiency with regard to 180 degree landscape rotation. See {@link DisplayChangeListener}
-     * documentation for more information.
-     */
-    @RequiresApi(api = JELLY_BEAN_MR1)
-    private void registerDisplayListener() {
-        var displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
-        var handler = new Handler(Looper.getMainLooper());
-        displayManager.registerDisplayListener(mDisplayListener, handler);
-    }
-
-    @RequiresApi(api = VERSION_CODES.R)
-    private int getNavigationBarHeight30() {
-        var navBars = WindowInsets.Type.navigationBars();
-        var insets = getWindowManager().getCurrentWindowMetrics().getWindowInsets().getInsets(navBars);
-        return insets.bottom;
-    }
-
-    private static void setupMasterLayoutPadding(View masterLayout, int padding) {
-        masterLayout.setFitsSystemWindows(isNavBarProblematic(masterLayout.getContext()));
-        var masterParams = (FrameLayout.LayoutParams) masterLayout.getLayoutParams();
-        masterParams.setMargins(padding, 0, padding, 0);
-    }
-
-    private static int setupActionBarLayout(View customActionBar, int padding) {
-        var context = customActionBar.getContext();
-        var searchParams = (FrameLayout.LayoutParams) customActionBar.getLayoutParams();
-        int searchTop = SDK_INT >= KITKAT && !isNavBarProblematic(context) ? getDimensionSize(context.getResources(), "status_bar_height") + padding : padding;
-
-        searchParams.setMargins(0, searchTop, 0, 0);
-
-        return searchTop + context.getResources().getDimensionPixelSize(R.dimen.app_icon_size) + padding;
-    }
-
-    private void setupPadding() {
-        var appContainer = findViewById(R.id.appsContainer);
-        var dp16 = getResources().getDimensionPixelSize(R.dimen.activity_horizontal_margin);
-        setupMasterLayoutPadding(findViewById(R.id.masterLayout), dp16);
-
-        final int appContainerTop;
-        if (new SharedLauncherPrefs(this).isActionBarEnabled())
-            appContainerTop = setupActionBarLayout(findViewById(R.id.customActionBar), dp16);
-        else
-            if (SDK_INT >= KITKAT && !isNavBarProblematic(this))
-                appContainerTop = getDimensionSize(getResources(), "status_bar_height") + dp16;
-            else
-                appContainerTop = dp16;
-
-        final int appContainerBottom;
-        if (SDK_INT >= VERSION_CODES.R)
-            appContainerBottom = getNavigationBarHeight30() + dp16;
-        else if (SDK_INT >= KITKAT)
-            appContainerBottom = getNavigationBarHeight15(getResources()) + dp16;
-        else
-            appContainerBottom = dp16;
-
-        appContainer.setPadding(0, appContainerTop, 0, appContainerBottom);
-    }
-
     private void setupPreferences() {
-        var prefs = new SharedLauncherPrefs(this);
-        var preferences = prefs.getPreferences();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        preferences.registerOnSharedPreferenceChangeListener(this);
+        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
-    private EditText setupSearchEditText() {
+    private void setupSearchEditText() {
         var listeners = new SearchEditTextListeners();
         var searchEditText = this.<EditText>findViewById(R.id.user_search_input);
-
         searchEditText.addTextChangedListener(listeners);
         searchEditText.setOnEditorActionListener(listeners);
-
-        return searchEditText;
     }
 
-    private void setupActionBar() {
-        var view = findViewById(R.id.customActionBar);
-        var prefs = new SharedLauncherPrefs(this);
-        if (prefs.isActionBarEnabled()) view.setVisibility(VISIBLE);
-        else view.setVisibility(GONE);
-    }
-
-    private void setupViews() {
+    private void setupAppContainer() {
         var appContainer = this.<GridView>findViewById(R.id.appsContainer);
-        var listener = new AppContainerListener();
-        mSearchEditText = setupSearchEditText();
+        appContainer.setAdapter(mAdapter);
 
         registerForContextMenu(appContainer);
 
+        var listener = new AppContainerListener();
         appContainer.setOnScrollListener(listener);
-        appContainer.setAdapter(mAdapter);
         appContainer.setOnItemClickListener(listener);
-        setupActionBar();
     }
 
     private class AppContainerListener implements AbsListView.OnScrollListener, OnItemClickListener {
-        @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             launchActivity(view);
         }
-        @Override public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
-        @Override public void onScrollStateChanged(AbsListView view, int scrollState) {
-            if (scrollState != SCROLL_STATE_IDLE) hideKeyboard();
+        public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {}
+        public void onScrollStateChanged(AbsListView view, int scrollState) {
+            if (scrollState != SCROLL_STATE_IDLE)
+                hideKeyboard();
         }
-    }
-
-    /**
-     * This class is a workaround for cases where {@link Activity} does not call any lifecycle
-     * methods after 180 degree landscape orientation change.
-     * <p>
-     * In this case, OrientationEventListener would not be suitable due to magnitude restrictions
-     * in the SensorEventListener implementation.
-     */
-    @RequiresApi(api = JELLY_BEAN_MR1)
-    private class DisplayChangeListener implements DisplayManager.DisplayListener {
-        @Override public void onDisplayAdded(int displayId) {}
-        @Override public void onDisplayChanged(int displayId) {
-            setupPadding();
-        }
-        @Override public void onDisplayRemoved(int displayId) {}
     }
 
     private class SearchEditTextListeners implements TextView.OnEditorActionListener, TextWatcher {
-        @Override public void afterTextChanged(Editable s) {}
-        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-        @Override public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        public void afterTextChanged(Editable s) {}
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             boolean actionConsumed;
             boolean enterPressed = event != null &&
                     event.getAction() == ACTION_DOWN &&
@@ -718,7 +534,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
                 actionConsumed = false;
             return actionConsumed;
         }
-        @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             mAdapter.getFilter().filter(s);
             findViewById(R.id.clear_button).setVisibility(s.length() > 0 ? VISIBLE : GONE);

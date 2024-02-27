@@ -25,21 +25,21 @@ public class SharedLauncherPrefs {
     private final Context mContext;
     private final SharedPreferences mPreferences;
 
-    public SharedLauncherPrefs(final Context context) {
+    public SharedLauncherPrefs(Context context) {
         mContext = context;
         mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    public SharedPreferences getPreferences() {
-        return mPreferences;
+    public void registerOnSharedPreferenceChangeListener(SharedPreferences.OnSharedPreferenceChangeListener listener) {
+        mPreferences.registerOnSharedPreferenceChangeListener(listener);
     }
 
     private String getString(@StringRes int resId) {
         return mContext.getString(resId);
     }
 
-    public boolean isActionBarEnabled() {
-        return isPrefEnabled(R.string.pref_key_actionbar, true);
+    public boolean isShowSearchButton() {
+        return isPrefEnabled(R.string.pref_key_search_button, true);
     }
 
     public boolean isSwipeEnabled() {
