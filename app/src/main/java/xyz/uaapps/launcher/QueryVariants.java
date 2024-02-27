@@ -31,15 +31,19 @@ public class QueryVariants {
         inputs.addAll(convertChars(input, toCyrillic));
         inputs.addAll(convertChars(input, toLatin));
 
-        var maps = List.of("мапа", "мапи", "карта", "карти", "map", "maps");
-        if (containsAny(input, maps)) inputs.addAll(maps);
+        var groups = List.of(
+                List.of("мапа", "мапи", "карта", "карти", "map", "maps"),
+                List.of("пошта", "mail")
+        );
+        for (var group : groups)
+            if (containsAny(input, group)) inputs.addAll(group);
 
         for (String i : inputs) for (String t : allTargets) if (t.contains(i)) return true;
         return false;
     }
 
     private static boolean containsAny(String input, List<String> elements) {
-        for (var element : elements) if (input.contains(element)) return true;
+        for (var element : elements) if (element.contains(input)) return true;
         return false;
     }
 

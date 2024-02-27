@@ -29,8 +29,10 @@ public class QueryVariantsTest {
     @Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-            {"прок", Map.of("key", Set.of("ProCredit")), List.of("key")},
-            {"silp", Map.of("key", Set.of("Сільпо")), List.of("key")}
+            {"прок", Map.of("key1", Set.of("ProCredit")), List.of("key1")},
+            {"silp", Map.of("key2", Set.of("Сільпо")), List.of("key2")},
+            {"мап", Map.of("key3", Set.of("Карти")), List.of("key3")},
+            {"пошт", Map.of("key4", Set.of("Gmail")), List.of("key4")}
         });
     }
 
