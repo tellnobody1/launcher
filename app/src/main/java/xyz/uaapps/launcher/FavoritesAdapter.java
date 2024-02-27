@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class FavoritesAdapter extends BaseAdapter {
+public class FavoritesAdapter extends BaseAdapter {//todo ArrayAdapter
     private final ArrayList<RegularLaunchableActivity> favorites;
 
     public FavoritesAdapter(ArrayList<RegularLaunchableActivity> favorites) {

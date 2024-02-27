@@ -64,7 +64,22 @@
             android:onClick="onClickSearch"
             android:text="@string/search" />
 
-        <include layout="@layout/favorites_container" />
+        <GridView
+            android:id="@+id/favorites"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/search_button"
+            android:layout_marginTop="@dimen/activity_margin"
+            android:numColumns="auto_fit"
+            android:columnWidth="@dimen/app_row_column_width"
+            android:horizontalSpacing="@dimen/app_row_horizontal_spacing"
+            android:verticalSpacing="@dimen/app_row_vertical_spacing"
+            android:stretchMode="spacingWidth"
+            android:scrollbars="none"
+            android:background="@drawable/rounded_background"
+            android:padding="@dimen/activity_margin"
+            android:gravity="center" />
+
     </RelativeLayout>
 
     <!-- Middle GridView -->

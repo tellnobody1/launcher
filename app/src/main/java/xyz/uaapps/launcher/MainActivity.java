@@ -63,10 +63,8 @@ import android.text.TextWatcher;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -76,7 +74,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -496,22 +493,10 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     }
 
     private void setupFavorites(LaunchableAdapter adapter) {
-        var favorites = this.<LinearLayout>findViewById(R.id.favorites);
-        favorites.removeAllViews();
-        for (var x : adapter.getFavorites())
-            favorites.addView(favoriteItem(x, favorites));
+        var favorites = this.<GridView>findViewById(R.id.favorites);
+        favorites.setAdapter(new FavoritesAdapter(adapter.getFavorites()));
         registerForContextMenu(favorites);
-    }
-
-    private View favoriteItem(RegularLaunchableActivity launchableActivity, ViewGroup parent) {
-        var inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        var layout = inflater.inflate(R.layout.app_icon, parent, false);
-        var appIconView = layout.<AppIconView>findViewById(R.id.appIcon);
-        appIconView.setTag(launchableActivity);
-        var label = launchableActivity.getActivityLabel();
-        appIconView.set(label, launchableActivity.getIconKey());
-        appIconView.setOnClickListener(v -> new AppContainerListener().onItemClick(null, v, 0, 0));
-        return appIconView;
+        favorites.setOnItemClickListener(new AppContainerListener());
     }
 
     private void setupAppContainer() {

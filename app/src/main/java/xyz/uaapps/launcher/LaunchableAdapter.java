@@ -323,8 +323,8 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         return mOriginalValues == null ? mObjects.toString() : mOriginalValues.toString();
     }
 
-    public List<RegularLaunchableActivity> getFavorites() {
-        var results = new LinkedList<RegularLaunchableActivity>();
+    public ArrayList<RegularLaunchableActivity> getFavorites() {
+        var results = new ArrayList<RegularLaunchableActivity>();
         if (mOriginalValues != null) {
             for (var x : mOriginalValues)
                 if (x.isFavorite())
