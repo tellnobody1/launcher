@@ -312,6 +312,14 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
             Comparator<RegularLaunchableActivity> comparator2 = (o1, o2) -> collator.compare(o1.getActivityLabel(), o2.getActivityLabel());
             sort(comparator1, comparator2);
 
+            Comparator<LaunchableActivity> comparator3 = (o1, o2) -> {
+                var p1 = o1 instanceof RegularLaunchableActivity a ? (a.isFavorite() ? 1 : 0) : 0;
+                var p2 = o2 instanceof RegularLaunchableActivity a ? (a.isFavorite() ? 1 : 0) : 0;
+                return p2 - p1;
+            };
+            Comparator<RegularLaunchableActivity> comparator4 = (o1, o2) -> (o2.isFavorite() ? 1 : 0) - (o1.isFavorite() ? 1 : 0);
+            sort(comparator3, comparator4);
+
             if (notify) {
                 notifyDataSetChanged();
             }
@@ -321,21 +329,6 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
     @Override
     public String toString() {
         return mOriginalValues == null ? mObjects.toString() : mOriginalValues.toString();
-    }
-
-    public ArrayList<RegularLaunchableActivity> getFavorites() {
-        var results = new ArrayList<RegularLaunchableActivity>();
-        if (mOriginalValues != null) {
-            for (var x : mOriginalValues)
-                if (x.isFavorite())
-                    results.add(x);
-        } else {
-            for (var y : mObjects)
-                if (y instanceof RegularLaunchableActivity regular)
-                    if (regular.isFavorite())
-                        results.add(regular);
-        }
-        return results;
     }
 
     /**

@@ -18,7 +18,12 @@
     android:layout_height="@dimen/app_row_column_height"
     android:orientation="vertical">
 
-    <include layout="@layout/app_icon" />
+    <xyz.uaapps.launcher.AppIconView
+        android:id="@+id/appIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="@string/application_icon_desc"/>
 
     <TextView
         android:id="@+id/appLabel"

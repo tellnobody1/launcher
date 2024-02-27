@@ -265,8 +265,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         adapter.sortApps();
         adapter.notifyDataSetChanged();
 
-        setupFavorites(adapter);
-
         return adapter;
     }
 
@@ -490,13 +488,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         var searchEditText = this.<EditText>findViewById(R.id.user_search_input);
         searchEditText.addTextChangedListener(listeners);
         searchEditText.setOnEditorActionListener(listeners);
-    }
-
-    private void setupFavorites(LaunchableAdapter adapter) {
-        var favorites = this.<GridView>findViewById(R.id.favorites);
-        favorites.setAdapter(new FavoritesAdapter(adapter.getFavorites()));
-        registerForContextMenu(favorites);
-        favorites.setOnItemClickListener(new AppContainerListener());
     }
 
     private void setupAppContainer() {

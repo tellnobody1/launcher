@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<xyz.uaapps.launcher.AppIconView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/appIcon"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center_horizontal"
-    android:contentDescription="@string/application_icon_desc" />
