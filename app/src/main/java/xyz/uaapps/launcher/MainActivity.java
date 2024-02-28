@@ -20,7 +20,6 @@ import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
-import static android.os.Build.VERSION_CODES.FROYO;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.N;
 import static android.os.Build.VERSION_CODES.TIRAMISU;
@@ -62,11 +61,10 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -183,6 +181,7 @@ public class MainActivity extends Activity {
             getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
             findViewById(R.id.customActionBar).setVisibility(GONE);
         }
+        clearSearchEditText();
         findViewById(R.id.appsContainer).requestFocus();
     }
 
@@ -206,8 +205,6 @@ public class MainActivity extends Activity {
         } else if (launchableActivity instanceof IntentLaunchableActivity activity) {
             try {
                 startActivity(activity.getLaunchIntent());
-                clearSearchEditText();
-                mAdapter.sortApps();
             } catch (ActivityNotFoundException e) {
                 if (DEBUG) throw e;
                 else Toast.makeText(this, getString(R.string.activity_not_found), Toast.LENGTH_SHORT).show();
@@ -325,7 +322,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        clearSearchEditText();
+        hideKeyboard();
     }
 
     @Override
@@ -350,32 +347,6 @@ public class MainActivity extends Activity {
 
         var appInfoItem = menu.findItem(R.id.appmenu_app_info);
         appInfoItem.setEnabled(activity instanceof RegularLaunchableActivity);
-    }
-
-    /**
-     * This method is called when the user is already in this activity and presses the {@code home}
-     * button. Use this opportunity to return this activity back to a default state.
-     *
-     * @param intent The incoming {@link Intent} sent by this activity
-     */
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-
-        // If search has been typed, and home is hit, clear it.
-        clearSearchEditText();
-
-        closeContextMenu();
-        closeOptionsMenu();
-
-        // If the y coordinate is not at 0, let's reset it.
-        var view = this.<GridView>findViewById(R.id.appsContainer);
-        var loc = new int[]{0, 0};
-        view.getLocationInWindow(loc);
-        if (loc[1] != 0) {
-            if (SDK_INT >= FROYO) view.smoothScrollToPosition(0);
-            else view.setSelection(0);
-        }
     }
 
     private void clearSearchEditText() {
@@ -409,10 +380,10 @@ public class MainActivity extends Activity {
     }
 
     private void setupSearchEditText() {
-        var listeners = new SearchEditTextListeners();
         var searchEditText = this.<EditText>findViewById(R.id.user_search_input);
-        searchEditText.addTextChangedListener(listeners);
-        searchEditText.setOnEditorActionListener(listeners);
+        searchEditText.addTextChangedListener(new SearchEditTextWatcher());
+        if (SDK_INT >= CUPCAKE)
+            searchEditText.setOnEditorActionListener(new SearchEditTextEditorActionListener());
     }
 
     private void setupAppContainer() {
@@ -437,27 +408,25 @@ public class MainActivity extends Activity {
         }
     }
 
-    private class SearchEditTextListeners implements TextView.OnEditorActionListener, TextWatcher {
+    private class SearchEditTextWatcher implements TextWatcher {
         public void afterTextChanged(Editable s) {}
         public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            boolean actionConsumed;
-            boolean enterPressed = event != null &&
-                    event.getAction() == ACTION_DOWN &&
-                    event.getKeyCode() == KEYCODE_ENTER;
-            if (actionId == IME_ACTION_GO || (enterPressed && !mAdapter.isEmpty())) {
-                if (mAdapter.getCount() > 0) {
-                    launchActivity(mAdapter.getItem(0));
-                    actionConsumed = true;
-                } else
-                    actionConsumed = false;
-            } else
-                actionConsumed = false;
-            return actionConsumed;
-        }
         public void onTextChanged(CharSequence s, int start, int before, int count) {
             mAdapter.getFilter().filter(s);
             findViewById(R.id.clear_button).setVisibility(s.length() > 0 ? VISIBLE : GONE);
+        }
+    }
+
+    @RequiresApi(api = CUPCAKE)
+    private class SearchEditTextEditorActionListener implements OnEditorActionListener {
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+            var enterPressed = event != null && event.getAction() == ACTION_DOWN && event.getKeyCode() == KEYCODE_ENTER;
+            if (actionId == IME_ACTION_GO || enterPressed)
+                if (mAdapter.getCount() > 0) {
+                    launchActivity(mAdapter.getItem(0));
+                    return true;
+                }
+            return false;
         }
     }
 }

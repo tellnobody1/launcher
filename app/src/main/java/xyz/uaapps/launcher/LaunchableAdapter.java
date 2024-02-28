@@ -138,17 +138,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         return text;
     }
 
-    /**
-     * <p>Returns a filter that can be used to constrain data with a filtering
-     * pattern.</p>
-     * <p>
-     * <p>This method is usually implemented by {@link android.widget.Adapter}
-     * classes.</p>
-     *
-     * @return a filter used to constrain data
-     */
     @NonNull
-    @Override
     public Filter getFilter() {
         return mFilter;
     }
