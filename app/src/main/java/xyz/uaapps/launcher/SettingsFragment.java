@@ -13,22 +13,16 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package xyz.uaapps.launcher;
 
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 
-import android.content.Context;
 import android.content.Intent;
-import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
-import android.preference.PreferenceScreen;
-import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,31 +30,6 @@ import android.view.ViewGroup;
 import androidx.annotation.StringRes;
 
 public class SettingsFragment extends PreferenceFragment {
-
-    /**
-     * This field generates a ContentObserver to enable or disable the orientation locked setting depending if
-     * rotation is locked or unlocked.
-     */
-    private final ContentObserver mAccSettingObserver = new ContentObserver(new Handler()) {
-        @Override
-        public void onChange(boolean selfChange) {
-            final Preference orientationPreference = findPreference(R.string.pref_key_allow_rotation);
-
-            orientationPreference.setEnabled(isOrientationLocked());
-
-            super.onChange(selfChange);
-        }
-    };
-
-    /**
-     * This method returns whether the system orientation is locked.
-     *
-     * @return True if orientation is locked, false otherwise.
-     */
-    private boolean isOrientationLocked() {
-        return Settings.System.getInt(getPreferenceScreen().getContext().getContentResolver(),
-                Settings.System.ACCELEROMETER_ROTATION, 0) == 1;
-    }
 
     private Preference findPreference(@StringRes final int prefKey) {
         return findPreference(getString(prefKey));
@@ -78,36 +47,12 @@ public class SettingsFragment extends PreferenceFragment {
     @Override
     public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
                              final Bundle savedInstanceState) {
-        // Set the version
-        findPreference("about_version").setSummary(BuildConfig.VERSION_NAME);
+        findPreference(R.string.pref_key_version).setSummary(BuildConfig.VERSION_NAME);
 
-        final LaunchPreferenceSummary listener = new LaunchPreferenceSummary(getString(R.string.source_code));
-
-        final Preference about_project = findPreference("about_project_website");
-        about_project.setOnPreferenceClickListener(listener);
+        var source_code = findPreference(R.string.pref_key_source_code);
+        source_code.setOnPreferenceClickListener(new LaunchPreferenceSummary(getString(R.string.source_code)));
 
         return super.onCreateView(inflater, container, savedInstanceState);
-    }
-
-    @Override
-    public void onPause() {
-        final PreferenceScreen prefs = getPreferenceScreen();
-
-        prefs.getContext().getContentResolver().unregisterContentObserver(mAccSettingObserver);
-
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        final Preference orientationPreference = findPreference(R.string.pref_key_allow_rotation);
-        final Context context = orientationPreference.getContext();
-        final Uri accUri = Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION);
-
-        context.getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
-        orientationPreference.setEnabled(isOrientationLocked());
     }
 
     private final class LaunchPreferenceSummary implements Preference.OnPreferenceClickListener {

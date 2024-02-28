@@ -14,9 +14,7 @@
   ~ limitations under the License.
   -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <PreferenceCategory
-        android:key="pref_category_general"
-        android:title="@string/settings_category_general_category">
+    <PreferenceCategory android:title="@string/settings_category_general_category">
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="@string/pref_key_search_button"
@@ -25,19 +23,13 @@
             android:defaultValue="true"
             android:key="@string/pref_key_swipe"
             android:title="@string/pref_enable_swipe" />
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="@string/pref_key_allow_rotation"
-            android:title="@string/pref_allow_rotation" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/about_header">
         <Preference
-            android:id="@+id/about_version"
-            android:key="about_version"
+            android:key="@string/pref_key_version"
             android:title="@string/about_version_code" />
         <Preference
-            android:id="@+id/about_project_website_url"
-            android:key="about_project_website"
+            android:key="@string/pref_key_source_code"
             android:title="@string/about_project_website" />
     </PreferenceCategory>
 </PreferenceScreen>

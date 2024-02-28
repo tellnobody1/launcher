@@ -30,10 +30,6 @@ public class SharedLauncherPrefs {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
-    public void registerOnSharedPreferenceChangeListener(SharedPreferences.OnSharedPreferenceChangeListener listener) {
-        mPreferences.registerOnSharedPreferenceChangeListener(listener);
-    }
-
     private String getString(@StringRes int resId) {
         return mContext.getString(resId);
     }
@@ -48,9 +44,5 @@ public class SharedLauncherPrefs {
 
     private boolean isPrefEnabled(@StringRes int keyRes, boolean defaultBoolean) {
         return mPreferences.getBoolean(getString(keyRes), defaultBoolean);
-    }
-
-    public boolean isRotationAllowed() {
-        return isPrefEnabled(R.string.pref_key_allow_rotation, true);
     }
 }

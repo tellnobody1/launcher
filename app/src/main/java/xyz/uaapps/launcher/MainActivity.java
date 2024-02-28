@@ -17,9 +17,6 @@ package xyz.uaapps.launcher;
 
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_SENSOR;
-import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
@@ -28,7 +25,6 @@ import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.N;
 import static android.os.Build.VERSION_CODES.TIRAMISU;
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
-import static android.provider.Settings.System.ACCELEROMETER_ROTATION;
 import static android.view.KeyEvent.ACTION_DOWN;
 import static android.view.KeyEvent.KEYCODE_ENTER;
 import static android.view.View.GONE;
@@ -46,18 +42,14 @@ import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.LauncherActivityInfo;
 import android.content.pm.LauncherApps;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.UserManager;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.ContextMenu;
@@ -90,20 +82,11 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class MainActivity extends Activity implements SharedPreferences.OnSharedPreferenceChangeListener {
+public class MainActivity extends Activity {
 
     private SharedLauncherPrefs prefs;
 
     private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver();
-
-    /**
-     * This ContentObserver is used by the ContentResolver to register a callback to set rotation in case it changes in the system settings.
-     */
-    private final ContentObserver mAccSettingObserver = new ContentObserver(new Handler()) {
-        @Override public void onChange(boolean selfChange) {
-            setRotation();
-        }
-    };
 
     private LaunchableAdapter mAdapter;
 
@@ -387,53 +370,13 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
     }
 
     @Override
-    protected void onPause() {
-        getContentResolver().unregisterContentObserver(mAccSettingObserver);
-        super.onPause();
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
-
         clearSearchEditText();
-
-        if (SDK_INT >= CUPCAKE) {
-            var accUri = Settings.System.getUriFor(ACCELEROMETER_ROTATION);
-            getContentResolver().registerContentObserver(accUri, false, mAccSettingObserver);
-        }
     }
 
     private void clearSearchEditText() {
         this.<EditText>findViewById(R.id.user_search_input).setText(null);
-    }
-
-    /**
-     * This method checks whether rotation should be allowed and sets the launcher to
-     * <p>
-     * The current rules:
-     * <p><ul>
-     * <li> Rotate if allowed by both system and local settings.
-     * <li> If rotation is not allowed by system settings disable rotation.
-     * <li> If rotation is not allowed by local settings set orientation as portrait.
-     * </ul><p>
-     */
-    private void setRotation() {
-        var systemRotationAllowed = Settings.System.getInt(getContentResolver(), ACCELEROMETER_ROTATION, 0) == 1;
-        if (systemRotationAllowed)
-            if (prefs.isRotationAllowed())
-                setRequestedOrientation(SCREEN_ORIENTATION_SENSOR);
-            else
-                setRequestedOrientation(SCREEN_ORIENTATION_PORTRAIT);
-        else
-            setRequestedOrientation(SCREEN_ORIENTATION_UNSPECIFIED);
-    }
-
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        //does this need to run in uiThread?
-        if (getString(R.string.pref_key_allow_rotation).equals(key))
-            setRotation();
     }
 
     @Override
@@ -444,10 +387,9 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
         // with BroadcastReceiver registration and unregistration with that scenario.
         mAdapter = loadLaunchableAdapter();
 
-        setupPreferences();
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
         setupAppContainer();
         setupSearchEditText();
-        setRotation();
     }
 
     @Override
@@ -480,11 +422,6 @@ public class MainActivity extends Activity implements SharedPreferences.OnShared
             intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
         }
-    }
-
-    private void setupPreferences() {
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        prefs.registerOnSharedPreferenceChangeListener(this);
     }
 
     private void setupSearchEditText() {

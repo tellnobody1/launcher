@@ -26,12 +26,11 @@
     <string name="clear_button">Clear text button</string>
     <string name="dial">Dial…</string>
     <string name="launch">Go</string>
-    <string name="pref_allow_rotation">Unlock orientation</string>
     <string name="pref_show_search_button">Search button</string>
     <string name="pref_enable_swipe">Swipe down to search</string>
     <string name="search">Search</string>
     <string name="settings_category_general_category">General</string>
-    <string name="source_code" translatable="false">https://github.com/uaapps/launcher</string>
+    <string name="source_code" translatable="false">https://github.com/tellnobody1/launcher</string>
     <string name="title_activity_search" translatable="false">Ryūsei</string>
     <string name="title_activity_settings">Settings</string>
 </resources>

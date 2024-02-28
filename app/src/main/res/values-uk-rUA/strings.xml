@@ -25,7 +25,6 @@
     <string name="clear_button">Кнопка очищення тексту</string>
     <string name="dial">Набрати…</string>
     <string name="launch">Гаразд</string>
-    <string name="pref_allow_rotation">Зміна орієнтації</string>
     <string name="pref_show_search_button">Кнопка пошуку</string>
     <string name="pref_enable_swipe">Провести вниз</string>
     <string name="search">Пошук</string>

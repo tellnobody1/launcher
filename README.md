@@ -31,7 +31,7 @@ Open project in Android Studio.
 | 🇩🇪 Deutsch    |      44% |
 | 🇬🇷 Ελληνικά   |      44% |
 | 🇫🇷 Français   |      44% |
-| 🇳🇴 Bokmål     |      81% |
+| 🇳🇴 Bokmål     |      75% |
 | 🇵🇹 Português  |      44% |
 | 🇵🇱 Polski     |      44% |
 | 🇪🇸 Español    |      44% |
