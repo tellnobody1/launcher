@@ -28,11 +28,11 @@ Open project in Android Studio.
 | Locale        | Coverage |
 |---------------|---------:|
 | English       |     100% |
-| 🇩🇪 Deutsch    |      44% |
-| 🇬🇷 Ελληνικά   |      44% |
-| 🇫🇷 Français   |      44% |
-| 🇳🇴 Bokmål     |      75% |
-| 🇵🇹 Português  |      44% |
-| 🇵🇱 Polski     |      44% |
-| 🇪🇸 Español    |      44% |
+| 🇩🇪 Deutsch    |      47% |
+| 🇬🇷 Ελληνικά   |      47% |
+| 🇫🇷 Français   |      47% |
+| 🇳🇴 Bokmål     |      80% |
+| 🇵🇹 Português  |      47% |
+| 🇵🇱 Polski     |      47% |
+| 🇪🇸 Español    |      47% |
 | 🇺🇦 Українська |     100% |

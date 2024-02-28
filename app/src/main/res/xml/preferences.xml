@@ -19,10 +19,6 @@
             android:defaultValue="true"
             android:key="@string/pref_key_search_button"
             android:title="@string/pref_show_search_button" />
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="@string/pref_key_swipe"
-            android:title="@string/pref_enable_swipe" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/about_header">
         <Preference

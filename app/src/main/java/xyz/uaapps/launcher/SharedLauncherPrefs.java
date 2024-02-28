@@ -15,34 +15,22 @@
  */
 package xyz.uaapps.launcher;
 
+import static android.preference.PreferenceManager.getDefaultSharedPreferences;
+
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
-import androidx.annotation.StringRes;
 
 public class SharedLauncherPrefs {
-    private final Context mContext;
-    private final SharedPreferences mPreferences;
+    private final Context ctx;
+    private final SharedPreferences prefs;
 
-    public SharedLauncherPrefs(Context context) {
-        mContext = context;
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-    }
-
-    private String getString(@StringRes int resId) {
-        return mContext.getString(resId);
+    public SharedLauncherPrefs(Context ctx) {
+        this.ctx = ctx;
+        this.prefs = getDefaultSharedPreferences(ctx);
     }
 
     public boolean isShowSearchButton() {
-        return isPrefEnabled(R.string.pref_key_search_button, true);
+        return prefs.getBoolean(ctx.getString(R.string.pref_key_search_button), true);
     }
 
-    public boolean isSwipeEnabled() {
-        return isPrefEnabled(R.string.pref_key_swipe, true);
-    }
-
-    private boolean isPrefEnabled(@StringRes int keyRes, boolean defaultBoolean) {
-        return mPreferences.getBoolean(getString(keyRes), defaultBoolean);
-    }
 }

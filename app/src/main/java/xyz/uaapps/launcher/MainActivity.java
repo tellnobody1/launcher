@@ -70,6 +70,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.annotation.StringRes;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -291,14 +292,11 @@ public class MainActivity extends Activity {
         setContentView(R.layout.main_activity);
         prefs = new SharedLauncherPrefs(this);
 
-        if (SDK_INT >= ICE_CREAM_SANDWICH) {
-            var swipeLayout = this.<SwipeLayout>findViewById(R.id.swipeLayout);
-            swipeLayout.setOnRefreshListener(() -> {
-                if (prefs.isSwipeEnabled())
-                    showKeyboard();
-                swipeLayout.setRefreshing(false);
+        if (SDK_INT >= ICE_CREAM_SANDWICH)
+            SwipeOps.init(new SwipeOps.F() {
+                public void onRefresh() { showKeyboard(); }
+                public SwipeLayout view(@StringRes int id) { return findViewById(id); }
             });
-        }
 
         if (SDK_INT >= TIRAMISU)
             registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter(), Context.RECEIVER_NOT_EXPORTED);

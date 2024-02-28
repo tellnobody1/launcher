@@ -27,7 +27,6 @@
     <string name="dial">Dial…</string>
     <string name="launch">Go</string>
     <string name="pref_show_search_button">Search button</string>
-    <string name="pref_enable_swipe">Swipe down to search</string>
     <string name="search">Search</string>
     <string name="settings_category_general_category">General</string>
     <string name="source_code" translatable="false">https://github.com/tellnobody1/launcher</string>
