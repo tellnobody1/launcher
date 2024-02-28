@@ -297,30 +297,40 @@ public class MainActivity extends Activity {
         if (SDK_INT >= ICE_CREAM_SANDWICH) {
             var swipeLayout = this.<SwipeLayout>findViewById(R.id.swipeLayout);
             swipeLayout.setOnRefreshListener(() -> {
-                if (prefs.isSwipeEnabled()) {
+                if (prefs.isSwipeEnabled())
                     showKeyboard();
-                }
                 swipeLayout.setRefreshing(false);
             });
         }
 
-        if (SDK_INT >= TIRAMISU) {
+        if (SDK_INT >= TIRAMISU)
             registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter(), Context.RECEIVER_NOT_EXPORTED);
-        } else {
+        else
             registerReceiver(packageChangeReceiver, PackageChangedReceiver.getFilter());
-        }
 
         if (prefs.isShowSearchButton())
             findViewById(R.id.search_button).setVisibility(VISIBLE);
 
         if (SDK_INT < DONUT) {
-            this.<ImageButton>findViewById(R.id.clear_button).setOnClickListener(v -> onClickClearButton(null));
-            this.<Button>findViewById(R.id.search_button).setOnClickListener(v -> onClickSearch(null));
+            findViewById(R.id.clear_button).setOnClickListener(v -> onClickClearButton(null));
+            findViewById(R.id.search_button).setOnClickListener(v -> onClickSearch(null));
         }
+
+        mAdapter = loadLaunchableAdapter();
+        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
+        setupAppContainer();
+        setupSearchEditText();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        clearSearchEditText();
     }
 
     @Override
     protected void onDestroy() {
+        mAdapter.onStop();
         unregisterReceiver(packageChangeReceiver);
         super.onDestroy();
     }
@@ -329,8 +339,7 @@ public class MainActivity extends Activity {
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
 
-        var inflater = getMenuInflater();
-        inflater.inflate(R.menu.app, menu);
+        getMenuInflater().inflate(R.menu.app, menu);
 
         var activity = getLaunchableActivity(menuInfo);
 
@@ -369,33 +378,8 @@ public class MainActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        clearSearchEditText();
-    }
-
     private void clearSearchEditText() {
         this.<EditText>findViewById(R.id.user_search_input).setText(null);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        // In a perfect world, this all could happen in onCreate(), but there are problems
-        // with BroadcastReceiver registration and unregistration with that scenario.
-        mAdapter = loadLaunchableAdapter();
-
-        PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
-        setupAppContainer();
-        setupSearchEditText();
-    }
-
-    @Override
-    protected void onStop() {
-        mAdapter.onStop();
-        super.onStop();
     }
 
     public void pinToTop(MenuItem item) {

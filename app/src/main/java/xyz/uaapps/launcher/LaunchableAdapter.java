@@ -384,7 +384,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
             return results;
         }
 
-        @Override protected void publishResults(final CharSequence constraint, final FilterResults results) {
+        @Override protected void publishResults(CharSequence constraint, FilterResults results) {
             if (mObjects != results.values) {
                 mObjects.clear();
                 mObjects.addAll((List<LaunchableActivity>) results.values);
