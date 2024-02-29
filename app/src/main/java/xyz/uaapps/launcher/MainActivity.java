@@ -146,7 +146,11 @@ public class MainActivity extends Activity {
     }
 
     private void showKeyboard() {
-        findViewById(R.id.customActionBar).setVisibility(VISIBLE);
+        var actionBar = findViewById(R.id.customActionBar);
+        if (actionBar != null)
+            if (actionBar.getVisibility() != VISIBLE)
+                actionBar.setVisibility(VISIBLE);
+
         var searchEditText = findViewById(R.id.user_search_input);
         searchEditText.requestFocus();
         if (SDK_INT >= CUPCAKE) {
@@ -157,17 +161,23 @@ public class MainActivity extends Activity {
     }
 
     private void hideKeyboard() {
-        if (SDK_INT >= CUPCAKE) {
-            var focus = getCurrentFocus();
-            if (focus != null) {
-                var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+        var focus = getCurrentFocus();
+        if (focus != null)
+            if (focus.getId() != R.id.appsContainer) {
+                if (SDK_INT >= CUPCAKE) {
+                    var imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+                    getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
+                }
+                findViewById(R.id.appsContainer).requestFocus();
             }
-            getWindow().setSoftInputMode(SOFT_INPUT_STATE_HIDDEN);
-            findViewById(R.id.customActionBar).setVisibility(GONE);
-        }
+
+
         clearSearchEditText();
-        findViewById(R.id.appsContainer).requestFocus();
+        var actionBar = findViewById(R.id.customActionBar);
+        if (actionBar != null)
+            if (actionBar.getVisibility() != GONE)
+                actionBar.setVisibility(GONE);
     }
 
     private boolean isCurrentLauncher() {
@@ -337,7 +347,10 @@ public class MainActivity extends Activity {
     }
 
     private void clearSearchEditText() {
-        this.<EditText>findViewById(R.id.user_search_input).setText(null);
+        var input = this.<EditText>findViewById(R.id.user_search_input);
+        if (input != null)
+            if (!input.getText().toString().equals(""))
+                input.setText("");
     }
 
     public void pinToTop(MenuItem item) {
