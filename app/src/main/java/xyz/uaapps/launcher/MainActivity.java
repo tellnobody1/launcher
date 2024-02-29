@@ -18,6 +18,7 @@ package xyz.uaapps.launcher;
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.BASE;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
@@ -83,11 +84,10 @@ import java.util.Set;
 
 public class MainActivity extends Activity {
 
-    private SharedLauncherPrefs prefs;
-
-    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver();
-
     private LaunchableAdapter mAdapter;
+    private boolean packagesChanged = false;
+
+    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver(() -> packagesChanged = true);
 
     private static LaunchableActivity getLaunchableActivity(View view) {
         return (LaunchableActivity) view.findViewById(R.id.appIcon).getTag();
@@ -110,13 +110,7 @@ public class MainActivity extends Activity {
         return pm.queryIntentActivities(intent, 0);
     }
 
-    /**
-     * This method adds LauncherActivityInfo objects to an adapter in API 24+.
-     *
-     * @param adapter  The adapter to add to.
-     * @param infoList The objects to add to the adapter.
-     */
-    @TargetApi(N)
+    @TargetApi(value = N)
     private void addToAdapter(
             @NonNull LaunchableAdapter adapter,
             @NonNull Iterable<LauncherActivityInfo> infoList,
@@ -125,34 +119,24 @@ public class MainActivity extends Activity {
         var manager = (UserManager) getSystemService(USER_SERVICE);
         for (var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
-                Map<Locale, String> activityLabels = labels.getOrDefault(info, emptyMap());
+                var activityLabels = labels.getOrDefault(info, emptyMap());
                 adapter.add(new RegularUserLaunchableActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(ENGLISH, null)));
             }
     }
 
-    /**
-     * This method adds ResolveInfo objects to an adapter in SDK 15-24, optionally using a
-     * readCache.
-     *
-     * @param adapter      The adapter to add ResolveInfo object to.
-     * @param infoList     The ResolveInfo object to add to the adapter.
-     * @param useReadCache Whether to use a read cache.
-     */
+    @TargetApi(value = BASE)
     private void addToAdapter_1(
             @NonNull LaunchableAdapter adapter,
             @NonNull Iterable<ResolveInfo> infoList,
-            boolean useReadCache,
             Map<ResolveInfo, Map<Locale, String>> labels) {
         var prefs = getPreferences(Context.MODE_PRIVATE);
         var thisCanonicalName = getClass().getCanonicalName();
-        var manager = useReadCache ? getPackageManager() : null;
-
         for (var info : infoList) {
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
                 @Nullable var activityLabels = labels.get(info);
-                @NonNull Map<Locale, String> activityLabels2 = activityLabels == null ? Collections.emptyMap() : activityLabels;
-                String labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
-                adapter.add(new RegularIntentLaunchableActivityImpl(info, prefs, manager, valuesSet(activityLabels2), labelEn));
+                @NonNull var activityLabels2 = activityLabels == null ? Collections.<Locale, String>emptyMap() : activityLabels;
+                var labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
+                adapter.add(new RegularIntentLaunchableActivityImpl(info, prefs, getPackageManager(), valuesSet(activityLabels2), labelEn));
             }
         }
     }
@@ -243,7 +227,7 @@ public class MainActivity extends Activity {
             var infoList = getLaunchableResolveInfos(pm, null);
             adapter = new LaunchableAdapter(this, R.layout.app_grid_item, infoList.size());
             var labels = getLabels_1(infoList, pm);
-            addToAdapter_1(adapter, infoList, true, labels);
+            addToAdapter_1(adapter, infoList, labels);
         }
         adapter.sortApps();
         adapter.notifyDataSetChanged();
@@ -290,7 +274,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
-        prefs = new SharedLauncherPrefs(this);
+        SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
 
         if (SDK_INT >= ICE_CREAM_SANDWICH)
             SwipeOps.init(new SwipeOps.F() {
@@ -320,6 +304,11 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (packagesChanged) {
+            var intent = new Intent(this, getClass());
+            finish();
+            startActivity(intent);
+        }
         hideKeyboard();
     }
 

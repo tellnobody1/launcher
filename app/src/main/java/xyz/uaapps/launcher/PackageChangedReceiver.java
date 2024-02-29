@@ -15,13 +15,9 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.FROYO;
-import static android.os.Build.VERSION_CODES.HONEYCOMB;
 import static android.os.Build.VERSION_CODES.N;
 
 import android.content.BroadcastReceiver;
@@ -30,6 +26,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 
 public class PackageChangedReceiver extends BroadcastReceiver {
+    private final F f;
+
+    interface F { void f(); }
+
+    public PackageChangedReceiver(F f) {
+        this.f = f;
+    }
 
     public static IntentFilter getFilter() {
         var filter = new IntentFilter();
@@ -53,12 +56,7 @@ public class PackageChangedReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction() != null) {
-            // Restart the main activity
-            var restartIntent = new Intent(context, MainActivity.class);
-            int flags = SDK_INT >= HONEYCOMB ? FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK : FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_NEW_TASK;
-            restartIntent.addFlags(flags);
-            context.startActivity(restartIntent);
-        }
+        if (intent.getAction() != null)
+            f.f();
     }
 }
