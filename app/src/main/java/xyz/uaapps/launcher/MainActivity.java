@@ -16,11 +16,13 @@
 package xyz.uaapps.launcher;
 
 import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
+import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.BASE;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
+import static android.os.Build.VERSION_CODES.HONEYCOMB;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.N;
 import static android.os.Build.VERSION_CODES.TIRAMISU;
@@ -186,7 +188,6 @@ public class MainActivity extends Activity {
         intent.addCategory(Intent.CATEGORY_HOME);
         var resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
         return resolveInfo != null && getPackageName().equals(resolveInfo.activityInfo.packageName);
-
     }
 
     private void launchActivity(LaunchableActivity launchableActivity) {
@@ -316,8 +317,10 @@ public class MainActivity extends Activity {
         super.onResume();
         if (packagesChanged) {
             var intent = new Intent(this, getClass());
-            finish();
+            int flags = SDK_INT >= HONEYCOMB ? FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK : FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_NEW_TASK;
+            intent.addFlags(flags);
             startActivity(intent);
+            finish();
         }
         hideKeyboard();
     }
