@@ -302,10 +302,8 @@ public class MainActivity extends Activity {
         if (prefs.isShowSearchButton())
             findViewById(R.id.search_button).setVisibility(VISIBLE);
 
-        if (SDK_INT < DONUT) {
-            findViewById(R.id.clear_button).setOnClickListener(v -> onClickClearButton(null));
-            findViewById(R.id.search_button).setOnClickListener(v -> onClickSearch(null));
-        }
+        findViewById(R.id.clear_button).setOnClickListener(v -> onClickClearButton(null));
+        findViewById(R.id.search_button).setOnClickListener(v -> onClickSearch(null));
 
         mAdapter = loadLaunchableAdapter();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
