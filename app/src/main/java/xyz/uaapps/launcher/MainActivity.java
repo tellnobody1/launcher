@@ -176,7 +176,6 @@ public class MainActivity extends Activity {
                 findViewById(R.id.appsContainer).requestFocus();
             }
 
-
         clearSearchEditText();
         var actionBar = findViewById(R.id.customActionBar);
         if (actionBar != null)
@@ -321,9 +320,10 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         visible = true;
-        if (packagesChanged)
-            restartActivity();
-        hideKeyboard();
+        new Thread(() -> {
+            if (packagesChanged) restartActivity();
+            else runOnUiThread(this::hideKeyboard);
+        });
     }
 
     private void restartActivity() {
