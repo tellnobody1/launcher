@@ -24,6 +24,7 @@ import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.HONEYCOMB;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 import static android.os.Build.VERSION_CODES.TIRAMISU;
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
@@ -36,11 +37,9 @@ import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE;
 import static android.view.inputmethod.EditorInfo.IME_ACTION_GO;
 import static java.util.Collections.emptyMap;
 import static java.util.Locale.ENGLISH;
-import static xyz.uaapps.launcher.BuildConfig.DEBUG;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -85,11 +84,14 @@ import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends Activity {
-
     private LaunchableAdapter mAdapter;
     private boolean packagesChanged = false;
+    private boolean visible = false;
 
-    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver(() -> packagesChanged = true);
+    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver(() -> {
+        if (visible) restartActivity();
+        else packagesChanged = true;
+    });
 
     private static LaunchableActivity getLaunchableActivity(View view) {
         return (LaunchableActivity) view.findViewById(R.id.appIcon).getTag();
@@ -192,20 +194,19 @@ public class MainActivity extends Activity {
 
     private void launchActivity(LaunchableActivity launchableActivity) {
         hideKeyboard();
-        if (launchableActivity instanceof RegularUserLaunchableActivity activity) {
-            var userManager = (UserManager) getSystemService(USER_SERVICE);
-            var launcher = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-            var userSerial = activity.getUserSerial();
-            var userHandle = userManager.getUserForSerialNumber(userSerial);
-            launcher.startMainActivity(activity.getComponent(), userHandle, null, Bundle.EMPTY);
-        } else if (launchableActivity instanceof IntentLaunchableActivity activity) {
-            try {
+        try {
+            if (launchableActivity instanceof RegularUserLaunchableActivity activity) {
+                if (SDK_INT >= LOLLIPOP) {
+                    var userManager = (UserManager) getSystemService(USER_SERVICE);
+                    var launcher = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
+                    var userSerial = activity.getUserSerial();
+                    var userHandle = userManager.getUserForSerialNumber(userSerial);
+                    launcher.startMainActivity(activity.getComponent(), userHandle, null, Bundle.EMPTY);
+                }
+            } else if (launchableActivity instanceof IntentLaunchableActivity activity) {
                 startActivity(activity.getLaunchIntent());
-            } catch (ActivityNotFoundException e) {
-                if (DEBUG) throw e;
-                else Toast.makeText(this, getString(R.string.activity_not_found), Toast.LENGTH_SHORT).show();
             }
-        } else {
+        } catch (Exception ignored) {
             Toast.makeText(this, getString(R.string.activity_not_found), Toast.LENGTH_SHORT).show();
         }
     }
@@ -313,16 +314,26 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    protected void onPause() {
+        visible = false;
+        super.onPause();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
-        if (packagesChanged) {
-            var intent = new Intent(this, getClass());
-            int flags = SDK_INT >= HONEYCOMB ? FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK : FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_NEW_TASK;
-            intent.addFlags(flags);
-            startActivity(intent);
-            finish();
-        }
+        visible = true;
+        if (packagesChanged)
+            restartActivity();
         hideKeyboard();
+    }
+
+    private void restartActivity() {
+        var intent = new Intent(this, getClass());
+        int flags = SDK_INT >= HONEYCOMB ? FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK : FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_NEW_TASK;
+        intent.addFlags(flags);
+        startActivity(intent);
+        finish();
     }
 
     @Override
