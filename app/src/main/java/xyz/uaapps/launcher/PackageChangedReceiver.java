@@ -15,6 +15,15 @@
  */
 package xyz.uaapps.launcher;
 
+import static android.content.Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE;
+import static android.content.Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE;
+import static android.content.Intent.ACTION_PACKAGES_SUSPENDED;
+import static android.content.Intent.ACTION_PACKAGES_UNSUSPENDED;
+import static android.content.Intent.ACTION_PACKAGE_ADDED;
+import static android.content.Intent.ACTION_PACKAGE_CHANGED;
+import static android.content.Intent.ACTION_PACKAGE_REMOVED;
+import static android.content.Intent.ACTION_PACKAGE_REPLACED;
+import static android.content.Intent.EXTRA_CHANGED_PACKAGE_LIST;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.FROYO;
@@ -36,19 +45,19 @@ public class PackageChangedReceiver extends BroadcastReceiver {
 
     public static IntentFilter getFilter() {
         var filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_PACKAGE_ADDED);
-        filter.addAction(Intent.ACTION_PACKAGE_CHANGED);
-        filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        filter.addAction(ACTION_PACKAGE_ADDED);
+        filter.addAction(ACTION_PACKAGE_CHANGED);
+        filter.addAction(ACTION_PACKAGE_REMOVED);
         if (SDK_INT >= CUPCAKE) {
-            filter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+            filter.addAction(ACTION_PACKAGE_REPLACED);
         }
         if (SDK_INT >= FROYO) {
-            filter.addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE);
-            filter.addAction(Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
+            filter.addAction(ACTION_EXTERNAL_APPLICATIONS_AVAILABLE);
+            filter.addAction(ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE);
         }
         if (SDK_INT >= N) {
-            filter.addAction(Intent.ACTION_PACKAGES_SUSPENDED);
-            filter.addAction(Intent.ACTION_PACKAGES_UNSUSPENDED);
+            filter.addAction(ACTION_PACKAGES_SUSPENDED);
+            filter.addAction(ACTION_PACKAGES_UNSUSPENDED);
         }
         filter.addDataScheme("package");
         return filter;
@@ -56,7 +65,19 @@ public class PackageChangedReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction() != null)
-            f.f();
+        var action = intent.getAction();
+        if (action != null) switch (action) {
+            case ACTION_PACKAGE_ADDED, ACTION_PACKAGE_REMOVED -> {
+                var data = intent.getData();
+                if (data != null) f.f();
+            }
+            case ACTION_EXTERNAL_APPLICATIONS_AVAILABLE, ACTION_PACKAGES_UNSUSPENDED, ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE, ACTION_PACKAGES_SUSPENDED, ACTION_PACKAGE_CHANGED, ACTION_PACKAGE_REPLACED -> {
+                if (SDK_INT >= FROYO) {
+                    var xs = intent.getStringArrayExtra(EXTRA_CHANGED_PACKAGE_LIST);
+                    if (xs != null && xs.length != 0) f.f();
+                }
+            }
+            default -> {}
+        }
     }
 }
