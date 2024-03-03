@@ -18,6 +18,7 @@ public class AppIcons {
         icons.put("Bebbo", R.drawable.ic_child_care);
         icons.put("Bitwarden", R.drawable.ic_password);
         icons.put("Book Reader", R.drawable.ic_book);
+        icons.put("Browser", R.drawable.ic_public);
         icons.put("Calculator", R.drawable.ic_calculate);
         icons.put("Calendar", R.drawable.ic_calendar_month);
         icons.put("Camera", R.drawable.ic_photo_camera);
@@ -26,10 +27,13 @@ public class AppIcons {
         icons.put("Clock", R.drawable.ic_alarm);
         icons.put("Contacts", R.drawable.ic_contacts_product);
         icons.put("Drive", R.drawable.ic_folder);
+        icons.put("F-Droid Basic", R.drawable.ic_storefront);
         icons.put("F-Droid", R.drawable.ic_storefront);
         icons.put("Fennec", R.drawable.ic_public);
         icons.put("File Manager", R.drawable.ic_folder);
         icons.put("Files by Google", R.drawable.ic_folder);
+        icons.put("Files", R.drawable.ic_folder);
+        icons.put("Gallery", R.drawable.ic_photo_library);
         icons.put("Gmail", R.drawable.ic_mail);
         icons.put("Google Play Store", R.drawable.ic_storefront);
         icons.put("HELSI", R.drawable.ic_local_hospital);
@@ -40,6 +44,7 @@ public class AppIcons {
         icons.put("Maps", R.drawable.ic_map);
         icons.put("Medikom", R.drawable.ic_local_hospital);
         icons.put("Messages", R.drawable.ic_sms);
+        icons.put("Music", R.drawable.ic_music_note);
         icons.put("NewPipe", R.drawable.ic_live_tv);
         icons.put("Openreads", R.drawable.ic_book);
         icons.put("Organic Maps", R.drawable.ic_map);

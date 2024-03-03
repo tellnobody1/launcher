@@ -34,7 +34,7 @@ android {
 
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach {
-            var variantName = variant.name == 'debug' ? '-debug' : ''
+            var variantName = variant.name.endsWith('Debug') ? '-debug' : ''
             var flavorName = project.gradle.startParameter.taskNames.any { it.contains("Lite") } ? '-lite' : ''
             outputFileName = "${rootProject.name.toLowerCase()}${flavorName}-${variant.versionName}${variantName}.apk"
         }

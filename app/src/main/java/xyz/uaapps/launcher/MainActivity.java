@@ -251,8 +251,8 @@ public class MainActivity extends Activity {
         var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
         var locales = AppLocales.getLabelLocales(getResources().getConfiguration());
         for (var activityInfo : activityList) {
-            var ops = new LauncherActivityInfoOps(activityInfo);
-            labels.put(activityInfo, ops.getLabels(locales, pm));
+            var ops = new LauncherActivityInfoOps(activityInfo, pm);
+            labels.put(activityInfo, ops.getLabels(locales));
         }
         return labels;
     }

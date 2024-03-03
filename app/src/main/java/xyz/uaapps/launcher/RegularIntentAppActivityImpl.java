@@ -18,6 +18,7 @@ package xyz.uaapps.launcher;
 import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
 import static android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED;
 import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.BASE;
 import static android.os.Build.VERSION_CODES.GINGERBREAD;
 
 import android.annotation.TargetApi;
@@ -32,7 +33,6 @@ import androidx.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
-import static android.os.Build.VERSION_CODES.BASE;
 
 @TargetApi(value = BASE)
 public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
