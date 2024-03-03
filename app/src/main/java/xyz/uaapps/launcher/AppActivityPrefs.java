@@ -56,7 +56,7 @@ public class AppActivityPrefs extends SQLiteOpenHelper {
         var db = getReadableDatabase();
         var columns = new String[]{KEY_FAVORITE};
 
-        var whereArgs = new String[]{activity.getName()};
+        var whereArgs = new String[]{activity.getId()};
 
         var cursor = db.query(TABLE_NAME, columns, KEY_CLASSNAME + "=?", whereArgs, null, null, null);
         try {
@@ -72,7 +72,7 @@ public class AppActivityPrefs extends SQLiteOpenHelper {
 
     public void saveFavorite(RegularAppActivity activity) {
         var favorite = activity.isFavorite();
-        var className = activity.getName();
+        var className = activity.getId();
 
         var db = getWritableDatabase();
         try {

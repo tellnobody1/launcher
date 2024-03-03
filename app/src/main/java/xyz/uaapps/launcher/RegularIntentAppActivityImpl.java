@@ -20,6 +20,7 @@ import static android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.GINGERBREAD;
 
+import android.annotation.TargetApi;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -31,26 +32,17 @@ import androidx.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
+import static android.os.Build.VERSION_CODES.BASE;
 
+@TargetApi(value = BASE)
 public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
-
     private final String mActivityLabel;
     private final Set<String> labels;
     @Nullable private final String iconKey;
-
     private final Intent mLaunchIntent;
-
     private boolean favorite;
+    private final String id;
 
-    /**
-     * This is the constructor for LaunchableActivities, used in a {@link AppsAdapter}, for
-     * APIs 15-20.
-     *
-     * @param info    Information to derive the LaunchableActivity from.
-     * @param prefs   The {@link SharedPreferences} to load the label for this from.
-     * @param manager The {@link PackageManager} to load the label for this from. If null, the
-     *                local store will not cache the label.
-     */
     public RegularIntentAppActivityImpl(
             @NonNull ResolveInfo info,
             @NonNull SharedPreferences prefs,
@@ -60,7 +52,6 @@ public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
         var activityInfo = info.activityInfo;
         var name = new ComponentName(activityInfo.packageName, activityInfo.name);
         mLaunchIntent = getLaunchableIntent(name);
-
         /* Returns the actual label from the info and stores it locally, or retrieve it locally. */
         if (prefs.contains(activityInfo.packageName) && manager != null) {
             mActivityLabel = prefs.getString(activityInfo.packageName, null);
@@ -72,9 +63,9 @@ public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
                 var result = prefs.edit().putString(activityInfo.packageName, mActivityLabel).commit();
             }
         }
-
         this.labels = labels;
         this.iconKey = iconKey;
+        this.id = activityInfo.name;
     }
 
     private static Intent getLaunchableIntent(ComponentName componentName) {
@@ -112,7 +103,7 @@ public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
         return iconKey;
     }
 
-    public String getName() {
-        return getComponent() == null ? mActivityLabel : getComponent().getClassName();
+    public String getId() {
+        return id;
     }
 }

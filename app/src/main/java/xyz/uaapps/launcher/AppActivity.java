@@ -19,7 +19,7 @@ interface RegularAppActivity extends AppActivity {
 
     void setFavorite(boolean priority);
     boolean isFavorite();
-    String getName();
+    String getId();
 
     Set<String> getLabels();
 }

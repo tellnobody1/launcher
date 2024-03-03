@@ -34,18 +34,16 @@ import java.util.Collections;
 import java.util.Set;
 
 public class RegularUserAppActivityImpl implements RegularUserAppActivity {
-
-    private final String mActivityLabel;
+    private final String activityLabel;
     private final Set<String> labels;
     @Nullable private final String iconKey;
-
-    private final Intent mLaunchIntent;
-
+    private final Intent launchIntent;
     /**
      * The user serial, to be used to retrieve a {@link android.os.UserHandle} as necessary.
      * Defined as {@code Long.MIN_VALUE} if there is no user serial assigned to this object.
      */
-    private final long mUserSerial;
+    private final long userSerial;
+    private final String id;
 
     private boolean favorite;
 
@@ -61,10 +59,11 @@ public class RegularUserAppActivityImpl implements RegularUserAppActivity {
             UserManager manager,
             Set<String> labels,
             @Nullable String iconKey) {
-        mLaunchIntent = getLaunchableIntent(info.getComponentName());
-        mActivityLabel = info.getLabel().toString();
+        launchIntent = getLaunchableIntent(info.getComponentName());
+        activityLabel = info.getLabel().toString();
         this.iconKey = iconKey;
-        mUserSerial = manager.getSerialNumberForUser(info.getUser());
+        userSerial = manager.getSerialNumberForUser(info.getUser());
+        id = String.format("%s@%s", info.getName(), userSerial);
         this.labels = labels;
     }
 
@@ -83,11 +82,11 @@ public class RegularUserAppActivityImpl implements RegularUserAppActivity {
      */
     @RequiresApi(api = JELLY_BEAN_MR1)
     public long getUserSerial() {
-        return mUserSerial;
+        return userSerial;
     }
 
     public ComponentName getComponent() {
-        return mLaunchIntent.getComponent();
+        return launchIntent.getComponent();
     }
 
     public boolean isFavorite() {
@@ -103,7 +102,7 @@ public class RegularUserAppActivityImpl implements RegularUserAppActivity {
     }
 
     public String getActivityLabel() {
-        return mActivityLabel;
+        return activityLabel;
     }
 
     @Nullable
@@ -111,7 +110,7 @@ public class RegularUserAppActivityImpl implements RegularUserAppActivity {
         return iconKey;
     }
 
-    public String getName() {
-        return getComponent() == null ? mActivityLabel : getComponent().getClassName();
+    public String getId() {
+        return id;
     }
 }
