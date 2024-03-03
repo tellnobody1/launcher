@@ -20,11 +20,11 @@ import static android.preference.PreferenceManager.getDefaultSharedPreferences;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class SharedLauncherPrefs {
+public class SharedAppPrefs {
     private final Context ctx;
     private final SharedPreferences prefs;
 
-    public SharedLauncherPrefs(Context ctx) {
+    public SharedAppPrefs(Context ctx) {
         this.ctx = ctx;
         this.prefs = getDefaultSharedPreferences(ctx);
     }

@@ -84,7 +84,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MainActivity extends Activity {
-    private LaunchableAdapter mAdapter;
+    private AppsAdapter mAdapter;
     private boolean packagesChanged = false;
     private boolean visible = false;
 
@@ -93,15 +93,15 @@ public class MainActivity extends Activity {
         else packagesChanged = true;
     });
 
-    private static LaunchableActivity getLaunchableActivity(View view) {
-        return (LaunchableActivity) view.findViewById(R.id.appIcon).getTag();
+    private static AppActivity getLaunchableActivity(View view) {
+        return (AppActivity) view.findViewById(R.id.appIcon).getTag();
     }
 
-    private static LaunchableActivity getLaunchableActivity(ContextMenuInfo menuInfo) {
+    private static AppActivity getLaunchableActivity(ContextMenuInfo menuInfo) {
         return getLaunchableActivity(((AdapterContextMenuInfo) menuInfo).targetView);
     }
 
-    private static LaunchableActivity getLaunchableActivity(MenuItem item) {
+    private static AppActivity getLaunchableActivity(MenuItem item) {
         return getLaunchableActivity(item.getMenuInfo());
     }
 
@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
 
     @TargetApi(value = N)
     private void addToAdapter(
-            @NonNull LaunchableAdapter adapter,
+            @NonNull AppsAdapter adapter,
             @NonNull Iterable<LauncherActivityInfo> infoList,
             Map<LauncherActivityInfo, Map<Locale, String>> labels) {
         var thisCanonicalName = getClass().getCanonicalName();
@@ -124,13 +124,13 @@ public class MainActivity extends Activity {
         for (var info : infoList)
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                 var activityLabels = labels.getOrDefault(info, emptyMap());
-                adapter.add(new RegularUserLaunchableActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(ENGLISH, null)));
+                adapter.add(new RegularUserAppActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(ENGLISH, null)));
             }
     }
 
     @TargetApi(value = BASE)
     private void addToAdapter_1(
-            @NonNull LaunchableAdapter adapter,
+            @NonNull AppsAdapter adapter,
             @NonNull Iterable<ResolveInfo> infoList,
             Map<ResolveInfo, Map<Locale, String>> labels) {
         var prefs = getPreferences(Context.MODE_PRIVATE);
@@ -140,7 +140,7 @@ public class MainActivity extends Activity {
                 @Nullable var activityLabels = labels.get(info);
                 @NonNull var activityLabels2 = activityLabels == null ? Collections.<Locale, String>emptyMap() : activityLabels;
                 var labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
-                adapter.add(new RegularIntentLaunchableActivityImpl(info, prefs, getPackageManager(), valuesSet(activityLabels2), labelEn));
+                adapter.add(new RegularIntentAppActivityImpl(info, prefs, getPackageManager(), valuesSet(activityLabels2), labelEn));
             }
         }
     }
@@ -191,10 +191,10 @@ public class MainActivity extends Activity {
         return resolveInfo != null && getPackageName().equals(resolveInfo.activityInfo.packageName);
     }
 
-    private void launchActivity(LaunchableActivity launchableActivity) {
+    private void launchActivity(AppActivity appActivity) {
         hideKeyboard();
         try {
-            if (launchableActivity instanceof RegularUserLaunchableActivity activity) {
+            if (appActivity instanceof RegularUserAppActivity activity) {
                 if (SDK_INT >= LOLLIPOP) {
                     var userManager = (UserManager) getSystemService(USER_SERVICE);
                     var launcher = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
@@ -202,7 +202,7 @@ public class MainActivity extends Activity {
                     var userHandle = userManager.getUserForSerialNumber(userSerial);
                     launcher.startMainActivity(activity.getComponent(), userHandle, null, Bundle.EMPTY);
                 }
-            } else if (launchableActivity instanceof IntentLaunchableActivity activity) {
+            } else if (appActivity instanceof IntentAppActivity activity) {
                 startActivity(activity.getLaunchIntent());
             }
         } catch (Exception ignored) {
@@ -214,8 +214,8 @@ public class MainActivity extends Activity {
         launchActivity(getLaunchableActivity(view));
     }
 
-    private LaunchableAdapter loadLaunchableAdapter() {
-        LaunchableAdapter adapter;
+    private AppsAdapter loadLaunchableAdapter() {
+        AppsAdapter adapter;
         var pm = getPackageManager();
         if (SDK_INT >= N) {
             var manager = (UserManager) getSystemService(USER_SERVICE);
@@ -227,7 +227,7 @@ public class MainActivity extends Activity {
                 count += launcherApps.getActivityList(null, iter.next()).size();
             }
 
-            adapter = new LaunchableAdapter(this, R.layout.app_grid_item, count);
+            adapter = new AppsAdapter(this, R.layout.app_grid_item, count);
 
             while (iter.hasPrevious()) {
                 var activityList = launcherApps.getActivityList(null, iter.previous());
@@ -236,7 +236,7 @@ public class MainActivity extends Activity {
             }
         } else {
             var infoList = getLaunchableResolveInfos(pm, null);
-            adapter = new LaunchableAdapter(this, R.layout.app_grid_item, infoList.size());
+            adapter = new AppsAdapter(this, R.layout.app_grid_item, infoList.size());
             var labels = getLabels_1(infoList, pm);
             addToAdapter_1(adapter, infoList, labels);
         }
@@ -285,7 +285,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
-        SharedLauncherPrefs prefs = new SharedLauncherPrefs(this);
+        SharedAppPrefs prefs = new SharedAppPrefs(this);
 
         if (SDK_INT >= ICE_CREAM_SANDWICH)
             SwipeOps.init(new SwipeOps.F() {
@@ -350,12 +350,12 @@ public class MainActivity extends Activity {
         var activity = getLaunchableActivity(menuInfo);
 
         var pinItem = menu.findItem(R.id.appmenu_pin);
-        if (activity instanceof RegularLaunchableActivity a)
+        if (activity instanceof RegularAppActivity a)
             pinItem.setTitle(a.isFavorite() ? R.string.appmenu_remove_pin : R.string.appmenu_pin_to_top);
-        pinItem.setEnabled(activity instanceof RegularLaunchableActivity);
+        pinItem.setEnabled(activity instanceof RegularAppActivity);
 
         var appInfoItem = menu.findItem(R.id.appmenu_app_info);
-        appInfoItem.setEnabled(activity instanceof RegularLaunchableActivity);
+        appInfoItem.setEnabled(activity instanceof RegularAppActivity);
     }
 
     private void clearSearchEditText() {
@@ -367,10 +367,10 @@ public class MainActivity extends Activity {
 
     public void pinToTop(MenuItem item) {
         var activity = getLaunchableActivity(item);
-        if (activity instanceof RegularLaunchableActivity a) {
+        if (activity instanceof RegularAppActivity a) {
             a.setFavorite(!a.isFavorite());
 
-            var prefs = new RegularLaunchableActivityPrefs(this);
+            var prefs = new AppActivityPrefs(this);
             try {
                 prefs.saveFavorite(a);
             } finally {
@@ -383,7 +383,7 @@ public class MainActivity extends Activity {
 
     public void launchApplicationDetails(MenuItem item) {
         var activity = getLaunchableActivity(item);
-        if (activity instanceof RegularLaunchableActivity regular) {
+        if (activity instanceof RegularAppActivity regular) {
             var intent = new Intent(ACTION_APPLICATION_DETAILS_SETTINGS);
             intent.setData(Uri.parse("package:" + regular.getComponent().getPackageName()));
             intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);

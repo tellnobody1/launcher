@@ -15,6 +15,8 @@
  */
 package xyz.uaapps.launcher;
 
+import static android.os.Build.VERSION_CODES.HONEYCOMB;
+
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -24,44 +26,33 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.RequiresApi;
 import androidx.annotation.StringRes;
 
+@RequiresApi(api = HONEYCOMB)
 public class SettingsFragment extends PreferenceFragment {
 
-    private Preference findPreference(@StringRes final int prefKey) {
-        return findPreference(getString(prefKey));
-    }
-
     @Override
-    public void onCreate(final Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
     }
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, final ViewGroup container,
-                             final Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         findPreference(R.string.pref_key_version).setSummary(BuildConfig.VERSION_NAME);
 
-        var source_code = findPreference(R.string.pref_key_source_code);
-        source_code.setOnPreferenceClickListener(new LaunchPreferenceSummary(getString(R.string.source_code)));
+        findPreference(R.string.pref_key_source_code).setOnPreferenceClickListener(preference -> {
+            var intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse(getString(R.string.source_code)));
+            startActivity(intent);
+            return true;
+        });
 
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
-    private final class LaunchPreferenceSummary implements Preference.OnPreferenceClickListener {
-        private final String url;
-
-        public LaunchPreferenceSummary(String url) {
-            this.url = url;
-        }
-
-        @Override
-        public boolean onPreferenceClick(Preference preference) {
-            final Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(url));
-            startActivity(intent);
-            return true;
-        }
+    private Preference findPreference(@StringRes int prefKey) {
+        return findPreference(getString(prefKey));
     }
 }

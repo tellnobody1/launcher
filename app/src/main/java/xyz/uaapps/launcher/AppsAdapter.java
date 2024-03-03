@@ -18,7 +18,6 @@ package xyz.uaapps.launcher;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,14 +42,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-public class LaunchableAdapter extends BaseAdapter implements Filterable {
+public class AppsAdapter extends BaseAdapter implements Filterable {
 
     private static final Pattern DIACRITICAL_MARKS = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
 
     /**
      * The {@link Filter} used by this list {@code Adapter}.
      */
-    private final LaunchableFilter mFilter = new LaunchableFilter();
+    private final AppsFilter mFilter = new AppsFilter();
 
     /**
      * Lock used to modify the content of {@link #mObjects}. Any write operation
@@ -64,13 +63,13 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
      * Contains the list of objects that represent the data of this ArrayAdapter.
      * The content of this list is referred to as "the array" in the documentation.
      */
-    private final List<LaunchableActivity> mObjects;
+    private final List<AppActivity> mObjects;
 
     /**
      * This field contains the database used to store persistent values for
-     * {@link LaunchableActivity} objects.
+     * {@link AppActivity} objects.
      */
-    private final RegularLaunchableActivityPrefs mPrefs;
+    private final AppActivityPrefs mPrefs;
 
     private final Context context;
 
@@ -88,19 +87,19 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
 
     // A copy of the original mObjects array, initialized from and then used instead as soon as
     // the mFilter ArrayFilter is used. mObjects will then only contain the filtered values.
-    private List<RegularLaunchableActivity> mOriginalValues;
+    private List<RegularAppActivity> mOriginalValues;
 
     /**
      * @param resource The resource ID for a layout file containing a TextView to use when instantiating views.
      */
-    public LaunchableAdapter(@NonNull Context context, @LayoutRes int resource, int initialSize) {
+    public AppsAdapter(@NonNull Context context, @LayoutRes int resource, int initialSize) {
         this.context = context;
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
-        mPrefs = new RegularLaunchableActivityPrefs(context);
+        mPrefs = new AppActivityPrefs(context);
     }
 
-    public void add(RegularLaunchableActivity object) {
+    public void add(RegularAppActivity object) {
         mPrefs.restoreFavorite(object);
 
         synchronized (mLock) {
@@ -121,8 +120,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
     }
 
     @Override
-    public View getDropDownView(final int position, @Nullable final View convertView,
-                                @NonNull final ViewGroup parent) {
+    public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
         final TextView text;
 
         if (convertView == null) {
@@ -144,7 +142,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
     }
 
     /**
-     * This method returns the {@link LaunchableActivity} found at the {@code position} in this
+     * This method returns the {@link AppActivity} found at the {@code position} in this
      * adapter.
      * <p>
      * The position is not altered by the current {@link Filter} in use.
@@ -156,19 +154,19 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
      */
     @Nullable
     @Override
-    public LaunchableActivity getItem(int position) {
+    public AppActivity getItem(int position) {
         return mObjects.get(position);
     }
 
     @Override
-    public long getItemId(final int position) {
+    public long getItemId(int position) {
         return position;
     }
 
     /**
      * The {@link View} used as a grid item for the LaunchableAdapter {@code GridView}.
      *
-     * @param position    The position to of the {@link LaunchableActivity} to return a {@code View} for.
+     * @param position    The position to of the {@link AppActivity} to return a {@code View} for.
      * @param convertView The old {@code View} to reuse, if possible.
      * @param parent      The parent {@code View}.
      * @return The {@code View} to use in the {@code GridView}.
@@ -186,18 +184,18 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         }
 
         view.setVisibility(View.VISIBLE);
-        LaunchableActivity launchableActivity;
+        AppActivity appActivity;
         synchronized (mLock) {
-            launchableActivity = getItem(position);
+            appActivity = getItem(position);
         }
-        var label = launchableActivity.getActivityLabel();
+        var label = appActivity.getActivityLabel();
         var appLabelView = view.<TextView>findViewById(R.id.appLabel);
         var appIconView = view.<AppIconView>findViewById(R.id.appIcon);
 
         appLabelView.setText(label);
 
-        appIconView.setTag(launchableActivity);
-        appIconView.set(label, launchableActivity.getIconKey());
+        appIconView.setTag(appActivity);
+        appIconView.set(label, appActivity.getIconKey());
 
         return view;
     }
@@ -219,65 +217,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         mPrefs.close();
     }
 
-    /**
-     * This method removes all items by name.
-     * <p>
-     * This method removes all items by name. This method has been made very specifically to meet
-     * the need of this Adapter.
-     * <p>
-     * This method will remove a package name if it has an equal {@code name} in this Adapter.
-     * <p>
-     * This method will remove a class name if it has a classname that starts with {@code name} in
-     * this adapter.
-     * <p>
-     * This complexity is required because some packages install multiple activities (see "A Photo
-     * Manager"
-     * <p>
-     * Some packages install activities with duplicate names (see Google Drive/Google Sheets).
-     * <p>
-     * This method should not be part of this class, but we rely on locking the collections during
-     * this critical method.
-     *
-     * @param name The name. See the description for more information.
-     */
-    public void removeAllByName(@NonNull final String name) {
-        ComponentName component;
-
-        synchronized (mLock) {
-            if (mOriginalValues == null) {
-                var current = mObjects;
-                for (int i = current.size() - 1; i >= 0; i--) {
-                    var x = current.get(i);
-                    if (x instanceof RegularLaunchableActivity regular) {
-                        component = regular.getComponent();
-
-                        if (component.getClassName().startsWith(name)) {
-                            current.remove(i);
-                        } else if (component.getPackageName().equals(name)) {
-                            current.remove(i);
-                        }
-                    }
-                }
-            } else {
-                var current = mOriginalValues;
-                for (int i = current.size() - 1; i >= 0; i--) {
-                    component = current.get(i).getComponent();
-
-                    if (component.getClassName().startsWith(name)) {
-                        current.remove(i);
-                    } else if (component.getPackageName().equals(name)) {
-                        current.remove(i);
-                    }
-                }
-            }
-        }
-
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
-        }
-    }
-
-    public void sort(Comparator<LaunchableActivity> comparator1, Comparator<RegularLaunchableActivity> comparator2) {
+    public void sort(Comparator<AppActivity> comparator1, Comparator<RegularAppActivity> comparator2) {
         synchronized (mLock) {
             Collections.sort(mObjects, comparator1);
             if (mOriginalValues != null) {
@@ -298,16 +238,16 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
             final Collator collator = Collator.getInstance(locale);
             collator.setStrength(Collator.PRIMARY);
 
-            Comparator<LaunchableActivity> comparator1 = (o1, o2) -> collator.compare(o1.getActivityLabel(), o2.getActivityLabel());
-            Comparator<RegularLaunchableActivity> comparator2 = (o1, o2) -> collator.compare(o1.getActivityLabel(), o2.getActivityLabel());
+            Comparator<AppActivity> comparator1 = (o1, o2) -> collator.compare(o1.getActivityLabel(), o2.getActivityLabel());
+            Comparator<RegularAppActivity> comparator2 = (o1, o2) -> collator.compare(o1.getActivityLabel(), o2.getActivityLabel());
             sort(comparator1, comparator2);
 
-            Comparator<LaunchableActivity> comparator3 = (o1, o2) -> {
-                var p1 = o1 instanceof RegularLaunchableActivity a ? (a.isFavorite() ? 1 : 0) : 0;
-                var p2 = o2 instanceof RegularLaunchableActivity a ? (a.isFavorite() ? 1 : 0) : 0;
+            Comparator<AppActivity> comparator3 = (o1, o2) -> {
+                var p1 = o1 instanceof RegularAppActivity a ? (a.isFavorite() ? 1 : 0) : 0;
+                var p2 = o2 instanceof RegularAppActivity a ? (a.isFavorite() ? 1 : 0) : 0;
                 return p2 - p1;
             };
-            Comparator<RegularLaunchableActivity> comparator4 = (o1, o2) -> (o2.isFavorite() ? 1 : 0) - (o1.isFavorite() ? 1 : 0);
+            Comparator<RegularAppActivity> comparator4 = (o1, o2) -> (o2.isFavorite() ? 1 : 0) - (o1.isFavorite() ? 1 : 0);
             sort(comparator3, comparator4);
 
             if (notify) {
@@ -326,9 +266,9 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
      * a prefix. Each item that does not start with the supplied prefix
      * is removed from the list.
      */
-    private final class LaunchableFilter extends Filter {
+    private final class AppsFilter extends Filter {
         @Override protected FilterResults performFiltering(CharSequence constraint) {
-            List<RegularLaunchableActivity> values;
+            List<RegularAppActivity> values;
             var results = new FilterResults();
 
             // Don't act upon a blank constraint if the filter hasn't been used yet.
@@ -340,7 +280,7 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
                     synchronized (mLock) {
                         mOriginalValues = new LinkedList<>();
                         for (var x : mObjects)
-                            if (x instanceof RegularLaunchableActivity regular)
+                            if (x instanceof RegularAppActivity regular)
                                 mOriginalValues.add(regular);
                     }
                 }
@@ -354,14 +294,14 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
                     results.count = count;
                 } else {
                     var query = stripAccents(constraint).toLowerCase();
-                    var newValues = new LinkedList<LaunchableActivity>();
+                    var newValues = new LinkedList<AppActivity>();
 
                     var phoneMatcher = Pattern.compile("^\\+?[\\d\\s\\-()]+$").matcher(query);
                     if (phoneMatcher.find() && SDK_INT >= LOLLIPOP) {
-                        newValues.add(new DialIntentLaunchableActivity(phoneMatcher.group(), context.getResources().getString(R.string.dial)));
+                        newValues.add(new DialIntentAppActivity(phoneMatcher.group(), context.getResources().getString(R.string.dial)));
                     }
 
-                    var allTargets = new LinkedHashMap<LaunchableActivity, Set<String>>();
+                    var allTargets = new LinkedHashMap<AppActivity, Set<String>>();
                     for (var value : values)
                         allTargets.put(value, value.getLabels());
                     newValues.addAll(QueryVariants.checkAll(query, allTargets));
@@ -377,14 +317,14 @@ public class LaunchableAdapter extends BaseAdapter implements Filterable {
         @Override protected void publishResults(CharSequence constraint, FilterResults results) {
             if (mObjects != results.values) {
                 mObjects.clear();
-                mObjects.addAll((List<LaunchableActivity>) results.values);
+                mObjects.addAll((List<AppActivity>) results.values);
 
                 if (results.count > 0) notifyDataSetChanged();
                 else notifyDataSetInvalidated();
             }
         }
 
-        private String stripAccents(final CharSequence cs) {
+        private String stripAccents(CharSequence cs) {
             return DIACRITICAL_MARKS.matcher(Normalizer.normalize(cs, Normalizer.Form.NFKD)).replaceAll("");
         }
     }

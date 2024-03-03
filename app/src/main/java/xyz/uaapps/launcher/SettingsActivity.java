@@ -13,11 +13,11 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package xyz.uaapps.launcher;
 
-import android.app.Fragment;
-import android.app.FragmentTransaction;
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.HONEYCOMB;
+
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.widget.ListView;
@@ -25,18 +25,16 @@ import android.widget.ListView;
 public class SettingsActivity extends PreferenceActivity {
 
     @Override
-    protected void onCreate(final Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle(R.string.title_activity_settings);
 
-        final ListView listView = new ListView(this);
+        var listView = new ListView(this);
         listView.setId(android.R.id.list);
         setContentView(listView);
 
-        final Fragment fragment = new SettingsFragment();
-        final FragmentTransaction ft = getFragmentManager().beginTransaction();
-
-        ft.replace(android.R.id.content, fragment).commit();
+        if (SDK_INT >= HONEYCOMB)
+            getFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
     }
 
     @Override

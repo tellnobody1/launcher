@@ -21,16 +21,16 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
- * This is a convenience class write persistent information to save to restore {@link RegularLaunchableActivity} objects.
+ * This is a convenience class write persistent information to save to restore {@link RegularAppActivity} objects.
  */
-public class RegularLaunchableActivityPrefs extends SQLiteOpenHelper {
+public class AppActivityPrefs extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String KEY_CLASSNAME = "ClassName";
     private static final String KEY_FAVORITE = "Favorite";
     private static final String KEY_ID = "Id";
     private static final String TABLE_NAME = "Favorites";
 
-    public RegularLaunchableActivityPrefs(Context context) {
+    public AppActivityPrefs(Context context) {
         super(context, TABLE_NAME, null, DATABASE_VERSION);
     }
 
@@ -52,7 +52,7 @@ public class RegularLaunchableActivityPrefs extends SQLiteOpenHelper {
         }
     }
 
-    public void restoreFavorite(RegularLaunchableActivity activity) {
+    public void restoreFavorite(RegularAppActivity activity) {
         var db = getReadableDatabase();
         var columns = new String[]{KEY_FAVORITE};
 
@@ -70,7 +70,7 @@ public class RegularLaunchableActivityPrefs extends SQLiteOpenHelper {
         }
     }
 
-    public void saveFavorite(RegularLaunchableActivity activity) {
+    public void saveFavorite(RegularAppActivity activity) {
         var favorite = activity.isFavorite();
         var className = activity.getName();
 

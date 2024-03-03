@@ -5,16 +5,16 @@ import android.content.Intent;
 
 import java.util.Set;
 
-public interface LaunchableActivity {
+public interface AppActivity {
     String getActivityLabel();
     String getIconKey();
 }
 
-interface IntentLaunchableActivity extends LaunchableActivity {
+interface IntentAppActivity extends AppActivity {
     Intent getLaunchIntent();
 }
 
-interface RegularLaunchableActivity extends LaunchableActivity {
+interface RegularAppActivity extends AppActivity {
     ComponentName getComponent();
 
     void setFavorite(boolean priority);
@@ -24,9 +24,9 @@ interface RegularLaunchableActivity extends LaunchableActivity {
     Set<String> getLabels();
 }
 
-interface RegularUserLaunchableActivity extends RegularLaunchableActivity {
+interface RegularUserAppActivity extends RegularAppActivity {
     long getUserSerial();
 }
 
-interface RegularIntentLaunchableActivity extends RegularLaunchableActivity, IntentLaunchableActivity {
+interface RegularIntentAppActivity extends RegularAppActivity, IntentAppActivity {
 }

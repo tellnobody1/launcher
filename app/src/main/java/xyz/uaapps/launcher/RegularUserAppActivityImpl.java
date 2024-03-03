@@ -15,6 +15,8 @@
  */
 package xyz.uaapps.launcher;
 
+import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+import static android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED;
 import static android.os.Build.VERSION_CODES.HONEYCOMB;
 import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
@@ -31,7 +33,7 @@ import androidx.annotation.RequiresApi;
 import java.util.Collections;
 import java.util.Set;
 
-public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableActivity {
+public class RegularUserAppActivityImpl implements RegularUserAppActivity {
 
     private final String mActivityLabel;
     private final Set<String> labels;
@@ -48,13 +50,13 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
     private boolean favorite;
 
     /**
-     * This is the constructor for LaunchableActivities, used in a {@link LaunchableAdapter}
+     * This is the constructor for LaunchableActivities, used in a {@link AppsAdapter}
      *
      * @param info Information to derive the LaunchableActivity from.
      * @param manager The service to retrieve user information about the activity from.
      */
     @RequiresApi(api = LOLLIPOP)
-    public RegularUserLaunchableActivityImpl(
+    public RegularUserAppActivityImpl(
             @NonNull LauncherActivityInfo info,
             UserManager manager,
             Set<String> labels,
@@ -67,12 +69,9 @@ public class RegularUserLaunchableActivityImpl implements RegularUserLaunchableA
     }
 
     @RequiresApi(api = HONEYCOMB)
-    private static Intent getLaunchableIntent(final ComponentName componentName) {
-        final Intent launchIntent = Intent.makeMainActivity(componentName);
-
-        launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-
+    private static Intent getLaunchableIntent(ComponentName componentName) {
+        var launchIntent = Intent.makeMainActivity(componentName);
+        launchIntent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         return launchIntent;
     }
 

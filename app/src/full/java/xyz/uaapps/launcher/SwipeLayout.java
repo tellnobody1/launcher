@@ -56,8 +56,6 @@ public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,
 
     static final int CIRCLE_DIAMETER = 40;
 
-    private static final String LOG_TAG = SwipeLayout.class.getSimpleName();
-
     private static final float DECELERATE_INTERPOLATION_FACTOR = 2f;
     private static final int INVALID_POINTER = -1;
     private static final float DRAG_RATE = .5f;
