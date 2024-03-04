@@ -16,7 +16,6 @@
 <resources>
     <string name="about_header">Про Ryūsei</string>
     <string name="about_project_website">Джерельний код</string>
-    <string name="about_version_code">Версія</string>
     <string name="activity_not_found">Activity не знайдено</string>
     <string name="application_icon_desc">Іконка застосунку</string>
     <string name="appmenu_info">Про застосунок</string>

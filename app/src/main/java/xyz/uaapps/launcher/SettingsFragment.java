@@ -40,15 +40,12 @@ public class SettingsFragment extends PreferenceFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        findPreference(R.string.pref_key_version).setSummary(BuildConfig.VERSION_NAME);
-
         findPreference(R.string.pref_key_source_code).setOnPreferenceClickListener(preference -> {
             var intent = new Intent(Intent.ACTION_VIEW);
             intent.setData(Uri.parse(getString(R.string.source_code)));
             startActivity(intent);
             return true;
         });
-
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 

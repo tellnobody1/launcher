@@ -21,7 +21,6 @@
     <string name="launch">Kjør</string>
     <string name="activity_not_found">Fant ikke aktivitet.</string>
     <string name="about_header">Om Ryūsei</string>
-    <string name="about_version_code">Versjon</string>
     <string name="about_project_website">Prosjektnettside</string>
     <string name="settings_category_general_category">Generelt</string>
     <string name="appmenu_pin_to_top">Fest til toppen</string>

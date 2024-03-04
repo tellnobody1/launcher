@@ -22,9 +22,6 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/about_header">
         <Preference
-            android:key="@string/pref_key_version"
-            android:title="@string/about_version_code" />
-        <Preference
             android:key="@string/pref_key_source_code"
             android:title="@string/about_project_website" />
     </PreferenceCategory>

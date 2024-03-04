@@ -16,7 +16,6 @@
 <resources>
     <string name="about_header">About Ryūsei</string>
     <string name="about_project_website">Project website</string>
-    <string name="about_version_code">Version</string>
     <string name="activity_not_found">Activity not found</string>
     <string name="app_name" translatable="false">Ryūsei</string>
     <string name="application_icon_desc">App icon</string>

@@ -95,10 +95,6 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
-    buildFeatures {
-        buildConfig true
-    }
-
     namespace 'xyz.uaapps.launcher'
 
     flavorDimensions "version"

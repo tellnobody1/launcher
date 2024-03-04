@@ -16,5 +16,4 @@
 <resources>
     <string name="pref_key_search_button" translatable="false">pref_show_search_button</string>
     <string name="pref_key_source_code" translatable="false">pref_source_code</string>
-    <string name="pref_key_version" translatable="false">pref_version</string>
 </resources>
