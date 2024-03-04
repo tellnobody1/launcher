@@ -39,6 +39,8 @@ android {
             outputFileName = "${rootProject.name.toLowerCase()}${flavorName}-${variant.versionName}${variantName}.apk"
         }
 
+        def generatedSourcesDir = "${project.buildDir}/generated/ap_generated_sources/${variant.name}/out/${variant.applicationId.replace('.', '/')}/LocaleConfig.java"
+
         def generateLocalesTask = task("generate${variant.name.capitalize()}Locales") {
             doFirst {
                 def locales = []
@@ -62,22 +64,23 @@ android {
                 }
 
                 def localesString = locales.unique().collect{"\"${it}\""}.join(', ')
-                def buildConfigClassContent = """\
+                def localeConfigClassContent = """\
                     package ${variant.applicationId};
                   
                     public class LocaleConfig {
                         public static final String[] LOCALES = {${localesString}};
                     }
                     """.stripIndent()
-                def buildConfigFilePath = "${project.buildDir}/generated/source/buildConfig/${variant.dirName}/${variant.applicationId.replace('.', '/')}/LocaleConfig.java"
-                def buildConfigFile = new File(buildConfigFilePath)
-                buildConfigFile.parentFile.mkdirs()
-                buildConfigFile.text = buildConfigClassContent
+                def localeConfig = new File(generatedSourcesDir)
+                localeConfig.parentFile.mkdirs()
+                localeConfig.text = localeConfigClassContent
             }
         }
         variant.javaCompileProvider.configure {
             dependsOn(generateLocalesTask)
         }
+
+        android.sourceSets.findByName(variant.name).java.srcDir(generatedSourcesDir)
     }
 
     buildTypes {
