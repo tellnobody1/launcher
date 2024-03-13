@@ -129,6 +129,13 @@ public class MainActivity extends Activity {
         }
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (ACTION_ASSIST.equals(intent.getAction()))
+            showKeyboard();
+    }
+
     private void hideKeyboard() {
         var focus = getCurrentFocus();
         if (focus != null)
