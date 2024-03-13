@@ -234,7 +234,7 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
             final boolean notify = mNotifyOnChange;
             mNotifyOnChange = false;
 
-            var locale = AppLocales.getDefault(context.getResources().getConfiguration());
+            var locale = AppLocales.getDefault(context);
             final Collator collator = Collator.getInstance(locale);
             collator.setStrength(Collator.PRIMARY);
 

@@ -285,7 +285,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
-        SharedAppPrefs prefs = new SharedAppPrefs(this);
+        var prefs = new SharedAppPrefs(this);
 
         if (SDK_INT >= ICE_CREAM_SANDWICH)
             SwipeOps.init(new SwipeOps.F() {

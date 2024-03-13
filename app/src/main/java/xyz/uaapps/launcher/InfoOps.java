@@ -1,24 +1,13 @@
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.unmodifiableMap;
-
-import android.content.pm.ApplicationInfo;
-import android.content.pm.LauncherActivityInfo;
-import android.content.pm.PackageManager;
+import android.content.pm.*;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.ResolveInfo;
-import android.content.res.Resources;
-
+import android.content.res.*;
 import androidx.annotation.RequiresApi;
-
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.*;
+import static java.util.Collections.*;
 
 public abstract class InfoOps<Info> {
     protected final Info info;
@@ -31,13 +20,15 @@ public abstract class InfoOps<Info> {
 
     public final Map<Locale, String> getLabels(Set<Locale> locales) {
         cacheDefaultLabel();
+        Resources res = null;
+        Locale defaultLocale = null;
         try {
-            var res = pm.getResourcesForApplication(getAppInfo());
+            res = pm.getResourcesForApplication(getAppInfo());
             var cfg = res.getConfiguration();
+            defaultLocale = cfg.locale;
             var labels = new HashMap<Locale, String>();
             for (var locale : locales) {
-                if (SDK_INT >= JELLY_BEAN_MR1) cfg.setLocale(locale);
-                else cfg.locale = locale;
+                setLocale(locale, cfg);
                 var res2 = new Resources(res.getAssets(), res.getDisplayMetrics(), cfg);
                 CharSequence label;
                 try {
@@ -48,8 +39,23 @@ public abstract class InfoOps<Info> {
                 labels.put(locale, label.toString().replace(LRM, "").replace(RLM, ""));
             }
             return unmodifiableMap(labels);
-        } catch (NameNotFoundException ignored) {}
+        } catch (NameNotFoundException ignored) {} finally {
+            restoreLocale(defaultLocale, res);
+        }
         return emptyMap();
+    }
+
+    private void restoreLocale(Locale locale, Resources res) {
+        if (locale != null) {
+            var cfg = res.getConfiguration();
+            setLocale(locale, cfg);
+            res.updateConfiguration(cfg, res.getDisplayMetrics());
+        }
+    }
+
+    private void setLocale(Locale locale, Configuration cfg) {
+        if (SDK_INT >= JELLY_BEAN_MR1) cfg.setLocale(locale);
+        else cfg.locale = locale;
     }
 
     protected abstract void cacheDefaultLabel();

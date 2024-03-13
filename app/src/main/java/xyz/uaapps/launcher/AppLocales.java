@@ -5,6 +5,7 @@ import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 import static java.util.Locale.ENGLISH;
 
+import android.content.Context;
 import android.content.res.Configuration;
 
 import java.util.HashSet;
@@ -34,7 +35,7 @@ public class AppLocales {
         return locales;
     }
 
-    static Locale getDefault(Configuration configuration) {
-        return SDK_INT >= N ? configuration.getLocales().get(0) : Locale.getDefault();
+    static Locale getDefault(Context ctx) {
+        return SDK_INT >= N ? ctx.getResources().getConfiguration().getLocales().get(0) : Locale.getDefault();
     }
 }
