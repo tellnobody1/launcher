@@ -15,10 +15,8 @@
  */
 package xyz.uaapps.launcher;
 
+import android.content.*;
 import static android.preference.PreferenceManager.getDefaultSharedPreferences;
-
-import android.content.Context;
-import android.content.SharedPreferences;
 
 public class SharedAppPrefs {
     private final Context ctx;

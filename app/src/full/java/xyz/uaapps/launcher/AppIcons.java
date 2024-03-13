@@ -1,8 +1,6 @@
 package xyz.uaapps.launcher;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class AppIcons {
     private static final Map<String, Integer> icons = new HashMap<>();

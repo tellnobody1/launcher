@@ -1,9 +1,7 @@
 package xyz.uaapps.launcher;
 
+import androidx.annotation.*;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
-
-import androidx.annotation.IdRes;
-import androidx.annotation.RequiresApi;
 
 public class SwipeOps {
     @RequiresApi(api = ICE_CREAM_SANDWICH)

@@ -16,38 +16,18 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
-
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.util.AttributeSet;
-import android.util.DisplayMetrics;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewConfiguration;
-import android.view.ViewGroup;
-import android.view.animation.Animation;
+import android.os.*;
+import android.util.*;
+import android.view.*;
+import android.view.animation.*;
 import android.view.animation.Animation.AnimationListener;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.Transformation;
-import android.widget.AbsListView;
-import android.widget.ListView;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.core.view.NestedScrollingChild;
-import androidx.core.view.NestedScrollingChild2;
-import androidx.core.view.NestedScrollingChild3;
-import androidx.core.view.NestedScrollingChildHelper;
-import androidx.core.view.NestedScrollingParent;
-import androidx.core.view.NestedScrollingParent2;
-import androidx.core.view.NestedScrollingParent3;
-import androidx.core.view.NestedScrollingParentHelper;
-import androidx.core.view.ViewCompat;
+import android.widget.*;
+import androidx.annotation.*;
+import androidx.core.view.*;
 import androidx.core.widget.ListViewCompat;
+import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 
 @RequiresApi(api = ICE_CREAM_SANDWICH)
 public class SwipeLayout extends ViewGroup implements NestedScrollingParent3,

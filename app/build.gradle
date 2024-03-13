@@ -30,6 +30,7 @@ android {
         targetSdkVersion 34
         versionCode gitCommitsCount(rootDir)
         versionName gitDescribe(rootDir)
+        vectorDrawables.useSupportLibrary = true
     }
 
     applicationVariants.configureEach { variant ->
@@ -100,7 +101,7 @@ android {
 
     namespace 'xyz.uaapps.launcher'
 
-    flavorDimensions "version"
+    flavorDimensions "version", "api"
     productFlavors {
         full {
             dimension "version"
@@ -108,13 +109,29 @@ android {
         lite {
             dimension "version"
         }
+        v1 {
+            dimension "api"
+            minSdkVersion 1
+            maxSdkVersion 13
+        }
+        v14 {
+            dimension "api"
+            minSdkVersion 14
+            maxSdkVersion 20
+        }
+        v21 {
+            dimension "api"
+            minSdkVersion 21
+        }
     }
 }
 
 dependencies {
-    implementation "androidx.annotation:annotation:1.7.1"
-    fullImplementation "androidx.core:core:1.12.0"
-    testImplementation "junit:junit:4.13.2"
+    v14Implementation 'androidx.appcompat:appcompat:1.6.1'
+    if (getGradle().getStartParameter().getTaskRequests().toString().contains("Full") && !getGradle().getStartParameter().getTaskRequests().toString().contains("FullV14")) {
+        implementation 'androidx.core:core:1.12.0'
+    }
+    testImplementation 'junit:junit:4.13.2'
 }
 
 static def gitCommitsCount(rootDir) {

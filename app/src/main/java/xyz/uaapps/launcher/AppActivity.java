@@ -1,8 +1,6 @@
 package xyz.uaapps.launcher;
 
-import android.content.ComponentName;
-import android.content.Intent;
-
+import android.content.*;
 import java.util.Set;
 
 public interface AppActivity {

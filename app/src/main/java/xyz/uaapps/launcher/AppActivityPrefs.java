@@ -15,10 +15,8 @@
  */
 package xyz.uaapps.launcher;
 
-import android.content.ContentValues;
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
+import android.content.*;
+import android.database.sqlite.*;
 
 /**
  * This is a convenience class write persistent information to save to restore {@link RegularAppActivity} objects.

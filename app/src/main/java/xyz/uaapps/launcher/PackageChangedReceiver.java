@@ -15,24 +15,10 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.content.Intent.ACTION_EXTERNAL_APPLICATIONS_AVAILABLE;
-import static android.content.Intent.ACTION_EXTERNAL_APPLICATIONS_UNAVAILABLE;
-import static android.content.Intent.ACTION_PACKAGES_SUSPENDED;
-import static android.content.Intent.ACTION_PACKAGES_UNSUSPENDED;
-import static android.content.Intent.ACTION_PACKAGE_ADDED;
-import static android.content.Intent.ACTION_PACKAGE_CHANGED;
-import static android.content.Intent.ACTION_PACKAGE_REMOVED;
-import static android.content.Intent.ACTION_PACKAGE_REPLACED;
-import static android.content.Intent.EXTRA_CHANGED_PACKAGE_LIST;
+import android.content.*;
+import static android.content.Intent.*;
 import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.CUPCAKE;
-import static android.os.Build.VERSION_CODES.FROYO;
-import static android.os.Build.VERSION_CODES.N;
-
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import static android.os.Build.VERSION_CODES.*;
 
 public class PackageChangedReceiver extends BroadcastReceiver {
     private final F f;

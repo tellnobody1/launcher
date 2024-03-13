@@ -1,9 +1,9 @@
 package xyz.uaapps.launcher;
 
+import android.annotation.TargetApi;
 import android.content.pm.*;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.*;
-import androidx.annotation.RequiresApi;
 import java.util.*;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.*;
@@ -67,7 +67,7 @@ public abstract class InfoOps<Info> {
     private static final CharSequence RLM = "\u200F";
 }
 
-@RequiresApi(api = LOLLIPOP)
+@TargetApi(LOLLIPOP)
 class LauncherActivityInfoOps extends InfoOps<LauncherActivityInfo> {
     public LauncherActivityInfoOps(LauncherActivityInfo info, PackageManager pm) {
         super(info, pm);

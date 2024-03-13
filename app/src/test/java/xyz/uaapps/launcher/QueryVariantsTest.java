@@ -1,18 +1,12 @@
 package xyz.uaapps.launcher;
 
-import static org.junit.Assert.assertEquals;
-import static xyz.uaapps.launcher.QueryVariants.checkAll;
-
+import java.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import static org.junit.Assert.assertEquals;
+import static xyz.uaapps.launcher.QueryVariants.checkAll;
 
 @RunWith(Parameterized.class)
 public class QueryVariantsTest {

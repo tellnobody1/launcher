@@ -15,28 +15,18 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED;
-import static android.os.Build.VERSION_CODES.HONEYCOMB;
-import static android.os.Build.VERSION_CODES.JELLY_BEAN_MR1;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
-
-import android.content.ComponentName;
-import android.content.Intent;
+import android.annotation.TargetApi;
+import android.content.*;
 import android.content.pm.LauncherActivityInfo;
 import android.os.UserManager;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-
-import java.util.Collections;
-import java.util.Set;
+import java.util.*;
+import static android.content.Intent.*;
+import static android.os.Build.VERSION_CODES.*;
 
 public class RegularUserAppActivityImpl implements RegularUserAppActivity {
     private final String activityLabel;
     private final Set<String> labels;
-    @Nullable private final String iconKey;
+    private final String iconKey;
     private final Intent launchIntent;
     /**
      * The user serial, to be used to retrieve a {@link android.os.UserHandle} as necessary.
@@ -53,12 +43,12 @@ public class RegularUserAppActivityImpl implements RegularUserAppActivity {
      * @param info Information to derive the LaunchableActivity from.
      * @param manager The service to retrieve user information about the activity from.
      */
-    @RequiresApi(api = LOLLIPOP)
+    @TargetApi(LOLLIPOP)
     public RegularUserAppActivityImpl(
-            @NonNull LauncherActivityInfo info,
+            LauncherActivityInfo info,
             UserManager manager,
             Set<String> labels,
-            @Nullable String iconKey) {
+            String iconKey) {
         launchIntent = getLaunchableIntent(info.getComponentName());
         activityLabel = info.getLabel().toString();
         this.iconKey = iconKey;
@@ -67,7 +57,7 @@ public class RegularUserAppActivityImpl implements RegularUserAppActivity {
         this.labels = labels;
     }
 
-    @RequiresApi(api = HONEYCOMB)
+    @TargetApi(HONEYCOMB)
     private static Intent getLaunchableIntent(ComponentName componentName) {
         var launchIntent = Intent.makeMainActivity(componentName);
         launchIntent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
@@ -80,7 +70,7 @@ public class RegularUserAppActivityImpl implements RegularUserAppActivity {
      * @return A user serial, {@code Long.MIN_VALUE} if there is no user serial assigned to this
      * object.
      */
-    @RequiresApi(api = JELLY_BEAN_MR1)
+    @TargetApi(JELLY_BEAN_MR1)
     public long getUserSerial() {
         return userSerial;
     }
@@ -105,7 +95,6 @@ public class RegularUserAppActivityImpl implements RegularUserAppActivity {
         return activityLabel;
     }
 
-    @Nullable
     public String getIconKey() {
         return iconKey;
     }

@@ -15,32 +15,15 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
-
 import android.content.Context;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.Filter;
-import android.widget.Filterable;
-import android.widget.TextView;
-
-import androidx.annotation.LayoutRes;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import java.text.Collator;
-import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import android.view.*;
+import android.widget.*;
+import java.text.*;
+import java.util.*;
 import java.util.regex.Pattern;
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.GINGERBREAD;
+import static android.os.Build.VERSION_CODES.LOLLIPOP;
 
 public class AppsAdapter extends BaseAdapter implements Filterable {
 
@@ -92,7 +75,7 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
     /**
      * @param resource The resource ID for a layout file containing a TextView to use when instantiating views.
      */
-    public AppsAdapter(@NonNull Context context, @LayoutRes int resource, int initialSize) {
+    public AppsAdapter(Context context, int resource, int initialSize) {
         this.context = context;
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
@@ -120,7 +103,7 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
     }
 
     @Override
-    public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
+    public View getDropDownView(int position, View convertView, ViewGroup parent) {
         final TextView text;
 
         if (convertView == null) {
@@ -136,7 +119,6 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
         return text;
     }
 
-    @NonNull
     public Filter getFilter() {
         return mFilter;
     }
@@ -152,7 +134,6 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
      * @throws IndexOutOfBoundsException if the index is out of range
      *                                   (<tt>index &lt; 0 || index &gt;= size()</tt>)
      */
-    @Nullable
     @Override
     public AppActivity getItem(int position) {
         return mObjects.get(position);
@@ -171,9 +152,8 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
      * @param parent      The parent {@code View}.
      * @return The {@code View} to use in the {@code GridView}.
      */
-    @NonNull
     @Override
-    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+    public View getView(int position, View convertView, ViewGroup parent) {
         final View view;
 
         if (convertView == null) {
@@ -325,7 +305,7 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
         }
 
         private String stripAccents(CharSequence cs) {
-            return DIACRITICAL_MARKS.matcher(Normalizer.normalize(cs, Normalizer.Form.NFKD)).replaceAll("");
+            return SDK_INT >= GINGERBREAD ? DIACRITICAL_MARKS.matcher(Normalizer.normalize(cs, Normalizer.Form.NFKD)).replaceAll("") : cs.toString();
         }
     }
 }

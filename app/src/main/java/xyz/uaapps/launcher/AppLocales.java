@@ -1,17 +1,11 @@
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
-import static android.os.Build.VERSION_CODES.N;
-import static java.util.Locale.ENGLISH;
-
 import android.content.Context;
 import android.content.res.Configuration;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.*;
+import static java.util.Locale.ENGLISH;
 
 public class AppLocales {
     /** @return english + defaults + assets */

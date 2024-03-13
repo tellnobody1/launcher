@@ -15,40 +15,29 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-import static android.content.Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED;
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.BASE;
-import static android.os.Build.VERSION_CODES.GINGERBREAD;
-
 import android.annotation.TargetApi;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
+import android.content.*;
+import android.content.pm.*;
+import java.util.*;
+import static android.content.Intent.*;
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.*;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import java.util.Collections;
-import java.util.Set;
-
-@TargetApi(value = BASE)
+@TargetApi(BASE)
 public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
     private final String mActivityLabel;
     private final Set<String> labels;
-    @Nullable private final String iconKey;
+    private final String iconKey;
     private final Intent mLaunchIntent;
     private boolean favorite;
     private final String id;
 
     public RegularIntentAppActivityImpl(
-            @NonNull ResolveInfo info,
-            @NonNull SharedPreferences prefs,
-            @Nullable PackageManager manager,
+            ResolveInfo info,
+            SharedPreferences prefs,
+            PackageManager manager,
             Set<String> labels,
-            @Nullable String iconKey) {
+            String iconKey) {
         var activityInfo = info.activityInfo;
         var name = new ComponentName(activityInfo.packageName, activityInfo.name);
         mLaunchIntent = getLaunchableIntent(name);
@@ -69,7 +58,14 @@ public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
     }
 
     private static Intent getLaunchableIntent(ComponentName componentName) {
-        var launchIntent = Intent.makeMainActivity(componentName);
+        Intent launchIntent;
+        if (SDK_INT >= HONEYCOMB) {
+            launchIntent = Intent.makeMainActivity(componentName);
+        } else {
+            launchIntent = new Intent(ACTION_MAIN);
+            launchIntent.addCategory(CATEGORY_LAUNCHER);
+            launchIntent.setComponent(componentName);
+        }
         launchIntent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         return launchIntent;
     }
@@ -98,7 +94,6 @@ public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
         return mActivityLabel;
     }
 
-    @Nullable
     public String getIconKey() {
         return iconKey;
     }

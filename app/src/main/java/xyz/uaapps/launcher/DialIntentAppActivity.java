@@ -1,9 +1,8 @@
 package xyz.uaapps.launcher;
 
-import static android.content.Intent.ACTION_DIAL;
-
 import android.content.Intent;
 import android.net.Uri;
+import static android.content.Intent.ACTION_DIAL;
 
 public class DialIntentAppActivity implements IntentAppActivity {
     private final Intent intent;

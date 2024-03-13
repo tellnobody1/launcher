@@ -15,9 +15,22 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK;
-import static android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP;
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.content.*;
+import android.content.pm.*;
+import android.net.Uri;
+import android.os.*;
+import android.preference.PreferenceManager;
+import android.text.*;
+import android.view.*;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.*;
+import android.widget.AdapterView.*;
+import android.widget.TextView.OnEditorActionListener;
+import java.util.*;
+import static android.content.Intent.*;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.BASE;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
@@ -28,60 +41,12 @@ import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
 import static android.os.Build.VERSION_CODES.TIRAMISU;
 import static android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS;
-import static android.view.KeyEvent.ACTION_DOWN;
-import static android.view.KeyEvent.KEYCODE_ENTER;
-import static android.view.View.GONE;
-import static android.view.View.VISIBLE;
-import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN;
-import static android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE;
+import static android.view.KeyEvent.*;
+import static android.view.View.*;
+import static android.view.WindowManager.LayoutParams.*;
 import static android.view.inputmethod.EditorInfo.IME_ACTION_GO;
 import static java.util.Collections.emptyMap;
 import static java.util.Locale.ENGLISH;
-
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.LauncherActivityInfo;
-import android.content.pm.LauncherApps;
-import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
-import android.net.Uri;
-import android.os.Bundle;
-import android.os.UserManager;
-import android.preference.PreferenceManager;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.KeyEvent;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.EditText;
-import android.widget.GridView;
-import android.widget.TextView;
-import android.widget.TextView.OnEditorActionListener;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
-import androidx.annotation.StringRes;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 
 public class MainActivity extends Activity {
     private AppsAdapter mAdapter;
@@ -105,7 +70,7 @@ public class MainActivity extends Activity {
         return getLaunchableActivity(item.getMenuInfo());
     }
 
-    private static Collection<ResolveInfo> getLaunchableResolveInfos(PackageManager pm, @Nullable String activityName) {
+    private static Collection<ResolveInfo> getLaunchableResolveInfos(PackageManager pm, String activityName) {
         var intent = new Intent();
         intent.setAction(Intent.ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -116,8 +81,8 @@ public class MainActivity extends Activity {
 
     @TargetApi(value = N)
     private void addToAdapter(
-            @NonNull AppsAdapter adapter,
-            @NonNull Iterable<LauncherActivityInfo> infoList,
+            AppsAdapter adapter,
+            Iterable<LauncherActivityInfo> infoList,
             Map<LauncherActivityInfo, Map<Locale, String>> labels) {
         var thisCanonicalName = getClass().getCanonicalName();
         var manager = (UserManager) getSystemService(USER_SERVICE);
@@ -130,15 +95,15 @@ public class MainActivity extends Activity {
 
     @TargetApi(value = BASE)
     private void addToAdapter_1(
-            @NonNull AppsAdapter adapter,
-            @NonNull Iterable<ResolveInfo> infoList,
+            AppsAdapter adapter,
+            Iterable<ResolveInfo> infoList,
             Map<ResolveInfo, Map<Locale, String>> labels) {
         var prefs = getPreferences(Context.MODE_PRIVATE);
         var thisCanonicalName = getClass().getCanonicalName();
         for (var info : infoList) {
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
-                @Nullable var activityLabels = labels.get(info);
-                @NonNull var activityLabels2 = activityLabels == null ? Collections.<Locale, String>emptyMap() : activityLabels;
+                var activityLabels = labels.get(info);
+                var activityLabels2 = activityLabels == null ? Collections.<Locale, String>emptyMap() : activityLabels;
                 var labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
                 adapter.add(new RegularIntentAppActivityImpl(info, prefs, getPackageManager(), valuesSet(activityLabels2), labelEn));
             }
@@ -246,7 +211,7 @@ public class MainActivity extends Activity {
         return adapter;
     }
 
-    @RequiresApi(api = N)
+    @TargetApi(N)
     private Map<LauncherActivityInfo, Map<Locale, String>> getLabels(List<LauncherActivityInfo> activityList, PackageManager pm) {
         var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
         var locales = AppLocales.getLabelLocales(getResources().getConfiguration());
@@ -290,7 +255,7 @@ public class MainActivity extends Activity {
         if (SDK_INT >= ICE_CREAM_SANDWICH)
             SwipeOps.init(new SwipeOps.F() {
                 public void onRefresh() { showKeyboard(); }
-                public SwipeLayout view(@StringRes int id) { return findViewById(id); }
+                public SwipeLayout view(int id) { return findViewById(id); }
             });
 
         if (SDK_INT >= TIRAMISU)
@@ -429,7 +394,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    @RequiresApi(api = CUPCAKE)
+    @TargetApi(CUPCAKE)
     private class SearchEditTextEditorActionListener implements OnEditorActionListener {
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
             var enterPressed = event != null && event.getAction() == ACTION_DOWN && event.getKeyCode() == KEYCODE_ENTER;

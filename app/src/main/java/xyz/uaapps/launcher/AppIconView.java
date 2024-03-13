@@ -1,26 +1,16 @@
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.LOLLIPOP;
-import static xyz.uaapps.launcher.AppIcons.getIcons;
-
 import android.content.Context;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.drawable.VectorDrawable;
-import android.util.AttributeSet;
-import android.util.TypedValue;
+import android.graphics.*;
+import android.util.*;
 import android.view.View;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import static xyz.uaapps.launcher.AppIcons.getIcons;
 
 public class AppIconView extends View {
     private Paint paint;
     private String letter;
     private Integer hash;
-    private VectorDrawable vectorDrawable;
+    private IconVectorDrawable vectorDrawable;
 
     public AppIconView(Context context) {
         super(context);
@@ -43,17 +33,26 @@ public class AppIconView extends View {
         paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24, getResources().getDisplayMetrics()));
     }
 
-    public void set(CharSequence label, @Nullable String iconKey) {
-        if (iconKey != null && getIcons().containsKey(iconKey) && SDK_INT >= LOLLIPOP) {
-            vectorDrawable = (VectorDrawable) getContext().getDrawable(getIcons().get(iconKey));
-            vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
-            letter = null;
-        } else if (label.length() > 0) {
-            vectorDrawable = null;
-            letter = String.valueOf(label.charAt(0)).toUpperCase();
+    public void set(CharSequence label, String iconKey) {
+        if (iconKey != null && getIcons().containsKey(iconKey)) {
+            vectorDrawable = IconVectorDrawable.apply(getContext(), getIcons().get(iconKey));
+            if (vectorDrawable != null) {
+                letter = null;
+                vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+            } else {
+                setLetter(label);
+            }
+        } else {
+            setLetter(label);
         }
         hash = label.hashCode();
         invalidate();
+    }
+
+    private void setLetter(CharSequence label) {
+        vectorDrawable = null;
+        if (label.length() > 0)
+            letter = String.valueOf(label.charAt(0)).toUpperCase();
     }
 
     @Override
@@ -63,7 +62,7 @@ public class AppIconView extends View {
     }
 
     @Override
-    protected void onDraw(@NonNull Canvas canvas) {
+    protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
         var centerX = getWidth() / 2f;

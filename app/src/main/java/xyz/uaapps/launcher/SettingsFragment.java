@@ -15,21 +15,15 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION_CODES.HONEYCOMB;
-
+import android.annotation.TargetApi;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.Preference;
-import android.preference.PreferenceFragment;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import android.preference.*;
+import android.view.*;
+import static android.os.Build.VERSION_CODES.HONEYCOMB;
 
-import androidx.annotation.RequiresApi;
-import androidx.annotation.StringRes;
-
-@RequiresApi(api = HONEYCOMB)
+@TargetApi(HONEYCOMB)
 public class SettingsFragment extends PreferenceFragment {
 
     @Override
@@ -49,7 +43,7 @@ public class SettingsFragment extends PreferenceFragment {
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
-    private Preference findPreference(@StringRes int prefKey) {
+    private Preference findPreference(int prefKey) {
         return findPreference(getString(prefKey));
     }
 }

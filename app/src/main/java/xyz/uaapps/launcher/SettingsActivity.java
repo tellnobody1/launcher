@@ -15,12 +15,11 @@
  */
 package xyz.uaapps.launcher;
 
-import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.HONEYCOMB;
-
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.widget.ListView;
+import static android.os.Build.VERSION.SDK_INT;
+import static android.os.Build.VERSION_CODES.HONEYCOMB;
 
 public class SettingsActivity extends PreferenceActivity {
 
