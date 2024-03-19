@@ -30,6 +30,7 @@ import android.widget.*;
 import android.widget.AdapterView.*;
 import android.widget.TextView.OnEditorActionListener;
 import java.util.*;
+import java.util.concurrent.*;
 import static android.content.Intent.*;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.BASE;
@@ -50,13 +51,45 @@ import static java.util.Locale.ENGLISH;
 
 public class MainActivity extends Activity {
     private AppsAdapter mAdapter;
+    private int packagesHash;
     private boolean packagesChanged = false;
     private boolean visible = false;
 
-    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver(() -> {
-        if (visible) restartActivity();
-        else packagesChanged = true;
-    });
+    private final ExecutorService exec = Executors.newSingleThreadExecutor();
+
+    private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver(() ->
+        exec.execute(() -> {
+            if (visible) if (isPackagesReallyChanged()) restartActivity();
+            else packagesChanged = true;
+        })
+    );
+
+    private boolean isPackagesReallyChanged() {
+        return packagesChanged && calculateHash() != packagesHash;
+    }
+
+    private int calculateHash() {
+        if (SDK_INT >= N) {
+            var manager = (UserManager) getSystemService(USER_SERVICE);
+            var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
+            var hash = 1;
+            for (UserHandle userHandle : manager.getUserProfiles()) {
+                for (var a : launcherApps.getActivityList(null, userHandle)) {
+                    var userSerial = manager.getSerialNumberForUser(a.getUser());
+                    hash = 31 * hash + Objects.hash(a.getName(), userSerial);
+                }
+            }
+            return hash;
+        } else {
+            var pm = getPackageManager();
+            var infoList = getLaunchableResolveInfos(pm, null);
+            var hash = 1;
+            for (var i : infoList) {
+                hash = 31 * hash + i.activityInfo.name.hashCode();
+            }
+            return hash;
+        }
+    }
 
     private static AppActivity getLaunchableActivity(View view) {
         return (AppActivity) view.findViewById(R.id.appIcon).getTag();
@@ -72,8 +105,8 @@ public class MainActivity extends Activity {
 
     private static Collection<ResolveInfo> getLaunchableResolveInfos(PackageManager pm, String activityName) {
         var intent = new Intent();
-        intent.setAction(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
+        intent.setAction(ACTION_MAIN);
+        intent.addCategory(CATEGORY_LAUNCHER);
         if (SDK_INT >= DONUT)
             intent.setPackage(activityName);
         return pm.queryIntentActivities(intent, 0);
@@ -157,7 +190,7 @@ public class MainActivity extends Activity {
 
     private boolean isCurrentLauncher() {
         var pm = getPackageManager();
-        var intent = new Intent(Intent.ACTION_MAIN);
+        var intent = new Intent(ACTION_MAIN);
         intent.addCategory(Intent.CATEGORY_HOME);
         var resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
         return resolveInfo != null && getPackageName().equals(resolveInfo.activityInfo.packageName);
@@ -259,6 +292,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.main_activity);
         var prefs = new SharedAppPrefs(this);
 
+        packagesHash = calculateHash();
+
         if (SDK_INT >= ICE_CREAM_SANDWICH)
             SwipeOps.init(new SwipeOps.F() {
                 public void onRefresh() { showKeyboard(); }
@@ -292,8 +327,8 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         visible = true;
-        new Thread(() -> {
-            if (packagesChanged) restartActivity();
+        exec.execute(() -> {
+            if (packagesChanged && isPackagesReallyChanged()) restartActivity();
             else runOnUiThread(this::hideKeyboard);
         });
     }
@@ -308,6 +343,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        exec.shutdownNow();
         mAdapter.onStop();
         unregisterReceiver(packageChangeReceiver);
         super.onDestroy();
