@@ -48,6 +48,7 @@ import static android.view.WindowManager.LayoutParams.*;
 import static android.view.inputmethod.EditorInfo.IME_ACTION_GO;
 import static java.util.Collections.emptyMap;
 import static java.util.Locale.ENGLISH;
+import static xyz.uaapps.launcher.AppLocales.getLabelLocales;
 
 public class MainActivity extends Activity {
     private AppsAdapter mAdapter;
@@ -196,65 +197,42 @@ public class MainActivity extends Activity {
         if (SDK_INT >= N) {
             var manager = (UserManager) getSystemService(USER_SERVICE);
             var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
+            var locales = getLabelLocales(getResources().getConfiguration());
             for (var userHandle : manager.getUserProfiles()) {
-                var activityList = launcherApps.getActivityList(null, userHandle);
-                var labels = getLabels(activityList, pm);
-                for (var info : activityList)
+                var activities = launcherApps.getActivityList(null, userHandle);
+                var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
+                for (var info : activities) {
+                    var ops = new LauncherActivityInfoOps(info, pm);
+                    labels.put(info, ops.getLabels(locales));
                     if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
                         var activityLabels = labels.getOrDefault(info, emptyMap());
                         acc.add(new RegularUserAppActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(ENGLISH, null)));
                     }
+                }
             }
         } else {
             var infoList = getLaunchableResolveInfos(pm, null);
-            var labels = getLabels_1(infoList, pm);
+            var labels = new HashMap<ResolveInfo, Map<Locale, String>>();
+            var locales = getLabelLocales(getResources().getConfiguration());
             var prefs = getPreferences(MODE_PRIVATE);
-            for (var info : infoList)
+            for (var info : infoList) {
+                var ops = new ResolveInfoOps(info, pm);
+                labels.put(info, ops.getLabels(locales));
                 if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
                     var activityLabels = labels.get(info);
                     var activityLabels2 = activityLabels == null ? Collections.<Locale, String>emptyMap() : activityLabels;
                     var labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
                     acc.add(new RegularIntentAppActivityImpl(info, prefs, getPackageManager(), valuesSet(activityLabels2), labelEn));
                 }
+            }
         }
         return acc;
-    }
-
-    //todo inline
-    @TargetApi(N)
-    private Map<LauncherActivityInfo, Map<Locale, String>> getLabels(List<LauncherActivityInfo> activityList, PackageManager pm) {
-        var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
-        var locales = AppLocales.getLabelLocales(getResources().getConfiguration());
-        for (var activityInfo : activityList) {
-            var ops = new LauncherActivityInfoOps(activityInfo, pm);
-            labels.put(activityInfo, ops.getLabels(locales));
-        }
-        return labels;
-    }
-
-    //todo inline
-    private Map<ResolveInfo, Map<Locale, String>> getLabels_1(Collection<ResolveInfo> infoList, PackageManager pm) {
-        var labels = new HashMap<ResolveInfo, Map<Locale, String>>();
-        var locales = AppLocales.getLabelLocales(getResources().getConfiguration());
-        for (var resolveInfo : infoList) {
-            var ops = new ResolveInfoOps(resolveInfo, pm);
-            labels.put(resolveInfo, ops.getLabels(locales));
-        }
-        return labels;
     }
 
     @Override
     public void onBackPressed() {
         if (isCurrentLauncher()) hideKeyboard();
         else moveTaskToBack(false);
-    }
-
-    public void onClickClearButton(View view) {
-        clearSearchEditText();
-    }
-
-    public void onClickSearch(View view) {
-        showKeyboard();
     }
 
     @Override
@@ -279,8 +257,8 @@ public class MainActivity extends Activity {
         if (prefs.isShowSearchButton())
             findViewById(R.id.search_button).setVisibility(VISIBLE);
 
-        findViewById(R.id.clear_button).setOnClickListener(v -> onClickClearButton(null));
-        findViewById(R.id.search_button).setOnClickListener(v -> onClickSearch(null));
+        findViewById(R.id.clear_button).setOnClickListener(v -> clearSearchEditText());
+        findViewById(R.id.search_button).setOnClickListener(v -> showKeyboard());
 
         mAdapter = loadLaunchableAdapter();
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
