@@ -214,7 +214,6 @@ public class MainActivity extends Activity {
             var infoList = getLaunchableResolveInfos(pm, null);
             var labels = new HashMap<ResolveInfo, Map<Locale, String>>();
             var locales = getLabelLocales(getResources().getConfiguration());
-            var prefs = getPreferences(MODE_PRIVATE);
             for (var info : infoList) {
                 var ops = new ResolveInfoOps(info, pm);
                 labels.put(info, ops.getLabels(locales));
@@ -222,7 +221,7 @@ public class MainActivity extends Activity {
                     var activityLabels = labels.get(info);
                     var activityLabels2 = activityLabels == null ? Collections.<Locale, String>emptyMap() : activityLabels;
                     var labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
-                    acc.add(new RegularIntentAppActivityImpl(info, prefs, getPackageManager(), valuesSet(activityLabels2), labelEn));
+                    acc.add(new RegularIntentAppActivityImpl(info, getPackageManager(), valuesSet(activityLabels2), labelEn));
                 }
             }
         }

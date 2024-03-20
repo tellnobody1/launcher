@@ -26,33 +26,22 @@ import static android.os.Build.VERSION_CODES.*;
 
 @TargetApi(BASE)
 public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
-    private final String mActivityLabel;
+    private final String activityLabel;
     private final Set<String> labels;
     private final String iconKey;
-    private final Intent mLaunchIntent;
+    private final Intent launchIntent;
     private boolean favorite;
     private final String id;
 
     public RegularIntentAppActivityImpl(
             ResolveInfo info,
-            SharedPreferences prefs, //todo
             PackageManager manager,
             Set<String> labels,
             String iconKey) {
         var activityInfo = info.activityInfo;
         var name = new ComponentName(activityInfo.packageName, activityInfo.name);
-        mLaunchIntent = getLaunchableIntent(name);
-        /* Returns the actual label from the info and stores it locally, or retrieve it locally. */
-        if (prefs.contains(activityInfo.packageName) && manager != null) {
-            mActivityLabel = prefs.getString(activityInfo.packageName, null);
-        } else {
-            mActivityLabel = info.loadLabel(manager).toString();
-            if (SDK_INT >= GINGERBREAD) {
-                prefs.edit().putString(activityInfo.packageName, mActivityLabel).apply();
-            } else {
-                var result = prefs.edit().putString(activityInfo.packageName, mActivityLabel).commit();
-            }
-        }
+        this.launchIntent = getLaunchableIntent(name);
+        this.activityLabel = info.loadLabel(manager).toString();
         this.labels = labels;
         this.iconKey = iconKey;
         this.id = activityInfo.name;
@@ -72,11 +61,11 @@ public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
     }
 
     public ComponentName getComponent() {
-        return mLaunchIntent.getComponent();
+        return launchIntent.getComponent();
     }
 
     public Intent getLaunchIntent() {
-        return mLaunchIntent;
+        return launchIntent;
     }
 
     public boolean isFavorite() {
@@ -92,7 +81,7 @@ public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
     }
 
     public String getActivityLabel() {
-        return mActivityLabel;
+        return activityLabel;
     }
 
     public String getIconKey() {
