@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
 
     private AppsAdapter loadLaunchableAdapter() {
         var adapter = new AppsAdapter(this, R.layout.app_grid_item);
-        for (var app : apps()) adapter.add(app); //todo addAll
+        adapter.addAll(apps());
         adapter.sortApps();
         adapter.notifyDataSetChanged();
         return adapter;

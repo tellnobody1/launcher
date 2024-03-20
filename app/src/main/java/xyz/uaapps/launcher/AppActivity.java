@@ -12,7 +12,7 @@ interface IntentAppActivity extends AppActivity {
     Intent getLaunchIntent();
 }
 
-interface RegularAppActivity extends AppActivity {
+interface RegularAppActivity extends AppActivity { //todo make public inner
     ComponentName getComponent();
 
     void setFavorite(boolean priority);

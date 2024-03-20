@@ -76,14 +76,11 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
         mPrefs = new AppActivityPrefs(context);
     }
 
-    public void add(RegularAppActivity object) {
-        mPrefs.restoreFavorite(object); //todo restore in batch
-
+    public void addAll(List<RegularAppActivity> apps) {
+        mPrefs.restoreFavorites(apps);
         synchronized (mLock) {
-            if (mOriginalValues == null)
-                mObjects.add(object);
-            else
-                mOriginalValues.add(object);
+            if (mOriginalValues == null) mObjects.addAll(apps);
+            else mOriginalValues.addAll(apps);
         }
     }
 
@@ -91,8 +88,8 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
         synchronized (mLock) {
             mOriginalValues = null;
             mObjects.clear();
+            addAll(apps);
         }
-        for (var app : apps) add(app); //todo addAll
     }
 
     @Override

@@ -17,6 +17,8 @@ package xyz.uaapps.launcher;
 
 import android.content.*;
 import android.database.sqlite.*;
+import android.text.TextUtils;
+import java.util.*;
 
 /**
  * This is a convenience class write persistent information to save to restore {@link RegularAppActivity} objects.
@@ -25,7 +27,7 @@ public class AppActivityPrefs extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
     private static final String KEY_CLASSNAME = "ClassName";
     private static final String KEY_FAVORITE = "Favorite";
-    private static final String KEY_ID = "Id";
+    private static final String KEY_ID = "Id"; //todo remove
     private static final String TABLE_NAME = "Favorites";
 
     public AppActivityPrefs(Context context) {
@@ -50,18 +52,37 @@ public class AppActivityPrefs extends SQLiteOpenHelper {
         }
     }
 
-    public void restoreFavorite(RegularAppActivity activity) {
+    public void restoreFavorites(List<RegularAppActivity> activities) {
+        if (activities == null || activities.isEmpty()) {
+            return;
+        }
+
         var db = getReadableDatabase();
-        var columns = new String[]{KEY_FAVORITE};
+        var columns = new String[]{KEY_CLASSNAME, KEY_FAVORITE};
 
-        var whereArgs = new String[]{activity.getId()};
+        // Build a selection string for querying multiple IDs
+        var selection = KEY_CLASSNAME + " IN (" + TextUtils.join(",", Collections.nCopies(activities.size(), "?")) + ")";
+        var selectionArgs = new String[activities.size()];
+        for (var i = 0; i < activities.size(); i++) {
+            selectionArgs[i] = activities.get(i).getId();
+        }
 
-        var cursor = db.query(TABLE_NAME, columns, KEY_CLASSNAME + "=?", whereArgs, null, null, null);
+        var cursor = db.query(TABLE_NAME, columns, selection, selectionArgs, null, null, null);
         try {
-            if (cursor.moveToFirst()) {
-                var column = cursor.getColumnIndex(KEY_FAVORITE);
-                if (column != -1)
-                    activity.setFavorite(cursor.getInt(column) == 1);
+            var classIndex = cursor.getColumnIndex(KEY_CLASSNAME);
+            var favoriteIndex = cursor.getColumnIndex(KEY_FAVORITE);
+
+            while (cursor.moveToNext()) {
+                var id = cursor.getString(classIndex);
+                var isFavorite = cursor.getInt(favoriteIndex) == 1;
+
+                // Update the favorite status of the corresponding activity
+                for (var activity : activities) {
+                    if (activity.getId().equals(id)) {
+                        activity.setFavorite(isFavorite);
+                        break;
+                    }
+                }
             }
         } finally {
             cursor.close();
