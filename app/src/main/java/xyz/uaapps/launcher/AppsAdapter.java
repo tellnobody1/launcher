@@ -53,7 +53,7 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
      * This field contains the database used to store persistent values for
      * {@link AppActivity} objects.
      */
-    private final AppActivityPrefs mPrefs;
+    private final FavoritesDb favoritesDb;
 
     private final Context context;
 
@@ -74,11 +74,12 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
         this.context = context;
         mDropDownResource = resource;
         mObjects = Collections.synchronizedList(new LinkedList<>());
-        mPrefs = new AppActivityPrefs(context);
+        favoritesDb = new FavoritesDb(context);
     }
 
     public void addAll(List<RegularAppActivity> apps) {
-        mPrefs.restoreFavorites(apps);
+        var favorites = favoritesDb.getAll();
+        for (var app : apps) if (favorites.contains(app.getId())) app.setFavorite(true);
         synchronized (mLock) {
             if (mOriginalValues == null) mObjects.addAll(apps);
             else mOriginalValues.addAll(apps);
@@ -180,7 +181,7 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
      * This method should be called before the parent context is destroyed.
      */
     public void onStop() {
-        mPrefs.close();
+        favoritesDb.close();
     }
 
     private void sort(Comparator<AppActivity> comparator1, Comparator<RegularAppActivity> comparator2) {

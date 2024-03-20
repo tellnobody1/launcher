@@ -325,11 +325,11 @@ public class MainActivity extends Activity {
         if (activity instanceof RegularAppActivity a) {
             a.setFavorite(!a.isFavorite());
 
-            var prefs = new AppActivityPrefs(this);
+            var db = new FavoritesDb(this);
             try {
-                prefs.saveFavorite(a);
+                db.save(a.getId(), a.isFavorite());
             } finally {
-                prefs.close();
+                db.close();
             }
 
             mAdapter.sortApps();
