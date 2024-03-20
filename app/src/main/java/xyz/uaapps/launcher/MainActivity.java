@@ -32,8 +32,8 @@ import android.widget.TextView.OnEditorActionListener;
 import java.util.*;
 import java.util.concurrent.*;
 import static android.content.Intent.*;
+import static android.content.pm.PackageManager.MATCH_DEFAULT_ONLY;
 import static android.os.Build.VERSION.SDK_INT;
-import static android.os.Build.VERSION_CODES.BASE;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
@@ -68,25 +68,19 @@ public class MainActivity extends Activity {
     }
 
     private int calculateHash() {
+        var hash = 1;
         if (SDK_INT >= N) {
             var manager = (UserManager) getSystemService(USER_SERVICE);
             var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-            var hash = 1;
-            for (UserHandle userHandle : manager.getUserProfiles()) {
-                for (var a : launcherApps.getActivityList(null, userHandle)) {
-                    var userSerial = manager.getSerialNumberForUser(a.getUser());
-                    hash = 31 * hash + Objects.hash(a.getName(), userSerial);
-                }
-            }
-            return hash;
+            for (UserHandle userHandle : manager.getUserProfiles())
+                for (var a : launcherApps.getActivityList(null, userHandle))
+                    hash = 31 * hash + Objects.hash(a.getName(), manager.getSerialNumberForUser(userHandle));
         } else {
             var infoList = getLaunchableResolveInfos(getPackageManager(), null);
-            var hash = 1;
-            for (var i : infoList) {
+            for (var i : infoList)
                 hash = 31 * hash + i.activityInfo.name.hashCode();
-            }
-            return hash;
         }
+        return hash;
     }
 
     private static AppActivity getLaunchableActivity(View view) {
@@ -108,39 +102,6 @@ public class MainActivity extends Activity {
         if (SDK_INT >= DONUT)
             intent.setPackage(activityName);
         return pm.queryIntentActivities(intent, 0);
-    }
-
-    //todo inline
-    @TargetApi(value = N)
-    private void addToAdapter(
-            AppsAdapter adapter,
-            Iterable<LauncherActivityInfo> infoList,
-            Map<LauncherActivityInfo, Map<Locale, String>> labels) {
-        var thisCanonicalName = getClass().getCanonicalName();
-        var manager = (UserManager) getSystemService(USER_SERVICE);
-        for (var info : infoList)
-            if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
-                var activityLabels = labels.getOrDefault(info, emptyMap());
-                adapter.add(new RegularUserAppActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(ENGLISH, null)));
-            }
-    }
-
-    //todo inline
-    @TargetApi(value = BASE)
-    private void addToAdapter_1(
-            AppsAdapter adapter,
-            Iterable<ResolveInfo> infoList,
-            Map<ResolveInfo, Map<Locale, String>> labels) {
-        var prefs = getPreferences(MODE_PRIVATE);
-        var thisCanonicalName = getClass().getCanonicalName();
-        for (var info : infoList) {
-            if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
-                var activityLabels = labels.get(info);
-                var activityLabels2 = activityLabels == null ? Collections.<Locale, String>emptyMap() : activityLabels;
-                var labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
-                adapter.add(new RegularIntentAppActivityImpl(info, prefs, getPackageManager(), valuesSet(activityLabels2), labelEn));
-            }
-        }
     }
 
     private static Set<String> valuesSet(Map<Locale, String> xs) {
@@ -191,8 +152,8 @@ public class MainActivity extends Activity {
     private boolean isCurrentLauncher() {
         var pm = getPackageManager();
         var intent = new Intent(ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_HOME);
-        var resolveInfo = pm.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        intent.addCategory(CATEGORY_HOME);
+        var resolveInfo = pm.resolveActivity(intent, MATCH_DEFAULT_ONLY);
         return resolveInfo != null && getPackageName().equals(resolveInfo.activityInfo.packageName);
     }
 
@@ -220,23 +181,8 @@ public class MainActivity extends Activity {
     }
 
     private AppsAdapter loadLaunchableAdapter() {
-        AppsAdapter adapter;
-        var pm = getPackageManager();
-        if (SDK_INT >= N) {
-            var manager = (UserManager) getSystemService(USER_SERVICE);
-            var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-            adapter = new AppsAdapter(this, R.layout.app_grid_item);
-            for (var userHandle : manager.getUserProfiles()) {
-                var activityList = launcherApps.getActivityList(null, userHandle);
-                var labels = getLabels(activityList, pm);
-                addToAdapter(adapter, activityList, labels);
-            }
-        } else {
-            var infoList = getLaunchableResolveInfos(pm, null);
-            adapter = new AppsAdapter(this, R.layout.app_grid_item);
-            var labels = getLabels_1(infoList, pm);
-            addToAdapter_1(adapter, infoList, labels);
-        }
+        var adapter = new AppsAdapter(this, R.layout.app_grid_item);
+        for (var app : apps()) adapter.add(app); //todo addAll
         adapter.sortApps();
         adapter.notifyDataSetChanged();
         return adapter;
@@ -273,6 +219,7 @@ public class MainActivity extends Activity {
         return acc;
     }
 
+    //todo inline
     @TargetApi(N)
     private Map<LauncherActivityInfo, Map<Locale, String>> getLabels(List<LauncherActivityInfo> activityList, PackageManager pm) {
         var labels = new HashMap<LauncherActivityInfo, Map<Locale, String>>();
@@ -284,6 +231,7 @@ public class MainActivity extends Activity {
         return labels;
     }
 
+    //todo inline
     private Map<ResolveInfo, Map<Locale, String>> getLabels_1(Collection<ResolveInfo> infoList, PackageManager pm) {
         var labels = new HashMap<ResolveInfo, Map<Locale, String>>();
         var locales = AppLocales.getLabelLocales(getResources().getConfiguration());

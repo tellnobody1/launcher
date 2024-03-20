@@ -34,7 +34,7 @@ public class RegularIntentAppActivityImpl implements RegularIntentAppActivity {
 
     public RegularIntentAppActivityImpl(
             ResolveInfo info,
-            SharedPreferences prefs,
+            SharedPreferences prefs, //todo
             PackageManager manager,
             Set<String> labels,
             String iconKey) {
