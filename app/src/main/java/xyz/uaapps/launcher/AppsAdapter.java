@@ -62,12 +62,6 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
      */
     private final int mDropDownResource;
 
-    /**
-     * Indicates whether or not {@link #notifyDataSetChanged()} must be called whenever
-     * {@link #mObjects} is modified.
-     */
-    private boolean mNotifyOnChange = false;
-
     // A copy of the original mObjects array, initialized from and then used instead as soon as
     // the mFilter ArrayFilter is used. mObjects will then only contain the filtered values.
     private List<RegularAppActivity> mOriginalValues;
@@ -75,26 +69,30 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
     /**
      * @param resource The resource ID for a layout file containing a TextView to use when instantiating views.
      */
-    public AppsAdapter(Context context, int resource, int initialSize) {
+    public AppsAdapter(Context context, int resource) {
         this.context = context;
         mDropDownResource = resource;
-        mObjects = Collections.synchronizedList(new ArrayList<>(initialSize));
+        mObjects = Collections.synchronizedList(new LinkedList<>());
         mPrefs = new AppActivityPrefs(context);
     }
 
     public void add(RegularAppActivity object) {
-        mPrefs.restoreFavorite(object);
+        mPrefs.restoreFavorite(object); //todo restore in batch
 
         synchronized (mLock) {
-            if (mOriginalValues == null) {
+            if (mOriginalValues == null)
                 mObjects.add(object);
-            } else {
+            else
                 mOriginalValues.add(object);
-            }
         }
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
+    }
+
+    public void replaceAll(List<RegularAppActivity> apps) {
+        synchronized (mLock) {
+            mOriginalValues = null;
+            mObjects.clear();
         }
+        for (var app : apps) add(app); //todo addAll
     }
 
     @Override
@@ -181,39 +179,22 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
     }
 
     /**
-     * Notifies the attached observers that the underlying data has been changed
-     * and any View reflecting the data set should refresh itself.
-     */
-    @Override
-    public void notifyDataSetChanged() {
-        super.notifyDataSetChanged();
-        mNotifyOnChange = true;
-    }
-
-    /**
      * This method should be called before the parent context is destroyed.
      */
     public void onStop() {
         mPrefs.close();
     }
 
-    public void sort(Comparator<AppActivity> comparator1, Comparator<RegularAppActivity> comparator2) {
+    private void sort(Comparator<AppActivity> comparator1, Comparator<RegularAppActivity> comparator2) {
         synchronized (mLock) {
             Collections.sort(mObjects, comparator1);
-            if (mOriginalValues != null) {
+            if (mOriginalValues != null)
                 Collections.sort(mOriginalValues, comparator2);
-            }
-        }
-        if (mNotifyOnChange) {
-            notifyDataSetChanged();
         }
     }
 
     public void sortApps() {
         synchronized (mLock) {
-            final boolean notify = mNotifyOnChange;
-            mNotifyOnChange = false;
-
             var locale = AppLocales.getDefault(context);
             final Collator collator = Collator.getInstance(locale);
             collator.setStrength(Collator.PRIMARY);
@@ -229,10 +210,6 @@ public class AppsAdapter extends BaseAdapter implements Filterable {
             };
             Comparator<RegularAppActivity> comparator4 = (o1, o2) -> (o2.isFavorite() ? 1 : 0) - (o1.isFavorite() ? 1 : 0);
             sort(comparator3, comparator4);
-
-            if (notify) {
-                notifyDataSetChanged();
-            }
         }
     }
 

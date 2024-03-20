@@ -36,7 +36,6 @@ import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.BASE;
 import static android.os.Build.VERSION_CODES.CUPCAKE;
 import static android.os.Build.VERSION_CODES.DONUT;
-import static android.os.Build.VERSION_CODES.HONEYCOMB;
 import static android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 import static android.os.Build.VERSION_CODES.N;
@@ -59,7 +58,7 @@ public class MainActivity extends Activity {
 
     private final BroadcastReceiver packageChangeReceiver = new PackageChangedReceiver(() ->
         exec.execute(() -> {
-            if (visible) if (isPackagesReallyChanged()) restartActivity();
+            if (visible) if (isPackagesReallyChanged()) replaceApps();
             else packagesChanged = true;
         })
     );
@@ -81,8 +80,7 @@ public class MainActivity extends Activity {
             }
             return hash;
         } else {
-            var pm = getPackageManager();
-            var infoList = getLaunchableResolveInfos(pm, null);
+            var infoList = getLaunchableResolveInfos(getPackageManager(), null);
             var hash = 1;
             for (var i : infoList) {
                 hash = 31 * hash + i.activityInfo.name.hashCode();
@@ -112,6 +110,7 @@ public class MainActivity extends Activity {
         return pm.queryIntentActivities(intent, 0);
     }
 
+    //todo inline
     @TargetApi(value = N)
     private void addToAdapter(
             AppsAdapter adapter,
@@ -126,12 +125,13 @@ public class MainActivity extends Activity {
             }
     }
 
+    //todo inline
     @TargetApi(value = BASE)
     private void addToAdapter_1(
             AppsAdapter adapter,
             Iterable<ResolveInfo> infoList,
             Map<ResolveInfo, Map<Locale, String>> labels) {
-        var prefs = getPreferences(Context.MODE_PRIVATE);
+        var prefs = getPreferences(MODE_PRIVATE);
         var thisCanonicalName = getClass().getCanonicalName();
         for (var info : infoList) {
             if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
@@ -225,30 +225,52 @@ public class MainActivity extends Activity {
         if (SDK_INT >= N) {
             var manager = (UserManager) getSystemService(USER_SERVICE);
             var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
-            var iter = manager.getUserProfiles().listIterator();
-            int count = 0;
-
-            while (iter.hasNext()) {
-                count += launcherApps.getActivityList(null, iter.next()).size();
-            }
-
-            adapter = new AppsAdapter(this, R.layout.app_grid_item, count);
-
-            while (iter.hasPrevious()) {
-                var activityList = launcherApps.getActivityList(null, iter.previous());
+            adapter = new AppsAdapter(this, R.layout.app_grid_item);
+            for (var userHandle : manager.getUserProfiles()) {
+                var activityList = launcherApps.getActivityList(null, userHandle);
                 var labels = getLabels(activityList, pm);
                 addToAdapter(adapter, activityList, labels);
             }
         } else {
             var infoList = getLaunchableResolveInfos(pm, null);
-            adapter = new AppsAdapter(this, R.layout.app_grid_item, infoList.size());
+            adapter = new AppsAdapter(this, R.layout.app_grid_item);
             var labels = getLabels_1(infoList, pm);
             addToAdapter_1(adapter, infoList, labels);
         }
         adapter.sortApps();
         adapter.notifyDataSetChanged();
-
         return adapter;
+    }
+
+    private List<RegularAppActivity> apps() {
+        var acc = new LinkedList<RegularAppActivity>();
+        var pm = getPackageManager();
+        var thisCanonicalName = getClass().getCanonicalName();
+        if (SDK_INT >= N) {
+            var manager = (UserManager) getSystemService(USER_SERVICE);
+            var launcherApps = (LauncherApps) getSystemService(LAUNCHER_APPS_SERVICE);
+            for (var userHandle : manager.getUserProfiles()) {
+                var activityList = launcherApps.getActivityList(null, userHandle);
+                var labels = getLabels(activityList, pm);
+                for (var info : activityList)
+                    if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.getName())) {
+                        var activityLabels = labels.getOrDefault(info, emptyMap());
+                        acc.add(new RegularUserAppActivityImpl(info, manager, valuesSet(activityLabels), activityLabels.getOrDefault(ENGLISH, null)));
+                    }
+            }
+        } else {
+            var infoList = getLaunchableResolveInfos(pm, null);
+            var labels = getLabels_1(infoList, pm);
+            var prefs = getPreferences(MODE_PRIVATE);
+            for (var info : infoList)
+                if (thisCanonicalName == null || !thisCanonicalName.startsWith(info.activityInfo.packageName)) {
+                    var activityLabels = labels.get(info);
+                    var activityLabels2 = activityLabels == null ? Collections.<Locale, String>emptyMap() : activityLabels;
+                    var labelEn = activityLabels2.containsKey(ENGLISH) ? activityLabels2.get(ENGLISH) : null;
+                    acc.add(new RegularIntentAppActivityImpl(info, prefs, getPackageManager(), valuesSet(activityLabels2), labelEn));
+                }
+        }
+        return acc;
     }
 
     @TargetApi(N)
@@ -328,17 +350,15 @@ public class MainActivity extends Activity {
         super.onResume();
         visible = true;
         exec.execute(() -> {
-            if (packagesChanged && isPackagesReallyChanged()) restartActivity();
+            if (packagesChanged && isPackagesReallyChanged()) replaceApps();
             else runOnUiThread(this::hideKeyboard);
         });
     }
 
-    private void restartActivity() {
-        var intent = new Intent(this, getClass());
-        int flags = SDK_INT >= HONEYCOMB ? FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK : FLAG_ACTIVITY_CLEAR_TOP | FLAG_ACTIVITY_NEW_TASK;
-        intent.addFlags(flags);
-        startActivity(intent);
-        finish();
+    private void replaceApps() {
+        mAdapter.replaceAll(apps());
+        mAdapter.sortApps();
+        mAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -386,6 +406,7 @@ public class MainActivity extends Activity {
             }
 
             mAdapter.sortApps();
+            mAdapter.notifyDataSetChanged();
         }
     }
 
