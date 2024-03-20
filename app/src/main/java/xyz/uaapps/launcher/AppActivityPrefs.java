@@ -19,6 +19,7 @@ import android.content.*;
 import android.database.sqlite.*;
 import android.text.TextUtils;
 import java.util.*;
+import xyz.uaapps.launcher.AppActivity.RegularAppActivity;
 
 /**
  * This is a convenience class write persistent information to save to restore {@link RegularAppActivity} objects.

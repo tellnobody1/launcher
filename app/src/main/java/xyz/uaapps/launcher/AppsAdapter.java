@@ -21,6 +21,7 @@ import android.widget.*;
 import java.text.*;
 import java.util.*;
 import java.util.regex.Pattern;
+import xyz.uaapps.launcher.AppActivity.RegularAppActivity;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.GINGERBREAD;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;

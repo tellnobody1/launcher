@@ -31,6 +31,7 @@ import android.widget.AdapterView.*;
 import android.widget.TextView.OnEditorActionListener;
 import java.util.*;
 import java.util.concurrent.*;
+import xyz.uaapps.launcher.AppActivity.*;
 import static android.content.Intent.*;
 import static android.content.pm.PackageManager.MATCH_DEFAULT_ONLY;
 import static android.os.Build.VERSION.SDK_INT;

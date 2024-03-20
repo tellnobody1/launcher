@@ -20,6 +20,7 @@ import android.content.*;
 import android.content.pm.LauncherActivityInfo;
 import android.os.UserManager;
 import java.util.*;
+import xyz.uaapps.launcher.AppActivity.RegularUserAppActivity;
 import static android.content.Intent.*;
 import static android.os.Build.VERSION_CODES.*;
 

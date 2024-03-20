@@ -19,6 +19,7 @@ import android.annotation.TargetApi;
 import android.content.*;
 import android.content.pm.*;
 import java.util.*;
+import xyz.uaapps.launcher.AppActivity.RegularIntentAppActivity;
 import static android.content.Intent.*;
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.*;
