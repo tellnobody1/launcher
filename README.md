@@ -10,7 +10,7 @@ It is a fast, free, minimalist Android Launcher.
 ## installation
 
 ### Downloading the APK
-1. Navigate to the [latest release](https://github.com/uaapps/launcher/releases/latest) of the app.
+1. Navigate to the [latest release](https://github.com/tellnobody1/launcher/releases/latest) of the app.
 2. Choose the APK that suits your needs:
    * **Standard APK**: Contains all features and icons.
    * **Lite APK**: A lighter version without icons for a more minimalistic experience.
