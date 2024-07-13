@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.*;
+import java.text.Collator;
 import java.util.*;
 
 public class MainActivity extends Activity {
@@ -39,6 +40,11 @@ public class MainActivity extends Activity {
                 var packageName = pack.packageName;
                 res.add(new AppInfo(appName, packageName));
             }
+        { /* sort with default locale */
+            var collator = Collator.getInstance();
+            collator.setStrength(Collator.PRIMARY);
+            Collections.sort(res, (o1, o2) -> collator.compare(o1.appName(), o2.appName()));
+        }
         return res;
     }
 
