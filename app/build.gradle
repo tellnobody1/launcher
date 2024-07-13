@@ -1,0 +1,60 @@
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'github.tellnobody1.launcher'
+        minSdkVersion 1
+        targetSdkVersion 34
+        versionCode gitCommitsCount(rootDir)
+        versionName gitDescribe(rootDir)
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    namespace 'github.tellnobody1.launcher'
+}
+
+static def gitCommitsCount(rootDir) {
+    try (
+        var repository = new FileRepositoryBuilder().setWorkTree(rootDir).build();
+        var revWalk = new RevWalk(repository)
+    ) {
+        var headCommit = revWalk.parseCommit(repository.resolve("HEAD"))
+        revWalk.markStart(headCommit)
+
+        var commitCount = 0
+        revWalk.each { commitCount++ }
+
+        return commitCount
+    }
+}
+
+static def gitDescribe(rootDir) {
+    try (
+        var repository = new FileRepositoryBuilder().setWorkTree(rootDir).build();
+        var git = new Git(repository)
+    ) {
+        return git.describe().call()
+    }
+}
