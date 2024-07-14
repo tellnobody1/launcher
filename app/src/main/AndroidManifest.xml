@@ -1,31 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
-
-    <uses-sdk tools:overrideLibrary="androidx.core,androidx.versionedparcelable,androidx.interpolator,androidx.lifecycle.runtime,androidx.arch.core,androidx.annotation.experimental"/>
-
-    <uses-permission
-        android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" />
+    package="github.tellnobody1.launcher">
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+    </queries>
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:icon="@android:color/transparent"
+        android:roundIcon="@android:color/transparent"
         android:label="Launcher"
-        android:resizeableActivity="true"
-        tools:ignore="AllowBackup,GoogleAppIndexingWarning"
-        tools:targetApi="n">
-
+        android:resizeableActivity="false"
+        android:supportsRtl="true">
         <activity
             android:name=".MainActivity"
-            android:alwaysRetainTaskState="true"
-            android:exported="true"
             android:launchMode="singleTask"
-            android:windowSoftInputMode="stateHidden|adjustResize">
+            android:exported="true">
+
+            <!-- Intent Filter for the Launcher Activity -->
             <intent-filter>
-                <action android:name="android.intent.action.ASSIST" />
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Intent Filter for Home Category -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
     </application>
